@@ -19,13 +19,13 @@ exports.handler = (event, context, callback) => {
     }
     */
 
-    if(event.queryStringParameters){
+    if (event.queryStringParameters) {
         // process GET request
 
         console.log("GET request received");
 
         handleGet(event, context, callback);
-    }else{
+    } else {
         // process POST request
 
         console.log("POST request received");
@@ -34,33 +34,31 @@ exports.handler = (event, context, callback) => {
     }
 };
 
-function verifySignature(signature){
+function verifySignature(signature) {
     var shasum;
 
     console.log(signature);
 
-    if(signature){
+    if (signature) {
         shasum = crypto.createHash('sha1');
         shasum.update(FACEBOOK_APP_SECRET);
 
-        if(signature === shasum.digest("hex")){
+        if (signature === shasum.digest("hex")) {
             return true;
-        }else{
+        } else {
             console.log("HTTP signature: " + signature + ", digest: " + shasum.digest("hex"));
         }
     }
     return false;
 }
 
-function handleGet(evt, context, callback){
+function handleGet(evt, context, callback) {
     var response;
     var queryParams = evt.queryStringParameters;
 
-    //console.log(JSON.Stringify(queryParams));
-
     var verifyToken = queryParams["hub.verify_token"];
 
-    if(verifyToken === FACEBOOK_VERIFY_TOKEN){
+    if (verifyToken === FACEBOOK_VERIFY_TOKEN) {
         var challengeToken = parseInt(queryParams["hub.challenge"]);
 
         console.log("Responding to Facebook challenge token");
@@ -70,7 +68,7 @@ function handleGet(evt, context, callback){
             status: 200,
             body: parseInt(challengeToken)
         };
-    }else{
+    } else {
         console.log("Incorrect validation token received");
 
         response = {
@@ -83,7 +81,7 @@ function handleGet(evt, context, callback){
     callback(null, response);
 }
 
-function handlePost(evt, context, callback){
+function handlePost(evt, context, callback) {
     var response;
 
     console.log("Responding with a 200 OK");
@@ -95,7 +93,7 @@ function handlePost(evt, context, callback){
     };
     callback(null, response);
 
-    if(evt.body){
+    if (evt.body) {
         var data = JSON.parse(evt.body);
 
         console.log("entire HTTP request data: ", data);
@@ -112,19 +110,19 @@ function handlePost(evt, context, callback){
                         // Normal message
 
                         handleReceivedMessage(msg);
-                    } else if(msg.delivery){
+                    } else if (msg.delivery) {
                         handleDeliveryReceipt(msg);
-                    } else if(msg.read){
+                    } else if (msg.read) {
                         handleReadReceipt(msg);
-                    }else{
+                    } else {
                         console.log("Webhook received unknown event with data: ", msg);
                     }
                 });
             });
-        }else{
+        } else {
             console.log("Something went wrong, expected 'page', got '" + data.object + "'");
         }
-    }else{
+    } else {
         console.log("POST request body was null");
     }
 
@@ -146,7 +144,7 @@ function handlePost(evt, context, callback){
     */
 }
 
-function handleReceivedMessage(message){
+function handleReceivedMessage(message) {
     /*
         message = {
             sender: {id: [SENDER_ID]},          // should be the user
@@ -173,45 +171,44 @@ function handleReceivedMessage(message){
     var messageText = messageData.text;
     var messageAttachments = messageData.attachments;
 
-    if(messageText){
+    if (messageText) {
         // If we receive a text message, check to see if it matches a keyword
         // and send back the example. Otherwise, just echo the text we received.
 
         var result = analyseMessage(messageText);
         var messageResponse = generateResponse(result);
-        if(messageResponse){
+        if (messageResponse) {
             sendTextMessage(senderId, messageResponse);
         }
-    }else if(messageAttachments){
+    } else if (messageAttachments) {
         sendTextMessage(senderId, "Message with attachment received");
     }
 }
 
-function analyseMessage(messageText){
+function analyseMessage(messageText) {
     var result = {
-        originalText: messageText
+        originalText: messageText,
         language: null,
         keywords: null,
         dateRange: null
     };
 
-
     return result;
 }
 
-function generateResponse(result){
+function generateResponse(result) {
     return result.originalText; // TODO: Just a placeholder for now, later on do more than just echo the message
 }
 
-function handleDeliveryReceipt(message){
-    console.log("Message delivery response: ", msg.delivery);
+function handleDeliveryReceipt(message) {
+    console.log("Message delivery response: ", message.delivery);
 }
 
-function handleReadReceipt(message){
-    console.log("Message read response: ", msg.read);
+function handleReadReceipt(message) {
+    console.log("Message read response: ", message.read);
 }
 
-function sendTextMessage(recipientId, messageText){
+function sendTextMessage(recipientId, messageText) {
     var messageData = {
         sender: {
             id: FACEBOOK_PAGE_ID
@@ -227,7 +224,7 @@ function sendTextMessage(recipientId, messageText){
     callSendAPI(messageData);
 }
 
-function callSendAPI(messageData){
+function callSendAPI(messageData) {
     var body = JSON.stringify(messageData);
     var path = "/v2.6/me/messages?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
     var options = {
@@ -241,10 +238,10 @@ function callSendAPI(messageData){
 
     var callback = function(response) {
         var str = "";
-        response.on("data", function (chunk) {
+        response.on("data", function(chunk) {
             str += chunk;
         });
-        response.on("end", function () {
+        response.on("end", function() {
             postDeliveryCallback(str);
         });
     };
@@ -258,6 +255,6 @@ function callSendAPI(messageData){
     req.end();
 }
 
-function postDeliveryCallback(str){
+function postDeliveryCallback(str) {
     console.log("callback end, got " + str);
 }
