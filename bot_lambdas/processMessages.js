@@ -98,6 +98,8 @@ function handlePost(evt, context, callback){
     if(evt.body){
         var data = JSON.parse(evt.body);
 
+        console.log("entire HTTP request data: ", data);
+
         // Make sure this is a page subscription
         if (data.object === "page") {
             // Iterate over each entry - there may be multiple if batched
@@ -109,11 +111,11 @@ function handlePost(evt, context, callback){
                     if (msg.message) {
                         // Normal message
 
-                        receivedMessage(msg);
+                        handleReceivedMessage(msg);
                     } else if(msg.delivery){
-                        console.log("Message delivery response: ", msg.delivery);
+                        handleDeliveryReceipt(msg);
                     } else if(msg.read){
-                        console.log("Message read response: ", msg.read);
+                        handleReadReceipt(msg);
                     }else{
                         console.log("Webhook received unknown event with data: ", msg);
                     }
@@ -144,33 +146,69 @@ function handlePost(evt, context, callback){
     */
 }
 
-function receivedMessage(messageEvent){
-    var senderId = messageEvent.sender.id;
-    var recipientId = messageEvent.recipient.id;
-    var timeOfMessage = messageEvent.timestamp;
-    var message = messageEvent.message;
+function handleReceivedMessage(message){
+    /*
+        message = {
+            sender: {id: [SENDER_ID]},          // should be the user
+            recipient: {id: [RECIPIENT_ID]},    // should be page ID
+            timestamp: [TIMESTAMP],
+            message: {
+                mid: [MESSAGE_ID],
+                text: [MESSAGE_TEXT],
+                attachments: [ATTACHMENTS]
+            }
+        }
+    */
+    var senderId = message.sender.id;
+    var recipientId = message.recipient.id;
+    var timeOfMessage = message.timestamp;
+    var messageData = message.message;
+
+    console.log("entire message data structure: ", message);
 
     console.log("Received message for user %d and page %d at %d with message:", senderId, recipientId, timeOfMessage);
-    console.log("Message data: ", message);
+    console.log("Message data: ", messageData);
 
-    var messageId = message.mid;
-    var messageText = message.text;
-    var messageAttachments = message.attachments;
+    var messageId = messageData.mid;
+    var messageText = messageData.text;
+    var messageAttachments = messageData.attachments;
 
     if(messageText){
         // If we receive a text message, check to see if it matches a keyword
         // and send back the example. Otherwise, just echo the text we received.
 
-        switch(messageText){
-            case "generic":
-                //sendGenericMessage(senderID);
-                break;
-            default:
-                sendTextMessage(senderId, messageText);
+        var result = analyseMessage(messageText);
+        var messageResponse = generateResponse(result);
+        if(messageResponse){
+            sendTextMessage(senderId, messageResponse);
         }
     }else if(messageAttachments){
         sendTextMessage(senderId, "Message with attachment received");
     }
+}
+
+function analyseMessage(messageText){
+    var result = {
+        originalText: messageText
+        language: null,
+        keywords: null,
+        dateRange: null
+    };
+
+
+    return result;
+}
+
+function generateResponse(result){
+    return result.originalText; // TODO: Just a placeholder for now, later on do more than just echo the message
+}
+
+function handleDeliveryReceipt(message){
+    console.log("Message delivery response: ", msg.delivery);
+}
+
+function handleReadReceipt(message){
+    console.log("Message read response: ", msg.read);
 }
 
 function sendTextMessage(recipientId, messageText){
@@ -200,13 +238,14 @@ function callSendAPI(messageData){
             "Content-Type": "application/json"
         }
     };
+
     var callback = function(response) {
         var str = "";
         response.on("data", function (chunk) {
             str += chunk;
         });
         response.on("end", function () {
-            console.log("callback end, got " + str);
+            postDeliveryCallback(str);
         });
     };
 
@@ -217,4 +256,8 @@ function callSendAPI(messageData){
 
     req.write(body);
     req.end();
+}
+
+function postDeliveryCallback(str){
+    console.log("callback end, got " + str);
 }
