@@ -5,7 +5,8 @@ function Controller(mParameters){
     this._mDomElements = {
         FetchDataButton: null,
         QueryField: null,
-        OutputElement: null
+        QueryDetailArea: null,
+        OutputArea: null
     };
 
     this.init = function(mParameters){
@@ -24,7 +25,8 @@ function Controller(mParameters){
                 this._mDomElements.QueryField.addEventListener("change", this.onChangeQueryField.bind(this));
             }
 
-            this._mDomElements.OutputElement = mParameters.DomElements.OutputElement;
+            this._mDomElements.QueryDetailArea = mParameters.DomElements.QueryDetailArea;
+            this._mDomElements.OutputArea = mParameters.DomElements.OutputArea;
         }
 
         if(mParameters.MockServer){
@@ -60,15 +62,16 @@ function Controller(mParameters){
     };
 
     this.displayOutput = function(mOutput){
-        if(!this._mDomElements.OutputElement){
+        if(!this._mDomElements.QueryDetailArea || !this._mDomElements.OutputArea){
             return;
         }
 
+        this.clearQueryDetailArea();
         this.clearOutput();
 
         if(mOutput){
-            var card, column;
-            for(var prop in mOutput){
+            var prop, card, column;
+            for(var prop in mOutput.queryAnalysis){
                 column = document.createElement("div");
                 column.setAttribute("class", "col-sm-3");
 
@@ -76,7 +79,11 @@ function Controller(mParameters){
 
                 column.appendChild(card);
 
-                this._mDomElements.OutputElement.appendChild(column);
+                this._mDomElements.QueryDetailArea.appendChild(column);
+            }
+
+            for(var prop in mOutput.output){
+
             }
         }
     };
@@ -129,13 +136,23 @@ function Controller(mParameters){
         return card;
     }
 
-    this.clearOutput = function(){
-        if(!this._mDomElements.OutputElement){
+    this.clearQueryDetailArea = function(){
+        if(!this._mDomElements.QueryDetailArea){
             return;
         }
 
-        while(this._mDomElements.OutputElement.children.length > 0){
-            this._mDomElements.OutputElement.removeChild(this._mDomElements.OutputElement.lastChild);
+        while(this._mDomElements.QueryDetailArea.children.length > 0){
+            this._mDomElements.QueryDetailArea.removeChild(this._mDomElements.QueryDetailArea.lastChild);
+        }
+    };
+
+    this.clearOutput = function(){
+        if(!this._mDomElements.OutputArea){
+            return;
+        }
+
+        while(this._mDomElements.OutputArea.children.length > 0){
+            this._mDomElements.OutputArea.removeChild(this._mDomElements.OutputArea.lastChild);
         }
     };
 

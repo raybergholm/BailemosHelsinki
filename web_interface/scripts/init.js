@@ -7,7 +7,8 @@ function init(){
     parameters.DomElements = {
         FetchDataButton: document.getElementById("fetchDataButton"),
         QueryField: document.getElementById("queryField"),
-        OutputElement: document.getElementById("outputElement")
+        QueryDetailArea: document.getElementById("queryDetailArea"),
+        OutputArea: document.getElementById("outputArea"),
     };
 
     parameters.MockServer = window._mockServer;
