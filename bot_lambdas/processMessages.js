@@ -19,19 +19,19 @@ exports.handler = (event, context, callback) => {
     }
     */
 
-    if (event.queryStringParameters) {
-        // process GET request
+    var response;
 
-        console.log("GET request received");
-
-        handleGet(event, context, callback);
-    } else {
-        // process POST request
-
-        console.log("POST request received");
-
-        handlePost(event, context, callback);
+    switch(event.httpMethod){
+        case "GET":
+            response = handleGet(event.queryStringParameters);
+            break;
+        case "POST":
+            response = handlePost(event.body);
+            break;
     }
+
+    console.log("returning the following response: ", JSON.stringify(response));
+    callback(null, response);
 };
 
 function verifySignature(signature) {
@@ -52,10 +52,8 @@ function verifySignature(signature) {
     return false;
 }
 
-function handleGet(evt, context, callback) {
+function handleGet(queryParams) {
     var response;
-    var queryParams = evt.queryStringParameters;
-
     var verifyToken = queryParams["hub.verify_token"];
 
     if (verifyToken === FACEBOOK_VERIFY_TOKEN) {
@@ -77,26 +75,16 @@ function handleGet(evt, context, callback) {
             body: "Error, wrong validation token"
         };
     }
-
-    callback(null, response);
+    return response;
 }
 
-function handlePost(evt, context, callback) {
+function handlePost(postBody, response) {
     var response;
 
-    console.log("Responding with a 200 OK");
+    if (postBody) {
+        var data = JSON.parse(postBody);
 
-    response = {
-        isBase64Encoded: false,
-        status: 200,
-        body: "EVENT_RECEIVED"
-    };
-    callback(null, response);
-
-    if (evt.body) {
-        var data = JSON.parse(evt.body);
-
-        console.log("entire HTTP request data: ", data);
+        console.log("entire HTTP request data: ", postBody);
 
         // Make sure this is a page subscription
         if (data.object === "page") {
@@ -132,7 +120,8 @@ function handlePost(evt, context, callback) {
     // you've successfully received the callback. Otherwise, the request
     // will time out and we will keep trying to resend.
 
-    /*
+    // TODO: Check if it's ok if the response can be generated & returned at the end, this lambda should execute fast enough
+
     console.log("Responding with a 200 OK");
 
     response = {
@@ -140,8 +129,8 @@ function handlePost(evt, context, callback) {
         status: 200,
         body: "OK"
     };
-    callback(null, response);
-    */
+
+    return response;
 }
 
 function handleReceivedMessage(message) {
