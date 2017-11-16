@@ -1,12 +1,11 @@
 "use strict";
 
-const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
-const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
+const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
 var https = require("https");
-var crypto = require('crypto');
+var crypto = require("crypto");
 
 exports.handler = (event, context, callback) => {
     console.log(event);
@@ -21,13 +20,52 @@ exports.handler = (event, context, callback) => {
 
     var response;
 
-    switch(event.httpMethod){
-        case "GET":
-            response = handleGet(event.queryStringParameters);
-            break;
-        case "POST":
-            response = handlePost(event.body);
-            break;
+    if(event.httpMethod === "POST"){
+        if (event.body) {
+            var data = JSON.parse(event.body);
+            console.log("entire HTTP request data: ", data);
+
+            // Make sure this is a page subscription
+            if (data.object === "page") {
+                // Iterate over each entry - there may be multiple if batched
+                data.entry.forEach(function(entry) {
+                    var pageID = entry.id;
+                    var timeOfEvent = entry.time;
+                    // Iterate over each messaging event
+                    entry.messaging.forEach(function(msg) {
+                        if (msg.message) {
+                            // Normal message
+
+                            handleReceivedMessage(msg);
+                        } else if (msg.delivery) {
+                            handleDeliveryReceipt(msg);
+                        } else if (msg.read) {
+                            handleReadReceipt(msg);
+                        } else {
+                            console.log("Webhook received unknown event with data: ", msg);
+                        }
+                    });
+                });
+            } else {
+                console.log("Something went wrong, expected 'page', got '" + data.object + "'");
+            }
+        } else {
+            console.log("POST request body was null");
+        }
+
+        // Assume all went well.
+        //
+        // You must send back a 200, within 20 seconds, to let us know
+        // you've successfully received the callback. Otherwise, the request
+        // will time out and we will keep trying to resend.
+
+        // TODO: Check if it's ok if the response can be generated & returned at the end, this lambda should execute fast enough
+
+        response = {
+            isBase64Encoded: false,
+            status: 200,
+            body: "OK"
+        };
     }
 
     console.log("returning the following response: ", JSON.stringify(response));
@@ -50,87 +88,6 @@ function verifySignature(signature) {
         }
     }
     return false;
-}
-
-function handleGet(queryParams) {
-    var response;
-    var verifyToken = queryParams["hub.verify_token"];
-
-    if (verifyToken === FACEBOOK_VERIFY_TOKEN) {
-        var challengeToken = parseInt(queryParams["hub.challenge"]);
-
-        console.log("Responding to Facebook challenge token");
-
-        response = {
-            isBase64Encoded: false,
-            status: 200,
-            body: parseInt(challengeToken)
-        };
-    } else {
-        console.log("Incorrect validation token received");
-
-        response = {
-            isBase64Encoded: false,
-            status: 422,
-            body: "Error, wrong validation token"
-        };
-    }
-    return response;
-}
-
-function handlePost(postBody, response) {
-    var response;
-
-    if (postBody) {
-        var data = JSON.parse(postBody);
-
-        console.log("entire HTTP request data: ", postBody);
-
-        // Make sure this is a page subscription
-        if (data.object === "page") {
-            // Iterate over each entry - there may be multiple if batched
-            data.entry.forEach(function(entry) {
-                var pageID = entry.id;
-                var timeOfEvent = entry.time;
-                // Iterate over each messaging event
-                entry.messaging.forEach(function(msg) {
-                    if (msg.message) {
-                        // Normal message
-
-                        handleReceivedMessage(msg);
-                    } else if (msg.delivery) {
-                        handleDeliveryReceipt(msg);
-                    } else if (msg.read) {
-                        handleReadReceipt(msg);
-                    } else {
-                        console.log("Webhook received unknown event with data: ", msg);
-                    }
-                });
-            });
-        } else {
-            console.log("Something went wrong, expected 'page', got '" + data.object + "'");
-        }
-    } else {
-        console.log("POST request body was null");
-    }
-
-    // Assume all went well.
-    //
-    // You must send back a 200, within 20 seconds, to let us know
-    // you've successfully received the callback. Otherwise, the request
-    // will time out and we will keep trying to resend.
-
-    // TODO: Check if it's ok if the response can be generated & returned at the end, this lambda should execute fast enough
-
-    console.log("Responding with a 200 OK");
-
-    response = {
-        isBase64Encoded: false,
-        status: 200,
-        body: "OK"
-    };
-
-    return response;
 }
 
 function handleReceivedMessage(message) {
