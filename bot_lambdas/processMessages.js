@@ -63,7 +63,7 @@ exports.handler = (event, context, callback) => {
 
         response = {
             isBase64Encoded: false,
-            status: 200,
+            statusCode: 200,
             body: "OK"
         };
     }
