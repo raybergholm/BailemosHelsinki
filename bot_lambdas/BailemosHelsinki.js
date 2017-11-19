@@ -237,10 +237,9 @@ function sendTextMessage(recipientId, messageText) {
 function fetchEventData(){ // TODO: most likely this should be integrated elsewhere or split to other functions
     // TODO: PoC for know
 
-    var targeNode = FACEBOOK_NODES.IDanceHelsinki;
+    var targetNode = FACEBOOK_NODES.IDanceHelsinki;
 
-    var body = JSON.stringify(messageData);
-    var path = "/v2.9/" + targeNode + "/events?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
+    var path = "/v2.9/" + targetNode + "/events?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
     var options = {
         host: "graph.facebook.com",
         path: path,
@@ -265,7 +264,6 @@ function fetchEventData(){ // TODO: most likely this should be integrated elsewh
         console.log("problem with request: " + e);
     });
 
-    req.write(body);
     req.end();
 }
 
