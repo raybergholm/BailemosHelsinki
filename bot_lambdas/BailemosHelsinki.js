@@ -23,10 +23,10 @@ exports.handler = (event, context, callback) => {
 
     switch (event.httpMethod) {
         case "GET":
-            response = handleGet(event.queryStringParameters);
+            response = handleFacebookChallenge(event.queryStringParameters);
             break;
         case "POST":
-            response = handlePost(JSON.parse(event.body));
+            response = processMessages(JSON.parse(event.body));
             break;
     }
 
@@ -52,7 +52,7 @@ function verifySignature(signature) {
     return false;
 }
 
-function handleGet(queryParams) {
+function handleFacebookChallenge(queryParams) {
     var response;
     var verifyToken = queryParams["hub.verify_token"];
 
@@ -78,7 +78,7 @@ function handleGet(queryParams) {
     return response;
 }
 
-function handlePost(data) {
+function processMessages(data) {
     var response;
 
     if (data) {
@@ -204,7 +204,7 @@ function sendTextMessage(recipientId, messageText) {
             id: recipientId
         },
         message: {
-            text: "ECHO: " + messageText
+            text: messageText
         }
     };
 
