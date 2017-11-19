@@ -183,13 +183,18 @@ function handleReceivedMessage(message) {
         // If we receive a text message, check to see if it matches a keyword
         // and send back the example. Otherwise, just echo the text we received.
 
-        var result = analyseMessage(messageText);
-        var messageResponse = generateResponse(result);
-        if (messageResponse) {
-            sendTextMessage(senderId, messageResponse);
+
+        if(/update data/.test(messageText.toLowerCase())){ // TODO: less hardcoding
+            sendTextMessage(senderId, "Ok, done!");
+            fetchEventData();
+        }else{
+            var result = analyseMessage(messageText);
+            var messageResponse = generateResponse(result);
+            if (messageResponse) {
+                sendTextMessage(senderId, messageResponse);
+            }
         }
 
-        fetchEventData();
     } else if (messageAttachments) {
         sendTextMessage(senderId, "Message with attachment received");
     }
