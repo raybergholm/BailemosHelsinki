@@ -6,7 +6,13 @@ const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
 
 var AWS = require('aws-sdk');
-var dynamodb = new AWS.DynamoDB({apiVersion: '2017-11-20'}); // TODO: any special significance to this timestamp?
+AWS.config.update({
+    region: 'eu-central-1'
+});
+
+var dynamodb = new AWS.DynamoDB({
+    apiVersion: '2017-11-20'    // TODO: any special significance to this timestamp?
+});
 
 exports.handler = (event, context, callback) => {
     console.log(event);
@@ -38,7 +44,7 @@ function fetchNodes() {
 
     dynamodb.scan({
         TableName: EVENT_ORGANISER_TABLE_NAME,
-        Limit: 20
+        Limit: 50
     }, function(err, data) {
         var line;
         if (err) {
