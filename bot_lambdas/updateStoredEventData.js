@@ -23,8 +23,6 @@ exports.handler = (event, context, callback) => {
 
     fetchData(nodes);
 
-
-
     var response = {
         isBase64Encoded: false,
         statusCode: 200,
@@ -35,17 +33,17 @@ exports.handler = (event, context, callback) => {
     callback(null, response);
 };
 
-function fetchNodes(){
+function fetchNodes() {
     // TODO: fetch the relevant nodes from DynamoDB
 
     dynamodb.scan({
-        TableName : EVENT_ORGANISER_TABLE_NAME,
-        Limit : 20
+        TableName: EVENT_ORGANISER_TABLE_NAME,
+        Limit: 20
     }, function(err, data) {
         var line;
         if (err) {
             console.log("error reading DynamoDB: ", err);
-        }else{
+        } else {
             for (var item in data.Items) {
                 line = data.Items[item];
 
@@ -55,19 +53,19 @@ function fetchNodes(){
     });
 }
 
-function fetchData(nodes){
-    for(var node in nodes){
+function fetchData(nodes) {
+    for (var node in nodes) {
         queryFacebookApi(node, nodes[node]); // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
     }
 }
 
-function queryFacebookApi(nodeName, nodeId){
+function queryFacebookApi(nodeName, nodeId) {
     // TODO:
 }
 
-function generateApiUrl(targetNode){
+function generateApiUrl(targetNode) {
     return {
         path: "/v2.9/" + targetNode + "/events",
-        accessToken: "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
-    }
+        accessToken: "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN
+    };
 }
