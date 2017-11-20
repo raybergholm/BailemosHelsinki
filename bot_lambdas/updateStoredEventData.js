@@ -8,27 +8,6 @@ const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
 var AWS = require('aws-sdk');
 var dynamodb = new AWS.DynamoDB({apiVersion: '2017-11-20'}); // TODO: any special significance to this timestamp?
 
-const FACEBOOK_NODES = {    // TODO: Move this to S3 or DynamoDB maybe?
-    IDanceHelsinki: 343877245641683,
-    SalsaLatina: 218545868207533,
-    BailaBaila: 149017031808062,
-    SalsaStudioHelsinki: 410366985000,
-    HelsinkiSalsaAcademy: 187046454640210,
-    SalsaBorealis: 181612268553494,
-    RioZoukStyle: 341108445941295,
-    LambazoukFinland: 1632263940334820,
-    KirsiAndCarlosKizomba: 325466984269341,
-
-    FiestaLatinaHelsinki: 622387527900387,
-
-    VeDance: 1866639140232828,
-    SalsaGarage: 750517591779604,
-
-    DJGoodblood: 1563545733858318,
-    DJLuchoHelsinki: 155127126480,
-    DJHermanni: 213430002067432
-};
-
 exports.handler = (event, context, callback) => {
     console.log(event);
 
@@ -83,7 +62,7 @@ function fetchData(nodes){
 }
 
 function queryFacebookApi(nodeName, nodeId){
-    // TODO: 
+    // TODO:
 }
 
 function generateApiUrl(targetNode){
