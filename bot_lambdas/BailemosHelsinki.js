@@ -5,7 +5,7 @@ const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
 
-const FACEBOOK_NODES = {    // TODO: Move this to S3 or DynamoDB maybe?
+const FACEBOOK_NODES = { // TODO: Move this to S3 or DynamoDB maybe?
     IDanceHelsinki: 343877245641683,
     SalsaLatina: 218545868207533,
     BailaBaila: 149017031808062,
@@ -183,11 +183,10 @@ function handleReceivedMessage(message) {
         // If we receive a text message, check to see if it matches a keyword
         // and send back the example. Otherwise, just echo the text we received.
 
-
-        if(/update data/.test(messageText.toLowerCase())){ // TODO: less hardcoding
+        if (/update data/.test(messageText.toLowerCase())) { // TODO: less hardcoding
             sendTextMessage(senderId, "Ok, done!");
             fetchEventData();
-        }else{
+        } else {
             var result = analyseMessage(messageText);
             var messageResponse = generateResponse(result);
             if (messageResponse) {
@@ -239,7 +238,7 @@ function sendTextMessage(recipientId, messageText) {
     callSendAPI(messageData);
 }
 
-function fetchEventData(){ // TODO: most likely this should be integrated elsewhere or split to other functions
+function fetchEventData() { // TODO: most likely this should be integrated elsewhere or split to other functions
     // TODO: PoC for know
 
     var targetNode = FACEBOOK_NODES.IDanceHelsinki;
