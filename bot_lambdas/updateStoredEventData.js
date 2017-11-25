@@ -25,9 +25,7 @@ exports.handler = (event, context, callback) => {
     }
     */
 
-    var nodes = fetchNodes();
-
-    fetchData(nodes);
+    fetchNodes();
 
     var response = {
         isBase64Encoded: false,
@@ -40,28 +38,57 @@ exports.handler = (event, context, callback) => {
 };
 
 function fetchNodes() {
-    // FIXME: IAM permissions error is blocking this, but it should already have it...
-
-    return fetchNodesDebug();
+    //return fetchNodesDebug();
 
     dynamodb.scan({
         TableName: EVENT_ORGANISER_TABLE_NAME,
         Limit: 50
     }, function(err, data) {
         var line;
+        var nodes = {};
         if (err) {
             console.log("error reading DynamoDB: ", err);
         } else {
             for (var item in data.Items) {
+
+                console.log(typeof data.Items);
                 line = data.Items[item];
 
-                console.log(JSON.stringify(line));
+                /* Structure:
+                {
+                    "S3Pointer": {
+                        "S": "TODO"
+                    },
+                    "NodeType": {
+                        "S": "Group"
+                    },
+                    "NodeId": {
+                        "N": "341108445941295"
+                    },
+                    "ItemId": {
+                        "N": "7"
+                    },
+                    "Name": {
+                        "S": "RioZoukStyle"
+                    }
+                    }
+                */
+
+                //console.log(JSON.stringify(line));
+
+                nodes[line.Name.S] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
+                    Id: line.NodeId.N,
+                    Type: line.NodeType.S,
+                    S3Pointer: line.S3Pointer.S
+                };
             }
+
+            fetchData(nodes);
         }
     });
 }
 
-function fetchNodesDebug(){ // this is just the data from DynamoDB hardcoded here. Move it there when the IAM permissions issue gets fixed
+function debugFetchNodes(){ // this is just the data from DynamoDB hardcoded here. Move it there when the IAM permissions issue gets fixed
     return {
         IDanceHelsinki: 343877245641683,
         SalsaLatina: 218545868207533,
@@ -86,22 +113,24 @@ function fetchNodesDebug(){ // this is just the data from DynamoDB hardcoded her
 }
 
 function fetchData(nodes) {
+    console.log(JSON.stringify(nodes));
     for (var node in nodes) {
         queryFacebookApi(node, nodes[node]); // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
     }
 }
 
-function queryFacebookApi(nodeName, nodeId) {
-    // TODO:
+function queryFacebookApi(nodeName, nodeData) {
+    var url =  generateApiUrl(nodeData.Id);
+
 }
 
 function updateS3Data(bucket, data){
     // TODO:
 }
 
-function generateApiUrl(targetNode) {
+function generateApiUrl(targetNodeId) {
     return {
-        path: "/v2.9/" + targetNode + "/events",
+        path: "/v2.9/" + targetNodeId + "/events",
         accessToken: "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN
     };
 }
