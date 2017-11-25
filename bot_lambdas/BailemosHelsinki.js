@@ -164,7 +164,7 @@ function handleReceivedMessage(message) {
 
         if (/update data/.test(messageText.toLowerCase())) { // TODO: less hardcoding
             sendTextMessage(senderId, "Ok, done!");
-            fetchEventData();
+            debugFetchEventData();
         } else {
             var result = analyseMessage(messageText);
             var messageResponse = generateResponse(result);
@@ -217,7 +217,7 @@ function sendTextMessage(recipientId, messageText) {
     callSendAPI(messageData);
 }
 
-function fetchEventData() { // TODO: most likely this should be integrated elsewhere or split to other functions
+function debugFetchEventData() { // TODO: most likely this should be integrated elsewhere or split to other functions
     // TODO: PoC for now
 
     var targetNode = 343877245641683;
@@ -248,6 +248,10 @@ function fetchEventData() { // TODO: most likely this should be integrated elsew
     });
 
     req.end();
+}
+
+function debugFetchS3Content(){
+
 }
 
 function callSendAPI(messageData) {
