@@ -5,27 +5,6 @@ const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
 
-const FACEBOOK_NODES = { // TODO: Move this to S3 or DynamoDB maybe?
-    IDanceHelsinki: 343877245641683,
-    SalsaLatina: 218545868207533,
-    BailaBaila: 149017031808062,
-    SalsaStudioHelsinki: 410366985000,
-    HelsinkiSalsaAcademy: 187046454640210,
-    SalsaBorealis: 181612268553494,
-    RioZoukStyle: 341108445941295,
-    LambazoukFinland: 1632263940334820,
-    KirsiAndCarlosKizomba: 325466984269341,
-
-    FiestaLatinaHelsinki: 622387527900387,
-
-    VeDance: 1866639140232828,
-    SalsaGarage: 750517591779604,
-
-    DJGoodblood: 1563545733858318,
-    DJLuchoHelsinki: 155127126480,
-    DJHermanni: 213430002067432
-};
-
 var https = require("https");
 var crypto = require('crypto');
 
@@ -239,9 +218,9 @@ function sendTextMessage(recipientId, messageText) {
 }
 
 function fetchEventData() { // TODO: most likely this should be integrated elsewhere or split to other functions
-    // TODO: PoC for know
+    // TODO: PoC for now
 
-    var targetNode = FACEBOOK_NODES.IDanceHelsinki;
+    var targetNode = 343877245641683;
 
     var path = "/v2.9/" + targetNode + "/events?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
     var options = {
