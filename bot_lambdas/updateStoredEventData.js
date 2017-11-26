@@ -49,15 +49,13 @@ function fetchNodes() {
         TableName: EVENT_ORGANISER_TABLE_NAME,
         Limit: 50
     }, function(err, data) {
-        var line;
+        var item;
         var nodes = {};
         if (err) {
             console.log("error reading DynamoDB: ", err);
         } else {
-            for (var item in data.Items) {
-
-                console.log(typeof data.Items);
-                line = data.Items[item];
+            for (var prop in data.Items) {
+                item = data.Items[prop];
 
                 /* Structure:
                 {
@@ -81,10 +79,10 @@ function fetchNodes() {
 
                 //console.log(JSON.stringify(line));
 
-                nodes[line.Name.S] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
-                    Id: line.NodeId.N,
-                    Type: line.NodeType.S,
-                    S3Pointer: line.S3Pointer.S
+                nodes[item.Name.S] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
+                    Id: item.NodeId.N,
+                    Type: item.NodeType.S,
+                    S3Pointer: item.S3Pointer.S
                 };
             }
 
@@ -128,22 +126,23 @@ function fetchData(nodes) {
 }
 
 function debugS3(){
-    s3.listBuckets(function(err, data){
-        if(err){
-            console.log("S3 interface error: ", err);
-        }else{
-            console.log("bucket list", data.Buckets);
-        }
-    });
+    // s3.listBuckets(function(err, data){
+    //     if(err){
+    //         console.log("S3 interface error: ", err);
+    //     }else{
+    //         console.log("bucket list", data.Buckets);
+    //     }
+    // });
 
     s3.getObject({
         Bucket: S3_BUCKET_NAME,
-        Key: "S3 Dummy Test File.txt"
+        Key: "dummy_data.json"
     }, function(err, data){
         if(err){
             console.log("S3 interface error: ", err);
         }else{
-            console.log("bucket item data:", data);
+            console.log("bucket item metadata:", data);
+            console.log("data body content: ", data.Body.toString());
         }
     });
 }
