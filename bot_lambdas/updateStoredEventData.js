@@ -4,6 +4,7 @@ const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
 var AWS = require("aws-sdk");
 AWS.config.update({
@@ -119,17 +120,32 @@ function debugFetchNodes(){ // this is just the data from DynamoDB hardcoded her
 function fetchData(nodes) {
     console.log(JSON.stringify(nodes));
 
-    s3.listBuckets(function(err, data){
-        if(err){
-            console.log("S3 interface error: ", err);
-        }else{
-            console.log("bucket let", data.Buckets);
-        }
-    });
+    debugS3();
 
     for (var node in nodes) {
         queryFacebookApi(node, nodes[node]); // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
     }
+}
+
+function debugS3(){
+    s3.listBuckets(function(err, data){
+        if(err){
+            console.log("S3 interface error: ", err);
+        }else{
+            console.log("bucket list", data.Buckets);
+        }
+    });
+
+    s3.getObject({
+        Bucket: S3_BUCKET_NAME,
+        Key: "S3 Dummy Test File.txt"
+    }, function(err, data){
+        if(err){
+            console.log("S3 interface error: ", err);
+        }else{
+            console.log("bucket item data:", data);
+        }
+    });
 }
 
 function queryFacebookApi(nodeName, nodeData) {
@@ -137,7 +153,7 @@ function queryFacebookApi(nodeName, nodeData) {
 
 }
 
-function updateS3Data(bucket, data){
+function updateS3Data(key, data){
     // TODO:
 }
 
