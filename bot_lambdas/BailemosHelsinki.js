@@ -8,6 +8,19 @@ const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
 var https = require("https");
 var crypto = require('crypto');
 
+var AWS = require("aws-sdk");
+AWS.config.update({
+    region: "eu-central-1"
+});
+
+var dynamodb = new AWS.DynamoDB({
+    apiVersion: "2017-11-20"    // TODO: any special significance to this timestamp?
+});
+
+var s3 = new AWS.S3({
+    apiVersion: "2017-11-20"   // TODO: any special significance to this timestamp?
+});
+
 exports.handler = (event, context, callback) => {
     console.log(event);
 
