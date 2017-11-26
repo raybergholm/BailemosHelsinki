@@ -5,13 +5,17 @@ const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
 
-var AWS = require('aws-sdk');
+var AWS = require("aws-sdk");
 AWS.config.update({
-    region: 'eu-central-1'
+    region: "eu-central-1"
 });
 
 var dynamodb = new AWS.DynamoDB({
-    apiVersion: '2017-11-20'    // TODO: any special significance to this timestamp?
+    apiVersion: "2017-11-20"    // TODO: any special significance to this timestamp?
+});
+
+var s3 = new AWS.S3({
+    apiVersion: "2017-11-20"   // TODO: any special significance to this timestamp?
 });
 
 exports.handler = (event, context, callback) => {
@@ -114,13 +118,22 @@ function debugFetchNodes(){ // this is just the data from DynamoDB hardcoded her
 
 function fetchData(nodes) {
     console.log(JSON.stringify(nodes));
+
+    s3.listBuckets(function(err, data){
+        if(err){
+            console.log("S3 interface error: ", err);
+        }else{
+            console.log("bucket let", data.Buckets);
+        }
+    });
+
     for (var node in nodes) {
         queryFacebookApi(node, nodes[node]); // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
     }
 }
 
 function queryFacebookApi(nodeName, nodeData) {
-    var url =  generateApiUrl(nodeData.Id);
+    var url = generateApiUrl(nodeData.Id);
 
 }
 
