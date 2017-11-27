@@ -223,6 +223,21 @@ function sendTextMessage(recipientId, messageText) {
     callSendAPI(messageData);
 }
 
+function fetchData() {
+    s3.getObject({
+        Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
+    }, function(err, data) {
+        if (err) {
+            console.log("S3 interface error: ", err);
+        } else {
+            console.log("bucket item metadata:", data);
+            console.log("data body content: ", data.Body.toString());
+
+            // TODO: do stuff with this data (should be everything collated into one blob)
+        }
+    });
+}
+
 function debugFetchEventData() { // TODO: most likely this should be integrated elsewhere or split to other functions
     // TODO: PoC for now
 
@@ -254,10 +269,6 @@ function debugFetchEventData() { // TODO: most likely this should be integrated 
     });
 
     req.end();
-}
-
-function debugFetchS3Content(){
-
 }
 
 function callSendAPI(messageData) {
