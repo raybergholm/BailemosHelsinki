@@ -19,13 +19,11 @@ var s3 = new AWS.S3();
 exports.handler = (event, context, callback) => {
     console.log(event);
 
-    /*
     // TODO: event["X-Hub-Signature"] is always undefined, but it's definitely there. Why?
     if(!verifySignature(event['X-Hub-Signature'])){
         console.log("X-Hub_Signature did not match the expected value");
-        return;
+        // return; // TODO: allow it to pass for now, debug it later
     }
-    */
 
     var response;
 
