@@ -7,9 +7,7 @@ const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
 var AWS = require("aws-sdk");
-AWS.config.update({
-    region: "eu-central-1"
-});
+AWS.config.update({region: "eu-central-1"});
 
 var dynamodb = new AWS.DynamoDB({
     apiVersion: "2017-11-20" // TODO: any special significance to this timestamp?
@@ -82,7 +80,7 @@ function fetchNodes() {
                 nodes[item.Name.S] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
                     Id: item.NodeId.N,
                     Type: item.NodeType.S,
-                    S3Pointer: item.S3Pointer.S
+                    S3Filename: item.S3Pointer.S
                 };
             }
 
@@ -94,7 +92,7 @@ function fetchNodes() {
 function fetchData(nodes) {
     console.log(JSON.stringify(nodes));
 
-    debugS3();
+    // debugS3();
 
     for (var node in nodes) {
         queryFacebookApi(node, nodes[node]); // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
@@ -145,7 +143,7 @@ function queryFacebookApi(nodeName, nodeData) {
 
             updateS3Data(key, responseData); // key from nodeData?
         });
-    }.bind(nodeName);
+    }.bind(nodeData.S3Filename);
 
     var req = https.request(options, callback);
     req.on("error", function(err) {
@@ -155,8 +153,22 @@ function queryFacebookApi(nodeName, nodeData) {
     req.end();
 }
 
-function updateS3Data(key, data) {
-    // TODO:
+function updateS3Data(s3Filename, data) {
+    // TODO: check if this will auto-overwrite. What if the file doesn't exist yet?
+
+    var content = JSON.stringify(data);
+
+    s3.putObject({
+        Bucket: S3_BUCKET_NAME,
+        Key: s3Filename,
+        Body: content
+    }, function(err, data) {
+        if (err) {
+            console.log("S3 interface error: ", err);
+        } else {
+            console.log("putObject response metadata:", data);
+        }
+    });
 }
 
 function generateApiUrl(targetNodeId) {
