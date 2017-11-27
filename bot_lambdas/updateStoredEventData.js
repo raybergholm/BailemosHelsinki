@@ -12,11 +12,11 @@ AWS.config.update({
 });
 
 var dynamodb = new AWS.DynamoDB({
-    apiVersion: "2017-11-20"    // TODO: any special significance to this timestamp?
+    apiVersion: "2017-11-20" // TODO: any special significance to this timestamp?
 });
 
 var s3 = new AWS.S3({
-    apiVersion: "2017-11-20"   // TODO: any special significance to this timestamp?
+    apiVersion: "2017-11-20" // TODO: any special significance to this timestamp?
 });
 
 exports.handler = (event, context, callback) => {
@@ -91,30 +91,6 @@ function fetchNodes() {
     });
 }
 
-function debugFetchNodes(){ // this is just the data from DynamoDB hardcoded here. Move it there when the IAM permissions issue gets fixed
-    return {
-        IDanceHelsinki: 343877245641683,
-        SalsaLatina: 218545868207533,
-        SalsotekaLatinaAfroFlow: 100010462204294,
-        BailaBaila: 149017031808062,
-        SalsaStudioHelsinki: 410366985000,
-        HelsinkiSalsaAcademy: 187046454640210,
-        SalsaBorealis: 181612268553494,
-        RioZoukStyle: 341108445941295,
-        LambazoukFinland: 1632263940334820,
-        KirsiAndCarlosKizomba: 325466984269341,
-
-        FiestaLatinaHelsinki: 622387527900387,
-
-        VeDance: 1866639140232828,
-        SalsaGarage: 750517591779604,
-
-        DJGoodblood: 1563545733858318,
-        DJLuchoHelsinki: 155127126480,
-        DJHermanni: 213430002067432
-    };
-}
-
 function fetchData(nodes) {
     console.log(JSON.stringify(nodes));
 
@@ -125,7 +101,7 @@ function fetchData(nodes) {
     }
 }
 
-function debugS3(){
+function debugS3() {
     // s3.listBuckets(function(err, data){
     //     if(err){
     //         console.log("S3 interface error: ", err);
@@ -137,10 +113,10 @@ function debugS3(){
     s3.getObject({
         Bucket: S3_BUCKET_NAME,
         Key: "dummy_data.json"
-    }, function(err, data){
-        if(err){
+    }, function(err, data) {
+        if (err) {
             console.log("S3 interface error: ", err);
-        }else{
+        } else {
             console.log("bucket item metadata:", data);
             console.log("data body content: ", data.Body.toString());
         }
@@ -148,11 +124,38 @@ function debugS3(){
 }
 
 function queryFacebookApi(nodeName, nodeData) {
-    var url = generateApiUrl(nodeData.Id);
+    var path = generateApiUrl(nodeData.Id);
 
+    var options = {
+        host: "graph.facebook.com",
+        path: path,
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    };
+
+    var callback = function(key, response) {
+        var responseData = "";
+        response.on("data", function(chunk) {
+            responseData += chunk;
+        });
+        response.on("end", function() {
+            console.log("tried to fetch event data, got this: ", responseData);
+
+            updateS3Data(key, responseData); // key from nodeData?
+        });
+    }.bind(nodeName);
+
+    var req = https.request(options, callback);
+    req.on("error", function(err) {
+        console.log("problem with request: " + err);
+    });
+
+    req.end();
 }
 
-function updateS3Data(key, data){
+function updateS3Data(key, data) {
     // TODO:
 }
 
