@@ -54,9 +54,7 @@ function verifySignature(signature) {
     return false;
 }
 
-function fetchNodes() {
-    //return fetchNodesDebug();
-
+function fetchNodes() { // scan the entire event organiser table (won't take long, in the current scope the data size is tiny), then use that data to call the GraphAPI to get the updated data
     dynamodb.scan({
         TableName: EVENT_ORGANISER_TABLE_NAME,
         Limit: 50
@@ -86,10 +84,8 @@ function fetchNodes() {
                     "Name": {
                         "S": "RioZoukStyle"
                     }
-                    }
+                }
                 */
-
-                //console.log(JSON.stringify(line));
 
                 nodes[item.Name.S] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
                     Id: item.NodeId.N,
@@ -98,19 +94,15 @@ function fetchNodes() {
                 };
             }
 
-            fetchData(nodes);
+            console.log(JSON.stringify(nodes));
+
+            // debugS3();
+
+            for (var node in nodes) {
+                queryFacebookApi(node, nodes[node]); // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
+            }
         }
     });
-}
-
-function fetchData(nodes) {
-    console.log(JSON.stringify(nodes));
-
-    // debugS3();
-
-    for (var node in nodes) {
-        queryFacebookApi(node, nodes[node]); // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
-    }
 }
 
 function debugS3() {
