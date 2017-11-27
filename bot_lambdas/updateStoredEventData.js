@@ -6,6 +6,9 @@ const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
+var https = require("https");
+var crypto = require('crypto');
+
 var AWS = require("aws-sdk");
 AWS.config.update({region: "eu-central-1"});
 
@@ -32,6 +35,24 @@ exports.handler = (event, context, callback) => {
     console.log("returning the following response: ", JSON.stringify(response));
     callback(null, response);
 };
+
+function verifySignature(signature) {
+    var shasum;
+
+    console.log(signature);
+
+    if (signature) {
+        shasum = crypto.createHash('sha1');
+        shasum.update(FACEBOOK_APP_SECRET);
+
+        if (signature === shasum.digest("hex")) {
+            return true;
+        } else {
+            console.log("HTTP signature: " + signature + ", digest: " + shasum.digest("hex"));
+        }
+    }
+    return false;
+}
 
 function fetchNodes() {
     //return fetchNodesDebug();
