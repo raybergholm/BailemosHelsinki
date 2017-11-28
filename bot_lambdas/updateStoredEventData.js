@@ -93,10 +93,10 @@ function queryFacebookApi(nodeName, nodeData) {
                 Name: nodeData.Name,
                 Events: null
             };
-            if(responseData.error){
+            if (responseData.error) {
                 console.log("Response errored: ", responseData.error.message);
                 s3Data.Events = [];
-            }else{
+            } else {
                 s3Data.Events = responseData.data;
             }
             updateS3Data(nodeData.S3Filename, s3Data);
