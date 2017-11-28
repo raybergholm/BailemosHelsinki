@@ -45,6 +45,7 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
 
                 nodes[item.Name.S] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
                     Id: item.NodeId.N,
+                    Name: item.Name.S,
                     Type: item.NodeType.S,
                     S3Filename: item.S3Filename.S
                 };
@@ -97,19 +98,32 @@ function queryFacebookApi(nodeName, nodeData) {
         }
     };
 
-    var callback = function(key, response) {
-        var responseData = "";
+    var callback = function(nodeData, response) {
+        var responseString = "";
         response.on("data", function(chunk) {
-            responseData += chunk;
+            responseString += chunk;
         });
         response.on("end", function() {
-            console.log("tried to fetch event data, got this: ", responseData);
 
-            // updateS3Data(key, responseData); // key from nodeData?
+            // VeDance & DJGoodblood missing permissions (private?)
+            // SalsaGarage & SalsotekaLatinaAfroFlow empty events (should have public events visible?)
+
+            // do we need public group scraping?
+
+            var responseData = JSON.parse(responseString);
+            if(responseData.error){
+                console.log("Response errored: ", responseData.error.message);
+            }else if(responseData.data && responseData.data.length === 0){
+                console.log("Empty response for ", nodeData);
+            }else{
+                updateS3Data(nodeData.S3Filename, responseData.data);
+            }
         });
-    }.bind(nodeData.S3Filename);
+
+    }.bind(this, nodeData);
 
     var req = https.request(options, callback);
+
     req.on("error", function(err) {
         console.log("problem with request: " + err);
     });
@@ -138,9 +152,9 @@ function updateS3Data(s3Filename, data) {
 function generateApiUrl(nodeId, nodeType) {
     var basePath = "/v2.9/" + nodeId;
 
-    switch(nodeType){
+    switch (nodeType) {
         case "Group":
-        case "User":
+        case "User": // TODO: users may need to explicitly give permission for this app to scrape data
         case "PublicFigure":
             basePath += "/events"
             break;
