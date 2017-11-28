@@ -20,8 +20,7 @@ var s3 = new AWS.S3();
 exports.handler = (event, context, callback) => {
     console.log(event);
 
-    // TODO: event["X-Hub-Signature"] is always undefined, but it's definitely there. Why?
-    if(!verifySignature(event['X-Hub-Signature'])){
+    if(!verifySignature(event.headers['X-Hub-Signature'])){
         console.log("X-Hub_Signature did not match the expected value");
         // return; // TODO: allow it to pass for now, debug it later
     }
@@ -41,19 +40,24 @@ exports.handler = (event, context, callback) => {
     callback(null, response);
 };
 
-function verifySignature(signature) {
+function verifySignature(payload) {
     var shasum;
 
-    console.log(signature);
+    var signature = payload.split('=')[1];
 
     if (signature) {
         shasum = crypto.createHash('sha1');
         shasum.update(FACEBOOK_APP_SECRET);
 
-        if (signature === shasum.digest("hex")) {
+        var digest = shasum.digest("hex");
+
+        if (signature === digest) { // TODO: always a mismatch right now, investigate why
             return true;
         } else {
-            console.log("HTTP signature: " + signature + ", digest: " + shasum.digest("hex"));
+            console.log("Verification mismatch!", {
+                fromFB: signature,
+                digest: digest
+            });
         }
     }
     return false;
