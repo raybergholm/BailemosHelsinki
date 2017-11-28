@@ -18,12 +18,6 @@ var s3 = new AWS.S3();
 exports.handler = (event, context, callback) => {
     console.log(event);
 
-    // TODO: event["X-Hub-Signature"] is always undefined, but it's definitely there. Why?
-    if (!verifySignature(event['X-Hub-Signature'])) {
-        console.log("X-Hub_Signature did not match the expected value");
-        // return;  TODO: allow it to pass for now, debug it later
-    }
-
     fetchNodes();
 
     var response = {
@@ -35,24 +29,6 @@ exports.handler = (event, context, callback) => {
     console.log("returning the following response: ", JSON.stringify(response));
     callback(null, response);
 };
-
-function verifySignature(signature) {
-    var shasum;
-
-    console.log(signature);
-
-    if (signature) {
-        shasum = crypto.createHash('sha1');
-        shasum.update(FACEBOOK_APP_SECRET);
-
-        if (signature === shasum.digest("hex")) {
-            return true;
-        } else {
-            console.log("HTTP signature: " + signature + ", digest: " + shasum.digest("hex"));
-        }
-    }
-    return false;
-}
 
 function fetchNodes() { // scan the entire event organiser table (won't take long, in the current scope the data size is tiny), then use that data to call the GraphAPI to get the updated data
     dynamodb.scan({
@@ -67,30 +43,10 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
             for (var prop in data.Items) {
                 item = data.Items[prop];
 
-                /* Structure:
-                {
-                    "S3Pointer": {
-                        "S": "TODO"
-                    },
-                    "NodeType": {
-                        "S": "Group"
-                    },
-                    "NodeId": {
-                        "N": "341108445941295"
-                    },
-                    "ItemId": {
-                        "N": "7"
-                    },
-                    "Name": {
-                        "S": "RioZoukStyle"
-                    }
-                }
-                */
-
                 nodes[item.Name.S] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
                     Id: item.NodeId.N,
                     Type: item.NodeType.S,
-                    S3Filename: item.S3Pointer.S
+                    S3Filename: item.S3Filename.S
                 };
             }
 
@@ -128,7 +84,9 @@ function debugS3() {
 }
 
 function queryFacebookApi(nodeName, nodeData) {
-    var path = generateApiUrl(nodeData.Id);
+    var path = generateApiUrl(nodeData.Id, nodeData.Type);
+
+    console.log("api path:", JSON.stringify(path));
 
     var options = {
         host: "graph.facebook.com",
@@ -147,7 +105,7 @@ function queryFacebookApi(nodeName, nodeData) {
         response.on("end", function() {
             console.log("tried to fetch event data, got this: ", responseData);
 
-            updateS3Data(key, responseData); // key from nodeData?
+            // updateS3Data(key, responseData); // key from nodeData?
         });
     }.bind(nodeData.S3Filename);
 
@@ -177,9 +135,21 @@ function updateS3Data(s3Filename, data) {
     });
 }
 
-function generateApiUrl(targetNodeId) {
-    return {
-        path: "/v2.9/" + targetNodeId + "/events",
-        accessToken: "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN
-    };
+function generateApiUrl(nodeId, nodeType) {
+    var basePath = "/v2.9/" + nodeId;
+
+    switch(nodeType){
+        case "Group":
+        case "User":
+        case "PublicFigure":
+            basePath += "/events"
+            break;
+        default:
+            console.log("Unexpected identifier: ", nodeType);
+            basePath += "/events"
+    }
+
+    var accessTokenParam = "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
+
+    return basePath + accessTokenParam;
 }
