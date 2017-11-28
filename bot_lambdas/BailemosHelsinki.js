@@ -169,9 +169,12 @@ function handleReceivedMessage(message) {
         // If we receive a text message, check to see if it matches a keyword
         // and send back the example. Otherwise, just echo the text we received.
 
-        if (/update data/.test(messageText.toLowerCase())) { // TODO: less hardcoding
+        if (/debug update data/.test(messageText.toLowerCase())) { // TODO: less hardcoding
             sendTextMessage(senderId, "Ok, done!");
             debugFetchEventData();
+        } else if(/debug fetch data/.test(messageText.toLowerCase())){
+            sendTextMessage(senderId, "Ok, fetching the data...");
+            fetchData();
         } else {
             var result = analyseMessage(messageText);
             var messageResponse = generateResponse(result);
