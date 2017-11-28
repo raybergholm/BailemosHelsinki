@@ -99,9 +99,9 @@ function queryFacebookApi(nodeName, nodeData) {
     };
 
     var callback = function(nodeData, response) {
-        var responseString = "";
+        var payload = "";
         response.on("data", function(chunk) {
-            responseString += chunk;
+            payload += chunk;
         });
         response.on("end", function() {
 
@@ -110,14 +110,20 @@ function queryFacebookApi(nodeName, nodeData) {
 
             // do we need public group scraping?
 
-            var responseData = JSON.parse(responseString);
+            var responseData = JSON.parse(payload);
+            var s3Data = {
+                NodeId: nodeData.NodeId,
+                NodeType: nodeData.NodeType,
+                Name: nodeData.Name,
+                Events: null
+            };
             if(responseData.error){
                 console.log("Response errored: ", responseData.error.message);
-            }else if(responseData.data && responseData.data.length === 0){
-                console.log("Empty response for ", nodeData);
+                s3Data.Events = [];
             }else{
-                updateS3Data(nodeData.S3Filename, responseData.data);
+                s3Data.Events = responseData.data;
             }
+            updateS3Data(nodeData.S3Filename, s3Data);
         });
 
     }.bind(this, nodeData);
