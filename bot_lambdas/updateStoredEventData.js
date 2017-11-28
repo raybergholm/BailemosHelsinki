@@ -53,33 +53,9 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
 
             console.log(JSON.stringify(nodes));
 
-            // debugS3();
-
             for (var node in nodes) {
                 queryFacebookApi(node, nodes[node]); // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
             }
-        }
-    });
-}
-
-function debugS3() {
-    // s3.listBuckets(function(err, data){
-    //     if(err){
-    //         console.log("S3 interface error: ", err);
-    //     }else{
-    //         console.log("bucket list", data.Buckets);
-    //     }
-    // });
-
-    s3.getObject({
-        Bucket: S3_BUCKET_NAME,
-        Key: "dummy_data.json"
-    }, function(err, data) {
-        if (err) {
-            console.log("S3 interface error: ", err);
-        } else {
-            console.log("bucket item metadata:", data);
-            console.log("data body content: ", data.Body.toString());
         }
     });
 }
