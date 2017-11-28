@@ -243,23 +243,38 @@ function fetchDataList() {
 }
 
 function fetchData(list) {
-    var data;
+    var data = [];
+
+    var callbacksStarted = list.length;
+    var callbacksFinished = 0;
+
+    var callback = function(err, s3Object) {
+        if (err) {
+            console.log("S3 interface error: ", err);
+        } else {
+            data.push(JSON.parse(s3Object.Body.toString())); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
+
+            callbacksFinished++;
+
+            if (callbacksStarted === callbacksFinished) { // FIXME: This is a dirty way of doing this, find something more elegant
+                onDataFetched(data);
+            }
+        }
+    };
+
     for (var i = 0; i < list.length; i++) {
         s3.getObject({
             Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
             Key: list[i]
-        }, function(err, data) {
-            if (err) {
-                console.log("S3 interface error: ", err);
-            } else {
-                console.log("bucket item metadata:", data);
-                console.log("data body content: ", data.Body.toString());
-
-                // TODO: do stuff with this data (should be everything collated into one blob)
-            }
-        });
+        }, callback);
     }
 
+}
+
+function onDataFetched(data) {
+    for (var i = 0; i < data.length; i++) {
+        console.log(data[i]);
+    }
 }
 
 function callSendAPI(messageData) {
