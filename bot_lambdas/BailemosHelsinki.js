@@ -173,10 +173,7 @@ function handleReceivedMessage(message) {
         // If we receive a text message, check to see if it matches a keyword
         // and send back the example. Otherwise, just echo the text we received.
 
-        if (/debug update data/.test(messageText.toLowerCase())) { // TODO: less hardcoding
-            sendTextMessage(senderId, "Ok, done!");
-            debugFetchEventData();
-        } else if(/debug fetch data/.test(messageText.toLowerCase())){
+        if(/debug fetch data/.test(messageText.toLowerCase())){  // TODO: less hardcoding
             sendTextMessage(senderId, "Ok, fetching the data...");
             fetchData();
         } else {
@@ -244,39 +241,6 @@ function fetchData() {
             // TODO: do stuff with this data (should be everything collated into one blob)
         }
     });
-}
-
-function debugFetchEventData() { // TODO: most likely this should be integrated elsewhere or split to other functions
-    // TODO: PoC for now
-
-    var targetNode = 343877245641683;
-
-    var path = "/v2.9/" + targetNode + "/events?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
-    var options = {
-        host: "graph.facebook.com",
-        path: path,
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
-        }
-    };
-
-    var callback = function(response) {
-        var str = "";
-        response.on("data", function(chunk) {
-            str += chunk;
-        });
-        response.on("end", function() {
-            console.log("tried to fetch event data, got this: ", str);
-        });
-    };
-
-    var req = https.request(options, callback);
-    req.on("error", function(e) {
-        console.log("problem with request: " + e);
-    });
-
-    req.end();
 }
 
 function callSendAPI(messageData) {
