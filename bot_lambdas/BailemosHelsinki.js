@@ -10,9 +10,7 @@ var https = require("https");
 var crypto = require('crypto');
 
 var AWS = require("aws-sdk");
-AWS.config.update({
-    region: "eu-central-1"
-});
+AWS.config.update({region: "eu-central-1"});
 
 var dynamodb = new AWS.DynamoDB();
 var s3 = new AWS.S3();
@@ -20,9 +18,9 @@ var s3 = new AWS.S3();
 exports.handler = (event, context, callback) => {
     console.log(event);
 
-    if(!verifySignature(event.headers['X-Hub-Signature'])){
+    if (!verifySignature(event.headers['X-Hub-Signature'])) {
         console.log("X-Hub_Signature did not match the expected value");
-        // return; // TODO: allow it to pass for now, debug it later
+        // return;  TODO: allow it to pass for now, debug it later
     }
 
     var response;
@@ -173,9 +171,9 @@ function handleReceivedMessage(message) {
         // If we receive a text message, check to see if it matches a keyword
         // and send back the example. Otherwise, just echo the text we received.
 
-        if(/debug fetch data/.test(messageText.toLowerCase())){  // TODO: less hardcoding
+        if (/debug fetch data/.test(messageText.toLowerCase())) { // TODO: less hardcoding
             sendTextMessage(senderId, "Ok, fetching the data...");
-            fetchData();
+            fetchDataList();
         } else {
             var result = analyseMessage(messageText);
             var messageResponse = generateResponse(result);
@@ -228,19 +226,40 @@ function sendTextMessage(recipientId, messageText) {
     callSendAPI(messageData);
 }
 
-function fetchData() {
-    s3.getObject({
-        Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
+function fetchDataList() {
+    s3.listObjectsV2({
+        Bucket: S3_BUCKET_NAME
     }, function(err, data) {
         if (err) {
-            console.log("S3 interface error: ", err);
+            console.log("Error fetching data list: ", err.message);
         } else {
-            console.log("bucket item metadata:", data);
-            console.log("data body content: ", data.Body.toString());
-
-            // TODO: do stuff with this data (should be everything collated into one blob)
+            var list = [];
+            for (var i = 0; i < data.Contents.length; i++) {
+                list.push(data.Contents[i].Key);
+            }
+            fetchData(list);
         }
     });
+}
+
+function fetchData(list) {
+    var data;
+    for (var i = 0; i < list.length; i++) {
+        s3.getObject({
+            Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
+            Key: list[i]
+        }, function(err, data) {
+            if (err) {
+                console.log("S3 interface error: ", err);
+            } else {
+                console.log("bucket item metadata:", data);
+                console.log("data body content: ", data.Body.toString());
+
+                // TODO: do stuff with this data (should be everything collated into one blob)
+            }
+        });
+    }
+
 }
 
 function callSendAPI(messageData) {
