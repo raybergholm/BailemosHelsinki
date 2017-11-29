@@ -135,9 +135,9 @@ function generateApiUrl(nodeId, nodeType) {
     var basePath = "/v2.9/" + nodeId;
 
     switch (nodeType) {
-        case "Group":
-        case "User": // TODO: users may need to explicitly give permission for this app to scrape data
-        case "PublicFigure":
+        case "group":   // TODO: groups won't normally have their own events since ATM they're just collecting other pages' events. For groups, the feed needs to be scraped
+        case "user":    // TODO: users may need to explicitly give permission for this app to scrape data
+        case "page":
             basePath += "/events"
             break;
         default:
