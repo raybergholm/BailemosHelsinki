@@ -5,6 +5,7 @@ const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
 
 var https = require("https");
 var crypto = require('crypto');
@@ -53,91 +54,102 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
 
             console.log(JSON.stringify(nodes));
 
-            for (var node in nodes) {
-                queryFacebookApi(node, nodes[node]); // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
-            }
+            queryFacebookApi(nodes);
         }
     });
 }
 
-function queryFacebookApi(nodeName, nodeData) {
+function queryFacebookApi(nodes) {
     var path, callback, params;
 
-    switch(nodeData.Type){
-        case "page":
-            // scrape this page's events
-            path = generateApiUrl(nodeData.Id, "events", params);
-            break;
-        case "group":
-            // scrape this page's post feed
-            path = generateApiUrl(nodeData.Id, "feed", params);
-            break;
-        case "user":
-            // scrape this user's events, NB the user needs to give this app permission!
-            path = generateApiUrl(nodeData.Id, "events", params);
-            break;
+    var aggregatedResponse = [];
 
-        default:
+    for (var node in nodes) {
+         // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
 
-    }
-    console.log("api path:", path);
+        switch(node.Type){
+            case "page":
+                // scrape this page's events
+                path = generateApiUrl(node.Id, "events", params);
+                break;
+            case "group":
+                // scrape this page's post feed
+                path = generateApiUrl(node.Id, "feed", params);
+                break;
+            case "user":
+                // scrape this user's events, NB the user needs to give this app permission!
+                path = generateApiUrl(node.Id, "events", params);
+                break;
 
-    var options = {
-        host: "graph.facebook.com",
-        path: path,
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
+            default:
+
         }
-    };
+        console.log("api path:", path);
 
-    callback = function(nodeData, response) {
-        var payload = "";
-        response.on("data", function(chunk) {
-            payload += chunk;
-        });
-        response.on("end", function() {
-
-            // VeDance & DJGoodblood missing permissions (private?)
-            // SalsaGarage & SalsotekaLatinaAfroFlow empty events (should have public events visible?)
-
-            // do we need public group scraping?
-
-            var responseData = JSON.parse(payload);
-            var s3Data = {
-                NodeId: nodeData.NodeId,
-                NodeType: nodeData.NodeType,
-                Name: nodeData.Name,
-                Events: null
-            };
-            if (responseData.error) {
-                console.log("Response errored: ", responseData.error.message);
-                s3Data.Events = [];
-            } else {
-                s3Data.Events = responseData.data;
+        var options = {
+            host: "graph.facebook.com",
+            path: path,
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
             }
-            updateS3Data(nodeData.S3Filename, s3Data);
+        };
+
+        var callbacksStarted = list.length;
+        var callbacksFinished = 0;
+
+        callback = function(nodeData, response) {
+            var payload = "";
+            response.on("data", function(chunk) {
+                payload += chunk;
+            });
+            response.on("end", function() {
+                var s3Data;
+                var responseData = JSON.parse(payload);
+                var organiserData = {
+                    NodeId: node.Id,
+                    NodeType: node.Type,
+                    Name: node.Name,
+                    Events: null
+                };
+                if (responseData.error) {
+                    console.log("Response errored: ", responseData.error.message);
+                    s3Data = [];
+                } else {
+                    for(var i = 0; i < responseData.data.length; i++){
+                        responseData.data[i].organiser = organiserData;
+                    }
+                    s3Data = responseData;
+                }
+
+                aggregatedResponse.push(s3Data);
+
+                callbacksFinished++:
+                if(callbacksStarted === callbacksFinished){
+                    updateS3Data(s3Data);
+                }
+            });
+
+        }.bind(this, nodeData);
+
+        var req = https.request(options, callback);
+
+        req.on("error", function(err) {
+            console.log("problem with request: " + err);
         });
 
-    }.bind(this, nodeData);
-
-    var req = https.request(options, callback);
-
-    req.on("error", function(err) {
-        console.log("problem with request: " + err);
-    });
-
-    req.end();
+        req.end();
+    }
 }
 
-function updateS3Data(s3Filename, data) {
+function updateS3Data(data) {
     // TODO: check if this will auto-overwrite. What if the file doesn't exist yet?
 
     var content = JSON.stringify(data);
 
     s3.putObject({
         Bucket: S3_BUCKET_NAME,
-        Key: s3Filename,
+        Key: S3_EVENT_DATA_OBJECT_KEY,
         Body: content
     }, function(err, data) {
         if (err) {
