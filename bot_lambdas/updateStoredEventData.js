@@ -61,9 +61,26 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
 }
 
 function queryFacebookApi(nodeName, nodeData) {
-    var path = generateApiUrl(nodeData.Id, nodeData.Type);
+    var path, callback, params;
 
-    console.log("api path:", JSON.stringify(path));
+    switch(nodeData.Type){
+        case "page":
+            // scrape this page's events
+            path = generateApiUrl(nodeData.Id, "events", params);
+            break;
+        case "group":
+            // scrape this page's post feed
+            path = generateApiUrl(nodeData.Id, "feed", params);
+            break;
+        case "user":
+            // scrape this user's events, NB the user needs to give this app permission!
+            path = generateApiUrl(nodeData.Id, "events", params);
+            break;
+
+        default:
+
+    }
+    console.log("api path:", path);
 
     var options = {
         host: "graph.facebook.com",
@@ -74,7 +91,7 @@ function queryFacebookApi(nodeName, nodeData) {
         }
     };
 
-    var callback = function(nodeData, response) {
+    callback = function(nodeData, response) {
         var payload = "";
         response.on("data", function(chunk) {
             payload += chunk;
@@ -131,21 +148,20 @@ function updateS3Data(s3Filename, data) {
     });
 }
 
-function generateApiUrl(nodeId, nodeType) {
-    var basePath = "/v2.9/" + nodeId;
-
-    switch (nodeType) {
-        case "group":   // TODO: groups won't normally have their own events since ATM they're just collecting other pages' events. For groups, the feed needs to be scraped
-        case "user":    // TODO: users may need to explicitly give permission for this app to scrape data
-        case "page":
-            basePath += "/events"
-            break;
-        default:
-            console.log("Unexpected identifier: ", nodeType);
-            basePath += "/events"
-    }
-
+function generateApiUrl(nodeId, edge, params){
+    var url = "/v2.9/" + nodeId;
     var accessTokenParam = "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
 
-    return basePath + accessTokenParam;
+    url += '/' + edge + accessTokenParam;
+
+    if(params){
+        var paramsArr = [], temp;
+        for(var prop in params){
+            temp = prop + '=' + (params[prop] instanceof Array ? params[prop].join(',') : params[prop]); // handles joining one level deep. If this requires some fancy subquerying, consider making this recursive
+            paramsArr.push(temp);
+        }
+        url = url + '&' + paramsArr.join('&');
+    }
+
+    return url;
 }
