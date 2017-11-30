@@ -64,7 +64,7 @@ function queryFacebookApi(nodes) {
         callback,
         params;
 
-    var aggregatedResponse = [];
+    var aggregatedResponse = {}; // this is an object and not an array since this being used as a KVP data container, we want to enforce unique keys
 
     var callbacksStarted = Object.keys(nodes).length;
     var callbacksFinished = 0;
@@ -86,8 +86,8 @@ function queryFacebookApi(nodes) {
             } else {
                 for (var i = 0; i < responseData.data.length; i++) {
                     responseData.data[i].organiser = organiserData;
+                    aggregatedResponse[responseData.data[i].id] = responseData.data[i]; // event ID should be unique, so duplicates can be overwritten
                 }
-                aggregatedResponse = aggregatedResponse.concat(responseData.data);
             }
 
             callbacksFinished++;
@@ -115,8 +115,8 @@ function queryFacebookApi(nodes) {
             } else {
                 for (var i = 0; i < responseData.data.length; i++) {
                     responseData.data[i].organiser = organiserData;
+                    // aggregatedResponse[responseData.data[i].id] = responseData.data[i]; // event ID should be unique, so duplicates can be overwritten
                 }
-                // aggregatedResponse = aggregatedResponse.concat(responseData.data);  FIXME: disabled for now, this should scrape linked events
             }
 
             callbacksFinished++;
@@ -178,8 +178,10 @@ function queryFacebookApi(nodes) {
     }
 }
 
-function updateS3Data(data) {
-    var content = JSON.stringify(data);
+function updateS3Data(payload) {
+    var content = cleanupPayloadToS3(payload);
+
+    content = cleanupPayloadToS3(content);
 
     s3.putObject({
         Bucket: S3_BUCKET_NAME,
@@ -192,6 +194,24 @@ function updateS3Data(data) {
             console.log("putObject response metadata:", data);
         }
     });
+}
+
+function cleanupPayloadToS3(payload){
+    var cleanedPayload = Object.values(payload); // TODO: object -> array method, should be built in?
+
+    cleanedPayload.sort(function(left, right){
+        var leftTime = new Date(left.start_time);
+        var rightTime = new Date(right.start_time);
+
+        if(!leftTime || !rightTime || leftTime.getTime() === rightTime.getTime()){
+            return 0;
+        }else{
+            return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
+        }
+    });
+
+    cleanedPayload = JSON.stringify(payload);
+    return cleanedPayload;
 }
 
 function generateApiUrl(nodeId, edge, params) {
