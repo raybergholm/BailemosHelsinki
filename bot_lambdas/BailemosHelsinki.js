@@ -16,17 +16,11 @@ AWS.config.update({region: "eu-central-1"});
 
 var s3 = new AWS.S3();
 
-var botTexts = { // probably should be fetched from S3
-    Unknown : [
-        "I have no idea what you mean :(",
-        "This bot is not quite advanced enough to understand that. Yet.",
-        "Uh, try to say that again in a different way?"],
-    Affirmative: [
-        "Ok, on it!",
-        "Sure, I can do that",
-        "Alrighty!",
-        "Sure thing!"
-    ]
+const BOT_TEXTS = { // probably should be fetched from S3
+    Unknown: [
+        "I have no idea what you mean :(", "This bot is not quite advanced enough to understand that. Yet.", "Uh, try to say that again in a different way?"
+    ],
+    Affirmative: ["Ok, on it!", "Sure, I can do that", "Alrighty!", "Sure thing!"]
 };
 
 exports.handler = (event, context, callback) => {
@@ -109,6 +103,7 @@ function processMessages(data) {
 
         // Make sure this is a page subscription
         if (data.object === "page") {
+
             // Iterate over each entry - there may be multiple if batched
             data.entry.forEach(function(entry) {
                 var pageID = entry.id;
@@ -117,6 +112,8 @@ function processMessages(data) {
                 entry.messaging.forEach(function(msg) {
                     if (msg.message) {
                         // Normal message
+
+                        sendTypingIndicator(msg.sender.id, true); // send the typing_on indicator immediately
 
                         handleReceivedMessage(msg);
                     } else if (msg.delivery) {
@@ -183,19 +180,15 @@ function handleReceivedMessage(message) {
 
     if (messageText) {
         var debugRegex = /debug test/;
-        if(debugRegex.test(messageText)){
+        if (debugRegex.test(messageText)) {
             fetchDataFromS3();
-            messageResponse = botTexts.Affirmative[Math.round(Math.random() * botTexts.Affirmative.length)];
-        }else{
+            sendTextMessage(senderId, BOT_TEXTS.Affirmative[Math.floor(Math.random() * BOT_TEXTS.Affirmative.length)]);
+        } else {
             var result = analyseMessage(messageText);
-            var messageResponse = generateResponse(result);
+            generateResponse(senderId, result);
         }
-        if (messageResponse) {
-            sendTextMessage(senderId, messageResponse);
-        }
-
     } else if (messageAttachments) {
-        sendTextMessage(senderId, "Message with attachment received");
+        sendTextMessage(senderId, {text: "Message with attachment received"});
     }
 }
 
@@ -212,7 +205,7 @@ function analyseMessage(text) {
     return result;
 }
 
-function analyseLanguage(text){
+function analyseLanguage(text) {
     var language;
 
     language = "en"; // TODO: hardcode english for now, can worry about other langs later
@@ -220,7 +213,7 @@ function analyseLanguage(text){
     return language;
 }
 
-function findTimeKeywords(text){
+function findTimeKeywords(text) {
     var timeRange = {
         from: null,
         to: null
@@ -229,27 +222,31 @@ function findTimeKeywords(text){
     return timeRange;
 }
 
-function findLocationKeywords(text){
+function findLocationKeywords(text) {
     var locations = [];
 
     return locations;
 }
 
-function findInterestKeywords(text){
+function findInterestKeywords(text) {
     var interests = [];
 
     return interests;
 }
 
-function generateResponse(result) {
-    var text;
-    if(result.timeRange.from === null && result.timeRange.to === null && result.locations.length === 0 && result.interests.length === 0){
-        text = botTexts.Unknown[Math.round(Math.random() * botTexts.Unknown)];
-    }else{
-        text = "THIS IS A PLACEHOLDER"; // TODO: change text strings based on the keywords found. Also link some events! (may need additional messages tbh)
+function generateResponse(senderId, result) {
+    var messages = [];
+    if (result.timeRange.from === null && result.timeRange.to === null && result.locations.length === 0 && result.interests.length === 0) {
+        messages.push({
+            text: BOT_TEXTS.Unknown[Math.floor(Math.random() * BOT_TEXTS.Unknown.length)]
+        });
+    } else {
+        messages.push({text: "THIS IS A PLACEHOLDER"}); // TODO: change text strings based on the keywords found. Also link some events! (may need additional messages tbh)
     }
 
-    return text;
+    for (var i = 0; i < messages.length; i++) {
+        sendTextMessage(senderId, messages[i]);
+    }
 }
 
 function handleDeliveryReceipt(message) {
@@ -260,31 +257,49 @@ function handleReadReceipt(message) {
     console.log("Message read response: ", message.read);
 }
 
-function sendTextMessage(recipientId, messageText) {
-    var messageData = {
+function sendTypingIndicator(recipientId, mode) {
+    var messagePayload = {
         sender: {
             id: FACEBOOK_PAGE_ID
         },
         recipient: {
             id: recipientId
         },
-        message: {
-            text: messageText
-        }
+        sender_action: (
+            mode
+            ? "typing_on"
+            : "typing_off")
     };
 
-    callSendAPI(messageData);
+    callSendAPI(messagePayload);
 }
 
-function fetchDataFromS3(){
+function sendTextMessage(recipientId, content) {
+    var message = {};
+
+    message = content; // TODO: validation checks: only a subset of stuff is OK here
+    var messagePayload = {
+        sender: {
+            id: FACEBOOK_PAGE_ID
+        },
+        recipient: {
+            id: recipientId
+        },
+        message: message
+    };
+
+    callSendAPI(messagePayload);
+}
+
+function fetchDataFromS3() {
     s3.getObject({
         Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
         Key: S3_EVENT_DATA_OBJECT_KEY
     }, (err, s3Object) => {
         var eventData;
-        if(err){
+        if (err) {
             console.log("S3 interface error: ", err);
-        }else{
+        } else {
             eventData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
 
             console.log(eventData);
@@ -292,8 +307,10 @@ function fetchDataFromS3(){
     });
 }
 
-function callSendAPI(messageData) {
-    var body = JSON.stringify(messageData);
+function callSendAPI(messagePayload) {
+    console.log("sending this message payload to FB:", messagePayload);
+
+    var body = JSON.stringify(messagePayload);
     var path = "/v2.6/me/messages?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
     var options = {
         host: "graph.facebook.com",
