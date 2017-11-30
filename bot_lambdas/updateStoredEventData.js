@@ -60,31 +60,81 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
 }
 
 function queryFacebookApi(nodes) {
-    var path, callback, params;
+    var path,
+        callback,
+        params;
 
     var aggregatedResponse = [];
 
-    for (var node in nodes) {
-         // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
+    var callbacksStarted = Object.keys(nodes).length;
+    var callbacksFinished = 0;
 
-        switch(node.Type){
+    var queryCallback = function(nodeData, response) {
+        var payload = "";
+        response.on("data", function(chunk) {
+            payload += chunk;
+        });
+        response.on("end", function() {
+            var s3Data;
+            var responseData = JSON.parse(payload);
+            var organiserData = {
+                NodeId: nodeData.Id,
+                NodeType: nodeData.Type,
+                Name: nodeData.Name,
+                Events: null
+            };
+            if (responseData.error) {
+                console.log("Response errored: ", responseData.error.message);
+                s3Data = [];
+            } else {
+                for (var i = 0; i < responseData.data.length; i++) {
+                    responseData.data[i].organiser = organiserData;
+                }
+                s3Data = responseData;
+            }
+
+            aggregatedResponse.push(s3Data);
+
+            callbacksFinished++;
+
+            if (callbacksStarted === callbacksFinished) {
+                updateS3Data(aggregatedResponse);
+            }
+        });
+    }
+
+    var errCallback = function(err) {
+        console.log("problem with request: " + err);
+    }
+
+    for (var node in nodes) {
+        // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
+
+        switch (nodes[node].Type) {
             case "page":
                 // scrape this page's events
-                path = generateApiUrl(node.Id, "events", params);
+                params = {
+                    time_filter: "upcoming"
+                };
+                path = generateApiUrl(nodes[node].Id, "events", params);
                 break;
             case "group":
                 // scrape this page's post feed
-                path = generateApiUrl(node.Id, "feed", params);
+                path = generateApiUrl(nodes[node].Id, "feed", params);
                 break;
             case "user":
                 // scrape this user's events, NB the user needs to give this app permission!
-                path = generateApiUrl(node.Id, "events", params);
+                path = generateApiUrl(nodes[node].Id, "events", params);
                 break;
 
             default:
-
+                console.log("Unexpected node type: ", nodes[node].Type);
         }
         console.log("api path:", path);
+
+        if(!path){
+            continue;
+        }
 
         var options = {
             host: "graph.facebook.com",
@@ -95,49 +145,10 @@ function queryFacebookApi(nodes) {
             }
         };
 
-        var callbacksStarted = list.length;
-        var callbacksFinished = 0;
-
-        callback = function(nodeData, response) {
-            var payload = "";
-            response.on("data", function(chunk) {
-                payload += chunk;
-            });
-            response.on("end", function() {
-                var s3Data;
-                var responseData = JSON.parse(payload);
-                var organiserData = {
-                    NodeId: node.Id,
-                    NodeType: node.Type,
-                    Name: node.Name,
-                    Events: null
-                };
-                if (responseData.error) {
-                    console.log("Response errored: ", responseData.error.message);
-                    s3Data = [];
-                } else {
-                    for(var i = 0; i < responseData.data.length; i++){
-                        responseData.data[i].organiser = organiserData;
-                    }
-                    s3Data = responseData;
-                }
-
-                aggregatedResponse.push(s3Data);
-
-                callbacksFinished++:
-                if(callbacksStarted === callbacksFinished){
-                    updateS3Data(s3Data);
-                }
-            });
-
-        }.bind(this, nodeData);
+        callback = queryCallback.bind(this, nodes[node]);
 
         var req = https.request(options, callback);
-
-        req.on("error", function(err) {
-            console.log("problem with request: " + err);
-        });
-
+        req.on("error", errCallback);
         req.end();
     }
 }
@@ -160,16 +171,20 @@ function updateS3Data(data) {
     });
 }
 
-function generateApiUrl(nodeId, edge, params){
+function generateApiUrl(nodeId, edge, params) {
     var url = "/v2.9/" + nodeId;
     var accessTokenParam = "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
 
     url += '/' + edge + accessTokenParam;
 
-    if(params){
-        var paramsArr = [], temp;
-        for(var prop in params){
-            temp = prop + '=' + (params[prop] instanceof Array ? params[prop].join(',') : params[prop]); // handles joining one level deep. If this requires some fancy subquerying, consider making this recursive
+    if (params) {
+        var paramsArr = [],
+            temp;
+        for (var prop in params) {
+            temp = prop + '=' + (
+                params[prop] instanceof Array
+                ? params[prop].join(',')
+                : params[prop]); // handles joining one level deep. If this requires some fancy subquerying, consider making this recursive
             paramsArr.push(temp);
         }
         url = url + '&' + paramsArr.join('&');
