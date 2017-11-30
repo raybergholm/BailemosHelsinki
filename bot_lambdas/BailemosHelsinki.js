@@ -14,8 +14,20 @@ var crypto = require('crypto');
 var AWS = require("aws-sdk");
 AWS.config.update({region: "eu-central-1"});
 
-var dynamodb = new AWS.DynamoDB();
 var s3 = new AWS.S3();
+
+var botTexts = { // probably should be fetched from S3
+    Unknown : [
+        "I have no idea what you mean :(",
+        "This bot is not quite advanced enough to understand that. Yet.",
+        "Uh, try to say that again in a different way?"],
+    Affirmative: [
+        "Ok, on it!",
+        "Sure, I can do that",
+        "Alrighty!",
+        "Sure thing!"
+    ]
+};
 
 exports.handler = (event, context, callback) => {
     console.log(event);
@@ -68,14 +80,14 @@ function handleFacebookChallenge(queryParams) {
     var verifyToken = queryParams["hub.verify_token"];
 
     if (verifyToken === FACEBOOK_VERIFY_TOKEN) {
-        var challengeToken = parseInt(queryParams["hub.challenge"]);
+        var challengeToken = parseInt(queryParams["hub.challenge"], 10);
 
         console.log("Responding to Facebook challenge token");
 
         response = {
             isBase64Encoded: false,
             statusCode: 200,
-            body: parseInt(challengeToken)
+            body: parseInt(challengeToken, 10)
         };
     } else {
         console.log("Incorrect validation token received");
@@ -170,18 +182,16 @@ function handleReceivedMessage(message) {
     var messageAttachments = messageData.attachments;
 
     if (messageText) {
-        // If we receive a text message, check to see if it matches a keyword
-        // and send back the example. Otherwise, just echo the text we received.
-
-        if (/debug fetch data/.test(messageText.toLowerCase())) { // TODO: less hardcoding
-            sendTextMessage(senderId, "Ok, fetching the data...");
-            fetchDataList();
-        } else {
+        var debugRegex = /debug test/;
+        if(debugRegex.test(messageText)){
+            fetchDataFromS3();
+            messageResponse = botTexts.Affirmative[Math.round(Math.random() * botTexts.Affirmative.length)];
+        }else{
             var result = analyseMessage(messageText);
             var messageResponse = generateResponse(result);
-            if (messageResponse) {
-                sendTextMessage(senderId, messageResponse);
-            }
+        }
+        if (messageResponse) {
+            sendTextMessage(senderId, messageResponse);
         }
 
     } else if (messageAttachments) {
@@ -189,19 +199,57 @@ function handleReceivedMessage(message) {
     }
 }
 
-function analyseMessage(messageText) {
+function analyseMessage(text) {
+    // TODO: this is probably going to be a big janky mess for a long time since text analysis is going to be complex
     var result = {
-        originalText: messageText,
-        language: null,
-        keywords: null,
-        dateRange: null
+        originalText: text,
+        language: analyseLanguage(text),
+        timeRange: findTimeKeywords(text),
+        locations: findLocationKeywords(text),
+        interests: findInterestKeywords(text)
     };
 
     return result;
 }
 
+function analyseLanguage(text){
+    var language;
+
+    language = "en"; // TODO: hardcode english for now, can worry about other langs later
+
+    return language;
+}
+
+function findTimeKeywords(text){
+    var timeRange = {
+        from: null,
+        to: null
+    };
+
+    return timeRange;
+}
+
+function findLocationKeywords(text){
+    var locations = [];
+
+    return locations;
+}
+
+function findInterestKeywords(text){
+    var interests = [];
+
+    return interests;
+}
+
 function generateResponse(result) {
-    return result.originalText; // TODO: Just a placeholder for now, later on do more than just echo the message
+    var text;
+    if(result.timeRange.from === null && result.timeRange.to === null && result.locations.length === 0 && result.interests.length === 0){
+        text = botTexts.Unknown[Math.round(Math.random() * botTexts.Unknown)];
+    }else{
+        text = "THIS IS A PLACEHOLDER"; // TODO: change text strings based on the keywords found. Also link some events! (may need additional messages tbh)
+    }
+
+    return text;
 }
 
 function handleDeliveryReceipt(message) {
@@ -228,17 +276,18 @@ function sendTextMessage(recipientId, messageText) {
     callSendAPI(messageData);
 }
 
-async function fetchDataFromS3(){
+function fetchDataFromS3(){
     s3.getObject({
         Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
         Key: S3_EVENT_DATA_OBJECT_KEY
     }, (err, s3Object) => {
+        var eventData;
         if(err){
             console.log("S3 interface error: ", err);
         }else{
             eventData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
 
-            console.log(data[i]);
+            console.log(eventData);
         }
     });
 }
