@@ -69,35 +69,59 @@ function queryFacebookApi(nodes) {
     var callbacksStarted = Object.keys(nodes).length;
     var callbacksFinished = 0;
 
-    var queryCallback = function(nodeData, response) {
+    var pageEventsCallback = function(organiser, response) {
         var payload = "";
         response.on("data", function(chunk) {
             payload += chunk;
         });
         response.on("end", function() {
-            var s3Data;
             var responseData = JSON.parse(payload);
             var organiserData = {
-                NodeId: nodeData.Id,
-                NodeType: nodeData.Type,
-                Name: nodeData.Name,
-                Events: null
+                NodeId: organiser.Id,
+                NodeType: organiser.Type,
+                Name: organiser.Name
             };
             if (responseData.error) {
                 console.log("Response errored: ", responseData.error.message);
-                s3Data = [];
             } else {
                 for (var i = 0; i < responseData.data.length; i++) {
                     responseData.data[i].organiser = organiserData;
                 }
-                s3Data = responseData.data;
+                aggregatedResponse = aggregatedResponse.concat(responseData.data);
             }
-
-            aggregatedResponse.push(s3Data);
 
             callbacksFinished++;
 
-            if (callbacksStarted === callbacksFinished) {
+            if (callbacksStarted === callbacksFinished) { // FIXME: This is a dirty way of doing this, find something more elegant (Promises?)
+                updateS3Data(aggregatedResponse);
+            }
+        });
+    }
+
+    var groupFeedCallback = function(organiser, response) {
+        var payload = "";
+        response.on("data", function(chunk) {
+            payload += chunk;
+        });
+        response.on("end", function() {
+            var responseData = JSON.parse(payload);
+            var organiserData = {
+                NodeId: organiser.Id,
+                NodeType: organiser.Type,
+                Name: organiser.Name
+            };
+            if (responseData.error) {
+                console.log("Response errored: ", responseData.error.message);
+            } else {
+                for (var i = 0; i < responseData.data.length; i++) {
+                    responseData.data[i].organiser = organiserData;
+                }
+                // aggregatedResponse = aggregatedResponse.concat(responseData.data);  FIXME: disabled for now, this should scrape linked events
+            }
+
+            callbacksFinished++;
+
+            if (callbacksStarted === callbacksFinished) { // FIXME: This is a dirty way of doing this, find something more elegant (Promises?)
                 updateS3Data(aggregatedResponse);
             }
         });
@@ -117,14 +141,17 @@ function queryFacebookApi(nodes) {
                     time_filter: "upcoming"
                 };
                 path = generateApiUrl(nodes[node].Id, "events", params);
+                callback = pageEventsCallback.bind(this, nodes[node]);
                 break;
             case "group":
                 // scrape this page's post feed
                 path = generateApiUrl(nodes[node].Id, "feed", params);
+                callback = groupFeedCallback.bind(this, nodes[node]);
                 break;
             case "user":
                 // scrape this user's events, NB the user needs to give this app permission!
                 path = generateApiUrl(nodes[node].Id, "events", params);
+                callback = pageEventsCallback.bind(this, nodes[node]);
                 break;
 
             default:
@@ -132,7 +159,7 @@ function queryFacebookApi(nodes) {
         }
         console.log("api path:", path);
 
-        if(!path){
+        if (!path) {
             continue;
         }
 
@@ -145,8 +172,6 @@ function queryFacebookApi(nodes) {
             }
         };
 
-        callback = queryCallback.bind(this, nodes[node]);
-
         var req = https.request(options, callback);
         req.on("error", errCallback);
         req.end();
@@ -154,8 +179,6 @@ function queryFacebookApi(nodes) {
 }
 
 function updateS3Data(data) {
-    // TODO: check if this will auto-overwrite. What if the file doesn't exist yet?
-
     var content = JSON.stringify(data);
 
     s3.putObject({
