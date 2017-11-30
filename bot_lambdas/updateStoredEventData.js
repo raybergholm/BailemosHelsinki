@@ -200,16 +200,16 @@ function cleanupPayloadToS3(payload){
 
     console.log("cleaned payload content: ", cleanedPayload);
 
-    // cleanedPayload.sort(function(left, right){   // FIXME: sorting causes a timeout, too much data?
-    //     var leftDate = new Date(left.start_time);
-    //     var rightDate = new Date(right.start_time);
-    //
-    //     if(!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()){
-    //         return 0;
-    //     }else{
-    //         return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
-    //     }
-    // });
+    cleanedPayload.sort(function(left, right){   
+        var leftDate = new Date(left.start_time);
+        var rightDate = new Date(right.start_time);
+
+        if(!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()){
+            return 0;
+        }else{
+            return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
+        }
+    });
 
     cleanedPayload = JSON.stringify(cleanedPayload);
     return cleanedPayload;
