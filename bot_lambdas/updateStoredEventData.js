@@ -71,6 +71,11 @@ function queryFacebookApi(nodes) {
 
     var pageEventsCallback = function(organiser, response) {
         var payload = "";
+
+        var firstFutureComparator = function(element){
+            return (new Date(element.start_time)).getTime() > Date.now();
+        };
+
         response.on("data", function(chunk) {
             payload += chunk;
         });
@@ -89,9 +94,7 @@ function queryFacebookApi(nodes) {
 
                     // entries with event_times really mess up the sorting, so replace the original id, start_time and end_time with the next upcoming event
                     if(responseData.data[i].event_times){
-                        var firstUpcomingEvent = responseData.data[i].event_times.find((element) => {
-                            return (new Date(element.start_time).getTime() > Date.now();
-                        });
+                        var firstUpcomingEvent = responseData.data[i].event_times.find(firstFutureComparator);
 
                         responseData.data[i].id = firstUpcomingEvent.id;
                         responseData.data[i].start_time = firstUpcomingEvent.start_time;
@@ -107,7 +110,7 @@ function queryFacebookApi(nodes) {
                 updateS3Data(aggregatedResponse);
             }
         });
-    }
+    };
 
     var groupFeedCallback = function(organiser, response) {
         var payload = "";
@@ -136,11 +139,11 @@ function queryFacebookApi(nodes) {
                 updateS3Data(aggregatedResponse);
             }
         });
-    }
+    };
 
     var errCallback = function(err) {
         console.log("problem with request: " + err);
-    }
+    };
 
     for (var node in nodes) {
         // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
