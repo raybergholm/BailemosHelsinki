@@ -72,7 +72,7 @@ function queryFacebookApi(nodes) {
     var pageEventsCallback = function(organiser, response) {
         var payload = "";
 
-        var firstFutureComparator = function(element){
+        var firstFutureComparator = function(element) {
             return (new Date(element.start_time)).getTime() > Date.now();
         };
 
@@ -93,7 +93,7 @@ function queryFacebookApi(nodes) {
                     responseData.data[i].organiser = organiserData;
 
                     // entries with event_times really mess up the sorting, so replace the original id, start_time and end_time with the next upcoming event
-                    if(responseData.data[i].event_times){
+                    if (responseData.data[i].event_times) {
                         var firstUpcomingEvent = responseData.data[i].event_times.find(firstFutureComparator);
 
                         responseData.data[i].id = firstUpcomingEvent.id;
@@ -129,7 +129,7 @@ function queryFacebookApi(nodes) {
             } else {
                 for (var i = 0; i < responseData.data.length; i++) {
                     responseData.data[i].organiser = organiserData;
-                    // aggregatedResponse[responseData.data[i].id] = responseData.data[i]; // event ID should be unique, so duplicates can be overwritten
+                    // aggregatedResponse[responseData.data[i].id] = responseData.data[i];  event ID should be unique, so duplicates can be overwritten
                 }
             }
 
@@ -208,20 +208,24 @@ function updateS3Data(payload) {
     });
 }
 
-function cleanupPayloadToS3(payload){
-    // var cleanedPayload = Object.values(payload); // NB Object.values isn't available until Node 7.0
-    var cleanedPayload = Object.keys(payload).map((key) => { return payload[key]; });
+function cleanupPayloadToS3(payload) {
+    // var cleanedPayload = Object.values(payload);  NB Object.values isn't available until Node 7.0
+    var cleanedPayload = Object.keys(payload).map((key) => {
+        return payload[key];
+    });
 
     console.log("cleaned payload content: ", cleanedPayload);
 
-    cleanedPayload.sort(function(left, right){
+    cleanedPayload.sort(function(left, right) {
         var leftDate = new Date(left.start_time);
         var rightDate = new Date(right.start_time);
 
-        if(!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()){
+        if (!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()) {
             return 0;
-        }else{
-            return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
+        } else {
+            return leftDate.getTime() < rightDate.getTime()
+                ? -1
+                : 1;
         }
     });
 
