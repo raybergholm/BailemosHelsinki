@@ -197,20 +197,21 @@ function updateS3Data(payload) {
 }
 
 function cleanupPayloadToS3(payload){
-    var cleanedPayload = Object.values(payload); // TODO: object -> array method, should be built in?
+    // var cleanedPayload = Object.values(payload); // NB Object.values isn't available until Node 7.0
+    var cleanedPayload = Object.keys(payload).map((key) => { return payload[key]; });
 
-    cleanedPayload.sort(function(left, right){
-        var leftTime = new Date(left.start_time);
-        var rightTime = new Date(right.start_time);
+    // cleanedPayload.sort(function(left, right){   // FIXME: sorting causes a timeout, too much data?
+    //     var leftDate = new Date(left.start_time);
+    //     var rightDate = new Date(right.start_time);
+    //
+    //     if(!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()){
+    //         return 0;
+    //     }else{
+    //         return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
+    //     }
+    // });
 
-        if(!leftTime || !rightTime || leftTime.getTime() === rightTime.getTime()){
-            return 0;
-        }else{
-            return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
-        }
-    });
-
-    cleanedPayload = JSON.stringify(payload);
+    cleanedPayload = JSON.stringify(cleanedPayload);
     return cleanedPayload;
 }
 
