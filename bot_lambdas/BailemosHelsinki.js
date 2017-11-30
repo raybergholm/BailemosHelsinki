@@ -228,55 +228,19 @@ function sendTextMessage(recipientId, messageText) {
     callSendAPI(messageData);
 }
 
-function fetchDataList() {
-    s3.listObjectsV2({
-        Bucket: S3_BUCKET_NAME
-    }, function(err, data) {
-        if (err) {
-            console.log("Error fetching data list: ", err.message);
-        } else {
-            var list = [];
-            for (var i = 0; i < data.Contents.length; i++) {
-                list.push(data.Contents[i].Key);
-            }
-            fetchData(list);
+async function fetchDataFromS3(){
+    s3.getObject({
+        Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
+        Key: S3_EVENT_DATA_OBJECT_KEY
+    }, (err, s3Object) => {
+        if(err){
+            console.log("S3 interface error: ", err);
+        }else{
+            eventData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
+
+            console.log(data[i]);
         }
     });
-}
-
-function fetchData(list) {
-    var data = [];
-
-    var callbacksStarted = list.length;
-    var callbacksFinished = 0;
-
-    var callback = function(err, s3Object) {
-        if (err) {
-            console.log("S3 interface error: ", err);
-        } else {
-            data.push(JSON.parse(s3Object.Body.toString())); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
-
-            callbacksFinished++;
-
-            if (callbacksStarted === callbacksFinished) { // FIXME: This is a dirty way of doing this, find something more elegant
-                onDataFetched(data);
-            }
-        }
-    };
-
-    for (var i = 0; i < list.length; i++) {
-        s3.getObject({
-            Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
-            Key: list[i]
-        }, callback);
-    }
-
-}
-
-function onDataFetched(data) {
-    for (var i = 0; i < data.length; i++) {
-        console.log(data[i]);
-    }
 }
 
 function callSendAPI(messageData) {
