@@ -86,6 +86,17 @@ function queryFacebookApi(nodes) {
             } else {
                 for (var i = 0; i < responseData.data.length; i++) {
                     responseData.data[i].organiser = organiserData;
+
+                    // entries with event_times really mess up the sorting, so replace the original id, start_time and end_time with the next upcoming event
+                    if(responseData.data[i].event_times){
+                        var firstUpcomingEvent = responseData.data[i].event_times.find((element) => {
+                            return (new Date(element.start_time).getTime() > Date.now();
+                        });
+
+                        responseData.data[i].id = firstUpcomingEvent.id;
+                        responseData.data[i].start_time = firstUpcomingEvent.start_time;
+                        responseData.data[i].end_time = firstUpcomingEvent.end_time;
+                    }
                     aggregatedResponse[responseData.data[i].id] = responseData.data[i]; // event ID should be unique, so duplicates can be overwritten
                 }
             }
@@ -200,7 +211,7 @@ function cleanupPayloadToS3(payload){
 
     console.log("cleaned payload content: ", cleanedPayload);
 
-    cleanedPayload.sort(function(left, right){   
+    cleanedPayload.sort(function(left, right){
         var leftDate = new Date(left.start_time);
         var rightDate = new Date(right.start_time);
 
