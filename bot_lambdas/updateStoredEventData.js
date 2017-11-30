@@ -90,7 +90,7 @@ function queryFacebookApi(nodes) {
                 for (var i = 0; i < responseData.data.length; i++) {
                     responseData.data[i].organiser = organiserData;
                 }
-                s3Data = responseData;
+                s3Data = responseData.data;
             }
 
             aggregatedResponse.push(s3Data);
