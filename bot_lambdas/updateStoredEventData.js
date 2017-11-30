@@ -181,8 +181,6 @@ function queryFacebookApi(nodes) {
 function updateS3Data(payload) {
     var content = cleanupPayloadToS3(payload);
 
-    content = cleanupPayloadToS3(content);
-
     s3.putObject({
         Bucket: S3_BUCKET_NAME,
         Key: S3_EVENT_DATA_OBJECT_KEY,
@@ -199,6 +197,8 @@ function updateS3Data(payload) {
 function cleanupPayloadToS3(payload){
     // var cleanedPayload = Object.values(payload); // NB Object.values isn't available until Node 7.0
     var cleanedPayload = Object.keys(payload).map((key) => { return payload[key]; });
+
+    console.log("cleaned payload content: ", cleanedPayload);
 
     // cleanedPayload.sort(function(left, right){   // FIXME: sorting causes a timeout, too much data?
     //     var leftDate = new Date(left.start_time);
