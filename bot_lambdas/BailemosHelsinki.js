@@ -23,12 +23,36 @@ const BOT_TEXTS = { // probably should be fetched from S3
     Affirmative: ["Ok, on it!", "Sure, I can do that", "Alrighty!", "Sure thing!"]
 };
 
-const KEYWORD_REGEXES = {
-    Type: {
-        Course: /[course|kurssi]/,
-        Party: /[party|parties]/
+const KEYWORD_REGEXES = { // TODO: worry about localisation later
+    Types: {
+        Course: /course/i,
+        Party: /party/i
     },
-
+    Interests: {
+        Salsa: /salsa/i,
+        Bachata: /bachata/i,
+        Kizomba: /kizomba/i,
+        Zouk: /zouk/i
+    },
+    Temporal: {
+        Today: /today\b|tonight\b/i,
+        Monday: /monday|mo[n\-\b]/i,
+        Tuesday: /tuesday|tu[e\-\b]/i,
+        Wednesday: /wednesday|we[d\-\b]/i,
+        Thursday: /thursday|th[u\-\b]/i,
+        Friday: /friday|fr[i\-\b]/i,
+        Saturday: /saturday|sa[t\-\b]/i,
+        Sunday: /sunday|su[n\-\b]/i,
+        ThisWeek: /this week\b/i,
+        UpcomingWeekend: /this weekend\b/i,
+        NextWeekend: /next weekend\b/i,
+        NextWeek: /next week\b/i,
+        RangeLike: /\s\-\s|\w\-\w/,
+        DateLike: /\d{1,2}[\.\/]\d{1,2}/,
+        TimeLike: /\d{1,2}[\.\:]\d{2}/,
+        FromMarker: /from|starting|after/i,
+        ToMarker: /to|until|before/i
+    }
 };
 
 exports.handler = (event, context, callback) => {
@@ -206,7 +230,7 @@ function analyseMessage(text) {
         originalText: text,
         language: analyseLanguage(text),
         eventType: findEventTypeKeywords(text),
-        timeRange: findTimeKeywords(text),
+        temporalMarkers: findTemporalKeywords(text),
         locations: findLocationKeywords(text),
         interests: findInterestKeywords(text)
     };
@@ -222,21 +246,28 @@ function analyseLanguage(text) {
     return language;
 }
 
-function findEventTypeKeywords(text){
+function findEventTypeKeywords(text) {
     var eventTypes = [];
 
-    
+    for (var prop in KEYWORD_REGEXES.Types) {
+        if (KEYWORD_REGEXES.Types[prop].test(text)) {
+            eventTypes.push(prop);
+        }
+    }
 
     return eventTypes;
 }
 
-function findTimeKeywords(text) {
-    var timeRange = {
-        from: null,
-        to: null
-    };
+function findTemporalKeywords(text) {
+    var temporalMarkers = [];
 
-    return timeRange;
+    for (var prop in KEYWORD_REGEXES.Temporal) {
+        if (KEYWORD_REGEXES.Temporal[prop].test(text)) {
+            temporalMarkers.push(prop);
+        }
+    }
+
+    return temporalMarkers;
 }
 
 function findLocationKeywords(text) {
@@ -248,12 +279,19 @@ function findLocationKeywords(text) {
 function findInterestKeywords(text) {
     var interests = [];
 
+    for (var prop in KEYWORD_REGEXES.Interests) {
+        if (KEYWORD_REGEXES.Interests[prop].test(text)) {
+            interests.push(prop);
+        }
+    }
+
     return interests;
 }
 
 function generateResponse(senderId, result) {
     var messages = [];
-    if (result.timeRange.from === null && result.timeRange.to === null && result.locations.length === 0 && result.interests.length === 0) {
+    if (result.eventType.length === 0 && result.temporalMarkers.length === 0 && result.locations.length === 0 && result.interests.length === 0) {
+        // found absolutely nothing
         messages.push({
             text: BOT_TEXTS.Unknown[Math.floor(Math.random() * BOT_TEXTS.Unknown.length)]
         });
