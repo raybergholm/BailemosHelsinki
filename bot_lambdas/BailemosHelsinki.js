@@ -12,7 +12,9 @@ var https = require("https");
 var crypto = require('crypto');
 
 var AWS = require("aws-sdk");
-AWS.config.update({region: "eu-central-1"});
+AWS.config.update({
+    region: "eu-central-1"
+});
 
 var s3 = new AWS.S3();
 
@@ -34,46 +36,48 @@ const BOT_TEXTS = { // probably should be fetched from S3
     Affirmative: [
         "Ok, on it!", "Sure, I can do that", "Alrighty!", "Sure thing!"
     ],
-    Apologise: ["Whoops, did I get it wrong?", "I guess that didn't quite work as intended", "Yeah, I have problems too :("]
+    Apologise: [
+        "Whoops, did I get it wrong?", "I guess that didn't quite work as intended", "Yeah, I have problems too :("
+    ]
 };
 
 const KEYWORD_REGEXES = { // TODO: worry about localisation later
     Special: {
-        Greetings: /\bhi|hello|moi|\bhei|hej[\b\!\?]/i,
-        Info: /\binfo\b|\bdisclaimer\b/i,
-        HelpRequest: /\bhelp\b|help[\!\?]|help [me|please]/i,
-        Oops: /\bwtf\b|\byou're drunk\b|\bwrong\b/i,
+        Greetings: /\b(?:hi|hello|moi|hei|hej)(?:\b|[\!\?])/i,
+        Info: /\b(?:info|disclaimer)\b/i,
+        HelpRequest: /\b(?:help)(?:\b|[\!\?])|\bhelp [me|please]\b/i,
+        Oops: /\b(?:wtf|you're drunk|wrong)\b/i,
         SurpriseMe: /\bsurprise me\b/i,
-        Debug: /debug test/i
+        Debug: /\bdebug test\b/i
     },
     Types: {
-        Course: /course/i,
-        Party: /party/i
+        Course: /\b(?:course|courses)\b/i,
+        Party: /\b(?:party|parties)\b/i
     },
     Interests: {
-        Salsa: /salsa/i,
-        Bachata: /bachata/i,
-        Kizomba: /kizomba/i,
-        Zouk: /zouk/i
+        Salsa: /\bsalsa\b/i,
+        Bachata: /\bbachata\b/i,
+        Kizomba: /\bkizomba\b/i,
+        Zouk: /\bzouk\b/i
     },
     Temporal: {
-        Today: /today\b|tonight\b/i,
-        Monday: /monday|mo[n\-\b]/i,
-        Tuesday: /tuesday|tu[e\-\b]/i,
-        Wednesday: /wednesday|we[d\-\b]/i,
-        Thursday: /thursday|th[u\-\b]/i,
-        Friday: /friday|fr[i\-\b]/i,
-        Saturday: /saturday|sa[t\-\b]/i,
-        Sunday: /sunday|su[n\-\b]/i,
-        ThisWeek: /this week\b/i,
-        UpcomingWeekend: /this weekend\b/i,
-        NextWeekend: /next weekend\b/i,
-        NextWeek: /next week\b/i,
+        Today: /\b(?:today|tonight)\b/i,
+        Monday: /\b(?:monday|mo[n\-\b])/i,
+        Tuesday: /\b(?:tuesday|tu[e\-\b])/i,
+        Wednesday: /\b(?:wednesday|we[d\-\b])/i,
+        Thursday: /\b(?:thursday|th[u\-\b])/i,
+        Friday: /\b(?:friday|fr[i\-\b])/i,
+        Saturday: /\b(?:saturday|sa[t\-\b])/i,
+        Sunday: /\b(?:sunday|su[n\-\b])/i,
+        ThisWeek: /\bthis week\b/i,
+        UpcomingWeekend: /\bthis weekend\b/i,
+        NextWeekend: /\bnext weekend\b/i,
+        NextWeek: /\bnext week\b/i,
         RangeLike: /\s\-\s|\w\-\w/,
         DateLike: /\d{1,2}[\.\/]\d{1,2}/,
         TimeLike: /\d{1,2}[\.\:]\d{2}/,
-        FromMarker: /from|starting|after/i,
-        ToMarker: /to|until|before/i
+        FromMarker: /\b(?:from|starting|after)\b/i,
+        ToMarker: /\b(?:to|until|before)\b/i
     }
 };
 
@@ -238,7 +242,9 @@ function handleReceivedMessage(message) {
             generateResponse(senderId, result);
         }
     } else if (messageAttachments) {
-        sendTextMessage(senderId, {text: "Message with attachment received"});
+        sendTextMessage(senderId, {
+            text: "Message with attachment received"
+        });
     }
 }
 
@@ -256,12 +262,16 @@ function findSpecialTexts(text) {
                     break;
                 case "Info":
                     for (i = 0; i < BOT_TEXTS.Disclaimer.length; i++) {
-                        messages.push({text: BOT_TEXTS.Disclaimer[i]});
+                        messages.push({
+                            text: BOT_TEXTS.Disclaimer[i]
+                        });
                     }
                     break;
                 case "HelpRequest":
                     for (i = 0; i < BOT_TEXTS.HelpInfo.length; i++) {
-                        messages.push({text: BOT_TEXTS.HelpInfo[i]});
+                        messages.push({
+                            text: BOT_TEXTS.HelpInfo[i]
+                        });
                     }
                     break;
                 case "Debug":
@@ -398,10 +408,7 @@ function sendTypingIndicator(recipientId, mode) {
         recipient: {
             id: recipientId
         },
-        sender_action: (
-            mode
-            ? "typing_on"
-            : "typing_off")
+        sender_action: (mode ? "typing_on" : "typing_off")
     };
 
     // callSendAPI(messagePayload);  FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
