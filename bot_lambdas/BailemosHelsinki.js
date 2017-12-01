@@ -249,7 +249,7 @@ function findSpecialTexts(text) {
                         text: BOT_TEXTS.Greetings[Math.floor(Math.random() * BOT_TEXTS.Greetings.length)]
                     });
                     break;
-                case "Disclaimer":
+                case "Info":
                     for (i = 0; i < BOT_TEXTS.Disclaimer.length; i++) {
                         messages.push({text: BOT_TEXTS.Disclaimer[i]});
                     }
