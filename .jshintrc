@@ -4,6 +4,8 @@
     "unused" : true,
     "globals" : {
         "exports" : false,
+        "process" : false,
+        "require" : false,
         "console" : false
     }
 }
