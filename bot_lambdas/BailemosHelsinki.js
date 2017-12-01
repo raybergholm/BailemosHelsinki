@@ -31,7 +31,9 @@ const BOT_TEXTS = { // probably should be fetched from S3
     Unknown: [
         "I have no idea what you mean :(", "This bot is not quite advanced enough to understand that. Yet.", "Uh, try to say that again in a different way?"
     ],
-    Affirmative: ["Ok, on it!", "Sure, I can do that", "Alrighty!", "Sure thing!"],
+    Affirmative: [
+        "Ok, on it!", "Sure, I can do that", "Alrighty!", "Sure thing!"
+    ],
     Apologise: ["Whoops, did I get it wrong?", "I guess that didn't quite work as intended", "Yeah, I have problems too :("]
 };
 
@@ -40,8 +42,8 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later
         Greetings: /\bhi|hello|moi|\bhei|hej[\b\!\?]/i,
         Info: /\binfo\b|\bdisclaimer\b/i,
         HelpRequest: /\bhelp\b|help[\!\?]|help [me|please]/i,
-        Oops: /\bwtf\b|\byou're drunk\b|\bwrong\b/i
-        SurpriseMe: /\bsurprise me\b/i
+        Oops: /\bwtf\b|\byou're drunk\b|\bwrong\b/i,
+        SurpriseMe: /\bsurprise me\b/i,
         Debug: /debug test/i
     },
     Types: {
@@ -370,7 +372,9 @@ function generateResponse(senderId, analysisResults) {
             keywords.push(elem);
         });
 
-        messages.push({text: responseText + keywords.join(', ')}); // TODO: change text strings based on the keywords found. Also link some events! (may need additional messages tbh)
+        messages.push({
+            text: responseText + keywords.join(', ')
+        }); // TODO: change text strings based on the keywords found. Also link some events! (may need additional messages tbh)
     }
 
     for (var i = 0; i < messages.length; i++) {
