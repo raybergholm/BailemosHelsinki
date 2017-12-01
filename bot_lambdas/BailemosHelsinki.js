@@ -349,7 +349,20 @@ function generateResponse(senderId, analysisResults) {
         });
     } else {
         console.log("analysis picked up these keywords: ", analysisResults);
-        messages.push({text: "THIS IS A PLACEHOLDER"}); // TODO: change text strings based on the keywords found. Also link some events! (may need additional messages tbh)
+
+        var responseText = "I detected the following keywords: ";
+        var keywords = [];
+        analysisResults.eventType.forEach((elem) => {
+            keywords.push(elem);
+        });
+        analysisResults.temporalMarkers.forEach((elem) => {
+            keywords.push(elem);
+        });
+        analysisResults.interests.forEach((elem) => {
+            keywords.push(elem);
+        });
+
+        messages.push({text: responseText + keywords.join(', ')}); // TODO: change text strings based on the keywords found. Also link some events! (may need additional messages tbh)
     }
 
     for (var i = 0; i < messages.length; i++) {
