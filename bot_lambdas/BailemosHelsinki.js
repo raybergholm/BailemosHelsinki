@@ -245,9 +245,9 @@ function findSpecialTexts(text) {
         if (KEYWORD_REGEXES.Special[prop].test(text)) {
             switch (prop) {
                 case "Greetings":
-                    message = {
+                    messages.push({
                         text: BOT_TEXTS.Greetings[Math.floor(Math.random() * BOT_TEXTS.Greetings.length)]
-                    };
+                    });
                     break;
                 case "Disclaimer":
                     for (i = 0; i < BOT_TEXTS.Disclaimer.length; i++) {
@@ -274,7 +274,7 @@ function findSpecialTexts(text) {
         }
     }
     return false;
-},
+}
 
 function analyseMessage(text) {
     // TODO: this is probably going to be a big janky mess for a long time since text analysis is going to be complex
