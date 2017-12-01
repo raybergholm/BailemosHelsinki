@@ -23,6 +23,14 @@ const BOT_TEXTS = { // probably should be fetched from S3
     Affirmative: ["Ok, on it!", "Sure, I can do that", "Alrighty!", "Sure thing!"]
 };
 
+const KEYWORD_REGEXES = {
+    Type: {
+        Course: /[course|kurssi]/,
+        Party: /[party|parties]/
+    },
+
+};
+
 exports.handler = (event, context, callback) => {
     console.log(event);
 
@@ -197,6 +205,7 @@ function analyseMessage(text) {
     var result = {
         originalText: text,
         language: analyseLanguage(text),
+        eventType: findEventTypeKeywords(text),
         timeRange: findTimeKeywords(text),
         locations: findLocationKeywords(text),
         interests: findInterestKeywords(text)
@@ -211,6 +220,14 @@ function analyseLanguage(text) {
     language = "en"; // TODO: hardcode english for now, can worry about other langs later
 
     return language;
+}
+
+function findEventTypeKeywords(text){
+    var eventTypes = [];
+
+    
+
+    return eventTypes;
 }
 
 function findTimeKeywords(text) {
