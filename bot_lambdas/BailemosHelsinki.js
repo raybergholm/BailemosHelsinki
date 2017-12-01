@@ -36,9 +36,9 @@ const BOT_TEXTS = { // probably should be fetched from S3
 
 const KEYWORD_REGEXES = { // TODO: worry about localisation later
     Special: {
-        Greetings: /hi|hello|moi|\bhei|hej[\b\!]/i,
+        Greetings: /hi|hello|moi|\bhei|hej[\b\!\?]/i,
         Info: /\info\b|\bdisclaimer\b/i,
-        HelpRequest: /help[\b\!]|help [me|please]/i,
+        HelpRequest: /help\b|help[\!\?]|help [me|please]/i,
         Debug: /debug test/i
     },
     Types: {
