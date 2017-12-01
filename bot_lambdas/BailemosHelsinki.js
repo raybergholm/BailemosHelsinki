@@ -20,7 +20,7 @@ var senderId; // this is a bit dirty making it global
 
 const BOT_TEXTS = { // probably should be fetched from S3
     Greetings: [
-        "Hi!", "Hello!"
+        "Hi!", "Hello!", "Hi! :)", "Hello! :)"
     ],
     Disclaimer: [
         "This bot is currently under construction, so don't worry if things break.", "I don't really understand full sentences yet, just so you know :(", "If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages!", "Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
@@ -31,14 +31,17 @@ const BOT_TEXTS = { // probably should be fetched from S3
     Unknown: [
         "I have no idea what you mean :(", "This bot is not quite advanced enough to understand that. Yet.", "Uh, try to say that again in a different way?"
     ],
-    Affirmative: ["Ok, on it!", "Sure, I can do that", "Alrighty!", "Sure thing!"]
+    Affirmative: ["Ok, on it!", "Sure, I can do that", "Alrighty!", "Sure thing!"],
+    Apologise: ["Whoops, did I get it wrong?", "I guess that didn't quite work as intended", "Yeah, I have problems too :("]
 };
 
 const KEYWORD_REGEXES = { // TODO: worry about localisation later
     Special: {
-        Greetings: /hi|hello|moi|\bhei|hej[\b\!\?]/i,
-        Info: /\info\b|\bdisclaimer\b/i,
-        HelpRequest: /help\b|help[\!\?]|help [me|please]/i,
+        Greetings: /\bhi|hello|moi|\bhei|hej[\b\!\?]/i,
+        Info: /\binfo\b|\bdisclaimer\b/i,
+        HelpRequest: /\bhelp\b|help[\!\?]|help [me|please]/i,
+        Oops: /\bwtf\b|\byou're drunk\b|\bwrong\b/i
+        SurpriseMe: /\bsurprise me\b/i
         Debug: /debug test/i
     },
     Types: {
@@ -263,6 +266,11 @@ function findSpecialTexts(text) {
                     fetchDataFromS3();
                     messages.push({
                         text: BOT_TEXTS.Affirmative[Math.floor(Math.random() * BOT_TEXTS.Affirmative.length)]
+                    });
+                    break;
+                case "Oops":
+                    messages.push({
+                        text: BOT_TEXTS.Apologise[Math.floor(Math.random() * BOT_TEXTS.Apologise.length)]
                     });
                     break;
             }
