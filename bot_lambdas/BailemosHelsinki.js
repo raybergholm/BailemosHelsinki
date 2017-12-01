@@ -16,7 +16,18 @@ AWS.config.update({region: "eu-central-1"});
 
 var s3 = new AWS.S3();
 
+var senderId; // this is a bit dirty making it global
+
 const BOT_TEXTS = { // probably should be fetched from S3
+    Greetings: [
+        "Hi!", "Hello!"
+    ],
+    Disclaimer: [
+        "This bot is currently under construction, so don't worry if things break.", "I don't really understand full sentences yet, just so you know :(", "If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages!", "Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
+    ],
+    HelpInfo: [
+        "Currently I can detect some keywords related to the dance scene in Helsinki based on things like time, event types and interests. You can freely combine terms to narrow down your search", "e.g. try something like \"any salsa parties this weekend?\" and I can pick up \"salsa\", \"party\" and \"this weekend\" and check what's out there.", "Or you could just ask \"what's happening next Friday?\" if you just want to know what's happening then", "Or you could just try \"Surprise me\" :)"
+    ],
     Unknown: [
         "I have no idea what you mean :(", "This bot is not quite advanced enough to understand that. Yet.", "Uh, try to say that again in a different way?"
     ],
@@ -24,6 +35,12 @@ const BOT_TEXTS = { // probably should be fetched from S3
 };
 
 const KEYWORD_REGEXES = { // TODO: worry about localisation later
+    Special: {
+        Greetings: /hi|hello|moi|\bhei|hej[\b\!]/i,
+        Info: /\info\b|\bdisclaimer\b/i,
+        HelpRequest: /help[\b\!]|help [me|please]/i,
+        Debug: /debug test/i
+    },
     Types: {
         Course: /course/i,
         Party: /party/i
@@ -196,7 +213,7 @@ function handleReceivedMessage(message) {
             }
         }
     */
-    var senderId = message.sender.id;
+    senderId = message.sender.id;
     var recipientId = message.recipient.id;
     var timeOfMessage = message.timestamp;
     var messageData = message.message;
@@ -211,11 +228,7 @@ function handleReceivedMessage(message) {
     var messageAttachments = messageData.attachments;
 
     if (messageText) {
-        var debugRegex = /debug test/;
-        if (debugRegex.test(messageText)) {
-            fetchDataFromS3();
-            sendTextMessage(senderId, BOT_TEXTS.Affirmative[Math.floor(Math.random() * BOT_TEXTS.Affirmative.length)]);
-        } else {
+        if (!findSpecialTexts(messageText)) {
             var result = analyseMessage(messageText);
             generateResponse(senderId, result);
         }
@@ -223,6 +236,45 @@ function handleReceivedMessage(message) {
         sendTextMessage(senderId, {text: "Message with attachment received"});
     }
 }
+
+function findSpecialTexts(text) {
+    var i;
+    var messages = [];
+
+    for (var prop in KEYWORD_REGEXES.Special) {
+        if (KEYWORD_REGEXES.Special[prop].test(text)) {
+            switch (prop) {
+                case "Greetings":
+                    message = {
+                        text: BOT_TEXTS.Greetings[Math.floor(Math.random() * BOT_TEXTS.Greetings.length)]
+                    };
+                    break;
+                case "Disclaimer":
+                    for (i = 0; i < BOT_TEXTS.Disclaimer.length; i++) {
+                        messages.push({text: BOT_TEXTS.Disclaimer[i]});
+                    }
+                    break;
+                case "HelpRequest":
+                    for (i = 0; i < BOT_TEXTS.HelpInfo.length; i++) {
+                        messages.push({text: BOT_TEXTS.HelpInfo[i]});
+                    }
+                    break;
+                case "Debug":
+                    fetchDataFromS3();
+                    messages.push({
+                        text: BOT_TEXTS.Affirmative[Math.floor(Math.random() * BOT_TEXTS.Affirmative.length)]
+                    });
+                    break;
+            }
+
+            for (i = 0; i < messages.length; i++) {
+                sendTextMessage(senderId, messages[i]);
+            }
+            return true;
+        }
+    }
+    return false;
+},
 
 function analyseMessage(text) {
     // TODO: this is probably going to be a big janky mess for a long time since text analysis is going to be complex
@@ -288,14 +340,15 @@ function findInterestKeywords(text) {
     return interests;
 }
 
-function generateResponse(senderId, result) {
+function generateResponse(senderId, analysisResults) {
     var messages = [];
-    if (result.eventType.length === 0 && result.temporalMarkers.length === 0 && result.locations.length === 0 && result.interests.length === 0) {
+    if (analysisResults.eventType.length === 0 && analysisResults.temporalMarkers.length === 0 && analysisResults.locations.length === 0 && analysisResults.interests.length === 0) {
         // found absolutely nothing
         messages.push({
             text: BOT_TEXTS.Unknown[Math.floor(Math.random() * BOT_TEXTS.Unknown.length)]
         });
     } else {
+        console.log("analysis picked up these keywords: ", analysisResults);
         messages.push({text: "THIS IS A PLACEHOLDER"}); // TODO: change text strings based on the keywords found. Also link some events! (may need additional messages tbh)
     }
 
@@ -326,7 +379,7 @@ function sendTypingIndicator(recipientId, mode) {
             : "typing_off")
     };
 
-    callSendAPI(messagePayload);
+    // callSendAPI(messagePayload);  FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
 }
 
 function sendTextMessage(recipientId, content) {
@@ -397,4 +450,6 @@ function callSendAPI(messagePayload) {
 
 function postDeliveryCallback(str) {
     console.log("callback end, got " + str);
+
+    sendTypingIndicator(senderId, false);
 }
