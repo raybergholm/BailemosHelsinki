@@ -401,7 +401,7 @@ function generateResponse(senderId, analysisResults) {
 
             filteredEvents.forEach((eventData) => {
                 messageQueue.push({
-                    text: eventData.name
+                    text: "https://www.facebook.com/events/" + eventData.id + '/'
                 });
             });
 
