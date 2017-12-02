@@ -20,6 +20,8 @@ var s3 = new AWS.S3();
 
 var senderId; // this is a bit dirty making it global
 
+var messageQueue = [];
+
 const BOT_TEXTS = { // probably should be fetched from S3
     Greetings: [
         "Hi!", "Hello!", "Hi! :)", "Hello! :)"
@@ -242,9 +244,11 @@ function handleReceivedMessage(message) {
             generateResponse(senderId, result);
         }
     } else if (messageAttachments) {
-        sendTextMessage(senderId, {
+        messageQueue.push(senderId, {
             text: "Message with attachment received"
         });
+
+        releaseMessages();
     }
 }
 
@@ -275,7 +279,7 @@ function findSpecialTexts(text) {
                     }
                     break;
                 case "Debug":
-                    fetchDataFromS3();
+                    fetchDataFromS3(null);
                     messages.push({
                         text: BOT_TEXTS.Affirmative[Math.floor(Math.random() * BOT_TEXTS.Affirmative.length)]
                     });
@@ -361,10 +365,9 @@ function findInterestKeywords(text) {
 }
 
 function generateResponse(senderId, analysisResults) {
-    var messages = [];
     if (analysisResults.eventType.length === 0 && analysisResults.temporalMarkers.length === 0 && analysisResults.locations.length === 0 && analysisResults.interests.length === 0) {
         // found absolutely nothing
-        messages.push({
+        messageQueue.push({
             text: BOT_TEXTS.Unknown[Math.floor(Math.random() * BOT_TEXTS.Unknown.length)]
         });
     } else {
@@ -382,14 +385,32 @@ function generateResponse(senderId, analysisResults) {
             keywords.push(elem);
         });
 
-        messages.push({
+        messageQueue.push({
             text: responseText + keywords.join(', ')
-        }); // TODO: change text strings based on the keywords found. Also link some events! (may need additional messages tbh)
+        });
+
+        var callback = function(events){
+            var filteredEvents = [];
+            events.forEach((eventData) => {
+                analysisResults.interests.forEach((interest) => {
+                    if(KEYWORD_REGEXES.Interests[interest].test(eventData.description)){ // TODO: eww, this is going to create errors isn't it?
+                        filteredEvents.push(eventData);
+                    }
+                });
+            });
+
+            filteredEvents.forEach((eventData) => {
+                messageQueue.push({
+                    text: eventData.name
+                });
+            });
+
+            releaseMessages();
+        };
+        fetchDataFromS3(callback);
     }
 
-    for (var i = 0; i < messages.length; i++) {
-        sendTextMessage(senderId, messages[i]);
-    }
+    releaseMessages(); // fire this immediately even if there's more to come after querying S3, I want the debug message for now
 }
 
 function handleDeliveryReceipt(message) {
@@ -414,7 +435,15 @@ function sendTypingIndicator(recipientId, mode) {
     // callSendAPI(messagePayload);  FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
 }
 
-function sendTextMessage(recipientId, content) {
+function releaseMessages(){ // TODO: probably should make this a real Queue
+    for(var i = 0; i < messageQueue.length; i++){
+        sendTextMessage(messageQueue[i]);
+    }
+
+    messageQueue = [];
+}
+
+function sendTextMessage(content) {
     var message = {};
 
     message = content; // TODO: validation checks: only a subset of stuff is OK here
@@ -423,7 +452,7 @@ function sendTextMessage(recipientId, content) {
             id: FACEBOOK_PAGE_ID
         },
         recipient: {
-            id: recipientId
+            id: senderId
         },
         message: message
     };
@@ -431,7 +460,7 @@ function sendTextMessage(recipientId, content) {
     callSendAPI(messagePayload);
 }
 
-function fetchDataFromS3() {
+function fetchDataFromS3(callback) {
     s3.getObject({
         Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
         Key: S3_EVENT_DATA_OBJECT_KEY
@@ -443,12 +472,20 @@ function fetchDataFromS3() {
             eventData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
 
             console.log(eventData);
+
+            if(callback){
+                callback(eventData);
+            }
         }
     });
 }
 
 function callSendAPI(messagePayload) {
     console.log("sending this message payload to FB:", messagePayload);
+
+    if(!messagePayload.messaging_type){
+        messagePayload.messaging_type = "RESPONSE"; // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
+    }
 
     var body = JSON.stringify(messagePayload);
     var path = "/v2.6/me/messages?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
