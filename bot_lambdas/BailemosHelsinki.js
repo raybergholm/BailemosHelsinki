@@ -401,7 +401,13 @@ function generateResponse(senderId, analysisResults) {
 
             filteredEvents.forEach((eventData) => {
                 messageQueue.push({
-                    text: "https://www.facebook.com/events/" + eventData.id + '/'
+                    text: eventData.name + " " + eventData.start_time + "\n" + "https://www.facebook.com/events/" + eventData.id + '/'
+                    // shares: {    // TODO: doesn't work like that. Does the API support enriched messages with link previews like "normal" messages?
+                    //     id: eventData.id,
+                    //     name: eventData.name,
+                    //     description: eventData.name,
+                    //     link: "https://www.facebook.com/events/" + eventData.id + '/'
+                    // }
                 });
             });
 
