@@ -98,10 +98,8 @@ exports.handler = (event, context, callback) => {
     };
 
     if(event.httpMethod === "POST"){
-        var data = event.body;
+        var data = JSON.parse(event.body);
         if (data) {
-            console.log("entire HTTP request data: ", data);
-
             // Make sure this is a page subscription
             if (data.object === "page") {
 
