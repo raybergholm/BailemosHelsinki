@@ -19,14 +19,14 @@ exports.handler = (event, context, callback) => {
         var verifyToken = event.queryStringParameters["hub.verify_token"];
 
         if (verifyToken === FACEBOOK_VERIFY_TOKEN) {
-            var challengeToken = parseInt(event.queryStringParameters["hub.challenge"]);
+            var challengeToken = parseInt(event.queryStringParameters["hub.challenge"], 10);
 
             console.log("Responding to Facebook challenge token");
 
             response = {
                 isBase64Encoded: false,
                 statusCode: 200,
-                body: parseInt(challengeToken)
+                body: parseInt(challengeToken, 10)
             };
         } else {
             console.log("Incorrect validation token received");
