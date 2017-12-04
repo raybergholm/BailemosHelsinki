@@ -21,10 +21,17 @@ var senderId; // this is a bit dirty making it global
 
 var messageBuffer = {
     _messages: [],
-    enqueue: function(message){
-        if(!message.messaging_type){
-            message.messaging_type = "RESPONSE"; // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
-        }
+    enqueue: function(messagePayload){
+        var message = {
+            messaging_type: "RESPONSE",    // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
+            recipient: {
+                id: senderId
+            },
+            sender: {
+                id: FACEBOOK_PAGE_ID
+            },
+            message: messagePayload
+        };
         this._messages.push(message);
     },
     flush: function(){
@@ -70,7 +77,7 @@ const BOT_TEXTS = { // probably should be fetched from S3
 
 const KEYWORD_REGEXES = { // TODO: worry about localisation later
     Special: {
-        Greetings: /\b(?:hi|hello|moi|hei|hej)(?:\b|[\!\?])/i,
+        Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[\!\?])/i,
         Info: /\b(?:info|disclaimer)\b/i,
         HelpRequest: /\b(?:help)(?:\b|[\!\?])|\bhelp [me|please]\b/i,
         Oops: /\b(?:wtf|you're drunk|wrong)\b/i,
@@ -470,7 +477,7 @@ function callSendAPI(payload) {
     var body = payload;
     var options = {
         host: "graph.facebook.com",
-        path: "/2.9/me/messages/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
+        path: "/v2.11/me/messages/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
         method: "POST",
         headers: {
             "Content-Type": "application/json"
