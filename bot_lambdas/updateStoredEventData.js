@@ -60,10 +60,6 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
 }
 
 function queryFacebookApi(nodes) {
-    var path,
-        callback,
-        params;
-
     var aggregatedResponse = {}; // this is an object and not an array since this being used as a KVP data container, we want to enforce unique keys
 
     var callbacksStarted = Object.keys(nodes).length;
@@ -145,51 +141,75 @@ function queryFacebookApi(nodes) {
         console.log("problem with request: " + err);
     };
 
+    var content = [];
+
     for (var node in nodes) {
         // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
 
         switch (nodes[node].Type) {
             case "page":
                 // scrape this page's events
-                params = {
-                    time_filter: "upcoming"
-                };
-                path = generateApiUrl(nodes[node].Id, "events", params);
-                callback = pageEventsCallback.bind(this, nodes[node]);
+                content.push({
+                    relative_url: "/" + nodes[node].Id + "/events?time_filter=upcoming",
+                    method: "GET"
+                });
                 break;
             case "group":
                 // scrape this page's post feed
-                path = generateApiUrl(nodes[node].Id, "feed", params);
-                callback = groupFeedCallback.bind(this, nodes[node]);
+                content.push({
+                    relative_url: "/" + nodes[node].Id + "/feed",
+                    method: "GET"
+                });
                 break;
             case "user":
                 // scrape this user's events, NB the user needs to give this app permission!
-                path = generateApiUrl(nodes[node].Id, "events", params);
-                callback = pageEventsCallback.bind(this, nodes[node]);
-                break;
 
+                content.push({
+                    relative_url: "/" + nodes[node].Id + "/events?time_filter=upcoming",
+                    method: "GET"
+                });
+                break;
             default:
                 console.log("Unexpected node type: ", nodes[node].Type);
         }
-        console.log("api path:", path);
-
-        if (!path) {
-            continue;
-        }
-
-        var options = {
-            host: "graph.facebook.com",
-            path: path,
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        };
-
-        var req = https.request(options, callback);
-        req.on("error", errCallback);
-        req.end();
     }
+
+    // content = {
+    //     batch: content
+    // }
+    // var body = JSON.stringify(content);
+
+
+    var body = "batch=" + JSON.stringify(content);
+
+    console.log("write to body: ", body);
+    var options = {
+        host: "graph.facebook.com",
+        path: "/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    };
+
+    var req = https.request(options, (response) => {
+        console.log(response);
+
+        var str = "";
+        response.on("data", (chunk) => {
+            str += chunk;
+        });
+
+        response.on("end", () => {
+            var data = JSON.parse(str);
+            console.log(str);
+            console.log(JSON.parse(str));
+        });
+    });
+    req.on("error", errCallback);
+
+    req.write(body);
+    req.end();
 }
 
 function updateS3Data(payload) {
