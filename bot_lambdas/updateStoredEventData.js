@@ -9,7 +9,9 @@ const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
 var https = require("https");
 
 var AWS = require("aws-sdk");
-AWS.config.update({region: "eu-central-1"});
+AWS.config.update({
+    region: "eu-central-1"
+});
 
 var dynamodb = new AWS.DynamoDB();
 var s3 = new AWS.S3();
@@ -57,68 +59,6 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
 }
 
 function queryFacebookApi(organisers) {
-    var aggregatedResponse = {}; // this is an object and not an array since this being used as a KVP data container, we want to enforce unique keys
-
-    var pageEventsCallback = function(organiser, response) {
-        var payload = "";
-
-        var firstFutureComparator = function(element) {
-            return (new Date(element.start_time)).getTime() > Date.now();
-        };
-
-        response.on("data", function(chunk) {
-            payload += chunk;
-        });
-        response.on("end", function() {
-            var responseData = JSON.parse(payload);
-            var organiserData = {
-                NodeId: organiser.Id,
-                NodeType: organiser.Type,
-                Name: organiser.Name
-            };
-            if (responseData.error) {
-                console.log("Response errored: ", responseData.error.message);
-            } else {
-                for (var i = 0; i < responseData.data.length; i++) {
-                    responseData.data[i].organiser = organiserData;
-
-                    // entries with event_times really mess up the sorting, so replace the original id, start_time and end_time with the next upcoming event
-                    if (responseData.data[i].event_times) {
-                        var firstUpcomingEvent = responseData.data[i].event_times.find(firstFutureComparator);
-
-                        responseData.data[i].id = firstUpcomingEvent.id;
-                        responseData.data[i].start_time = firstUpcomingEvent.start_time;
-                        responseData.data[i].end_time = firstUpcomingEvent.end_time;
-                    }
-                    aggregatedResponse[responseData.data[i].id] = responseData.data[i]; // event ID should be unique, so duplicates can be overwritten
-                }
-            }
-        });
-    };
-
-    var groupFeedCallback = function(organiser, response) {
-        var payload = "";
-        response.on("data", function(chunk) {
-            payload += chunk;
-        });
-        response.on("end", function() {
-            var responseData = JSON.parse(payload);
-            var organiserData = {
-                NodeId: organiser.Id,
-                NodeType: organiser.Type,
-                Name: organiser.Name
-            };
-            if (responseData.error) {
-                console.log("Response errored: ", responseData.error.message);
-            } else {
-                for (var i = 0; i < responseData.data.length; i++) {
-                    responseData.data[i].organiser = organiserData;
-                    // aggregatedResponse[responseData.data[i].id] = responseData.data[i];  event ID should be unique, so duplicates can be overwritten
-                }
-            }
-        });
-    };
-
     var batchRequestContent = [];
 
     for (var i = 0; i < organisers.length; i++) {
@@ -186,23 +126,70 @@ function queryFacebookApi(organisers) {
     req.end();
 }
 
-function formatEventData(organisers, responseData){ // TODO: these should be 1-to-1 matched, check that FB doesn't do anything weird though
-    var s3Payload = [];
+function formatEventData(organisers, responseData) { // it's a bit dirty that they're in different arrays, but at least they match 1-to-1
+    var responseBody;
+    var eventsMap = {}; // NOTE: this is an object and not an array since this being used as a KVP data container, we want to enforce unique keys
 
-    if(organisers.length !== responseData.length){
-        console.log("what sorcery is this, the array lengths don't match");
+    if (organisers.length !== responseData.length) {
+        console.log("what sorcery is this, the array lengths don't match. Expect an error in the logs.");
     }
 
-    for(var i = 0; i < organisers.length; i++){
+    for (var i = 0; i < organisers.length; i++) {
         console.log("organiser data index " + i, organisers[i]);
-        console.log("event data index " + i, responseData[i]);
 
-        responseData[i].body.forEach((eventData) => {
-            eventData.organiser = organisers[i];
-        });
+        console.log("response data index " + i, responseData[i]);
+
+        if (responseData[i].error) {
+            console.log("Response errored: ", responseData.error.message);
+        } else {
+            switch (organisers[i].Type) {
+                case "page":
+                    responseBody = JSON.parse(responseData[i].body);
+                    responseBody.data.forEach((eventData) => {
+                        eventData.organiser = organisers[i];
+
+                        if (eventData.event_times) {
+                            var firstUpcomingEvent = eventData.event_times.find((element) => {
+                                return (new Date(element.start_time)).getTime() > Date.now();
+                            });
+
+                            eventData.id = firstUpcomingEvent.id;
+                            eventData.start_time = firstUpcomingEvent.start_time;
+                            eventData.end_time = firstUpcomingEvent.end_time;
+                        }
+
+                        eventsMap[eventData.id] = eventData;
+                    });
+                    break;
+                case "group":
+                    responseBody = JSON.parse(responseData[i].body);
+                    responseBody.data.forEach((post) => {
+                        // TODO: scrape every post for relevant event info
+                    });
+                    break;
+                case "user":
+                    responseBody = JSON.parse(responseData[i].body);
+                    responseBody.data.forEach((eventData) => {
+                        eventData.organiser = organisers[i];
+
+                        if (eventData.event_times) {
+                            var firstUpcomingEvent = eventData.event_times.find((element) => {
+                                return (new Date(element.start_time)).getTime() > Date.now();
+                            });
+
+                            eventData.id = firstUpcomingEvent.id;
+                            eventData.start_time = firstUpcomingEvent.start_time;
+                            eventData.end_time = firstUpcomingEvent.end_time;
+                        }
+
+                        eventsMap[eventData.id] = eventData;
+                    });
+                    break;
+            }
+        }
     }
 
-    // updateS3Data(s3Payload);
+    updateS3Data(eventsMap);
 }
 
 function updateS3Data(payload) {
@@ -222,7 +209,7 @@ function updateS3Data(payload) {
 }
 
 function cleanupPayloadToS3(payload) {
-    // var cleanedPayload = Object.values(payload);  NB Object.values isn't available until Node 7.0
+    // var cleanedPayload = Object.values(payload); // NB Object.values isn't available until Node 7.0
     var cleanedPayload = Object.keys(payload).map((key) => {
         return payload[key];
     });
@@ -236,34 +223,10 @@ function cleanupPayloadToS3(payload) {
         if (!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()) {
             return 0;
         } else {
-            return leftDate.getTime() < rightDate.getTime()
-                ? -1
-                : 1;
+            return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
         }
     });
 
     cleanedPayload = JSON.stringify(cleanedPayload);
     return cleanedPayload;
-}
-
-function generateApiUrl(nodeId, edge, params) {
-    var url = "/v2.9/" + nodeId;
-    var accessTokenParam = "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
-
-    url += '/' + edge + accessTokenParam;
-
-    if (params) {
-        var paramsArr = [],
-            temp;
-        for (var prop in params) {
-            temp = prop + '=' + (
-                params[prop] instanceof Array
-                ? params[prop].join(',')
-                : params[prop]); // handles joining one level deep. If this requires some fancy subquerying, consider making this recursive
-            paramsArr.push(temp);
-        }
-        url = url + '&' + paramsArr.join('&');
-    }
-
-    return url;
 }
