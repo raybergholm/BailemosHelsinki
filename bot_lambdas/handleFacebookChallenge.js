@@ -1,17 +1,9 @@
 "use strict";
 
-const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
-
-var crypto = require("crypto");
 
 exports.handler = (event, context, callback) => {
     console.log(event);
-
-    if(!verifySignature(event['X-Hub-Signature'])){
-        console.log("X-Hub_Signature did not match the expected value");
-        // return;
-    }
 
     var response;
 
@@ -46,21 +38,3 @@ exports.handler = (event, context, callback) => {
     console.log("returning the following response: ", JSON.stringify(response));
     callback(null, response);
 };
-
-function verifySignature(signature) {
-    var shasum;
-
-    console.log(signature);
-
-    if (signature) {
-        shasum = crypto.createHash('sha1');
-        shasum.update(FACEBOOK_APP_SECRET);
-
-        if (signature === shasum.digest("hex")) {
-            return true;
-        } else {
-            console.log("HTTP signature: " + signature + ", digest: " + shasum.digest("hex"));
-        }
-    }
-    return false;
-}
