@@ -3,19 +3,15 @@
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
 
-var https = require("https");
 var crypto = require("crypto");
 
 exports.handler = (event, context, callback) => {
     console.log(event);
 
-    /*
-    // TODO: event["X-Hub-Signature"] is always undefined, but it's definitely there. Why?
     if(!verifySignature(event['X-Hub-Signature'])){
         console.log("X-Hub_Signature did not match the expected value");
-        return;
+        // return;
     }
-    */
 
     var response;
 
