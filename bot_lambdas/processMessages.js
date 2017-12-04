@@ -3,7 +3,6 @@
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
-const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
 
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
@@ -22,23 +21,28 @@ var senderId; // this is a bit dirty making it global
 
 var messageBuffer = {
     _messages: [],
-    enqueue: (message) => {
+    enqueue: function(message){
         if(!message.messaging_type){
             message.messaging_type = "RESPONSE"; // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
         }
         this._messages.push(message);
     },
-    flush: () => {
-        var batchRequestContent = [];
-        for(var i = 0; i < this._messages.length; i++){
-            batchRequestContent.push({
-                relative_url: "/me/messages",
-                method: "POST",
-                body: this._messages[i]
-            });
+    flush: function(){
+        if(this._messages.length === 1){
+            callSendAPI(JSON.stringify(this._messages[0]));
+        }else{
+            var batchRequestContent = [];
+            for(var i = 0; i < this._messages.length; i++){
+                batchRequestContent.push({
+                    relative_url: "/me/messages",
+                    method: "POST",
+                    body: this._messages[i]
+                });
+            }
+
+            callSendBatchAPI("batch=" + JSON.stringify(batchRequestContent));
         }
 
-        callSendAPI("batch=" + JSON.stringify(batchRequestContent));
         this._messages = [];
     }
 };
@@ -239,46 +243,43 @@ function handleReceivedMessage(message) {
 
 function findSpecialTexts(text) {
     var i;
-    var messages = [];
 
     for (var prop in KEYWORD_REGEXES.Special) {
         if (KEYWORD_REGEXES.Special[prop].test(text)) {
             switch (prop) {
                 case "Greetings":
-                    messages.push({
+                    messageBuffer.enqueue({
                         text: BOT_TEXTS.Greetings[Math.floor(Math.random() * BOT_TEXTS.Greetings.length)]
                     });
                     break;
                 case "Info":
                     for (i = 0; i < BOT_TEXTS.Disclaimer.length; i++) {
-                        messages.push({
+                        messageBuffer.enqueue({
                             text: BOT_TEXTS.Disclaimer[i]
                         });
                     }
                     break;
                 case "HelpRequest":
                     for (i = 0; i < BOT_TEXTS.HelpInfo.length; i++) {
-                        messages.push({
+                        messageBuffer.enqueue({
                             text: BOT_TEXTS.HelpInfo[i]
                         });
                     }
                     break;
                 case "Debug":
                     fetchDataFromS3(null);
-                    messages.push({
+                    messageBuffer.enqueue({
                         text: BOT_TEXTS.Affirmative[Math.floor(Math.random() * BOT_TEXTS.Affirmative.length)]
                     });
                     break;
                 case "Oops":
-                    messages.push({
+                    messageBuffer.enqueue({
                         text: BOT_TEXTS.Apologise[Math.floor(Math.random() * BOT_TEXTS.Apologise.length)]
                     });
                     break;
             }
 
-            for (i = 0; i < messages.length; i++) {
-                sendTextMessage(senderId, messages[i]);
-            }
+            messageBuffer.flush();
             return true;
         }
     }
@@ -464,6 +465,38 @@ function fetchDataFromS3(callback) {
 }
 
 function callSendAPI(payload) {
+    console.log("sending this message payload to FB:", payload);
+
+    var body = payload;
+    var options = {
+        host: "graph.facebook.com",
+        path: "/2.9/me/messages/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    };
+
+    var callback = function(response) {
+        var str = "";
+        response.on("data", function(chunk) {
+            str += chunk;
+        });
+        response.on("end", function() {
+            postDeliveryCallback(str);
+        });
+    };
+
+    var req = https.request(options, callback);
+    req.on("error", function(e) {
+        console.log("problem with request: " + e);
+    });
+
+    req.write(body);
+    req.end();
+}
+
+function callSendBatchAPI(payload){
     console.log("sending this message payload to FB:", payload);
 
     var body = payload;
