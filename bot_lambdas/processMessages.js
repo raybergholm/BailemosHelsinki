@@ -20,7 +20,28 @@ var s3 = new AWS.S3();
 
 var senderId; // this is a bit dirty making it global
 
-var messageQueue = [];
+var messageBuffer = {
+    _messages: [],
+    enqueue: (message) => {
+        if(!message.messaging_type){
+            message.messaging_type = "RESPONSE"; // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
+        }
+        this._messages.push(message);
+    },
+    flush: () => {
+        var batchRequestContent = [];
+        for(var i = 0; i < this._messages.length; i++){
+            batchRequestContent.push({
+                relative_url: "/me/messages",
+                method: "POST",
+                body: this._messages[i]
+            });
+        }
+
+        callSendAPI("batch=" + JSON.stringify(batchRequestContent));
+        this._messages = [];
+    }
+};
 
 const BOT_TEXTS = { // probably should be fetched from S3
     Greetings: [
@@ -208,11 +229,11 @@ function handleReceivedMessage(message) {
             generateResponse(senderId, result);
         }
     } else if (messageAttachments) {
-        messageQueue.push(senderId, {
+        messageBuffer.enqueue({
             text: "Message with attachment received"
         });
 
-        releaseMessages();
+        messageBuffer.flush();
     }
 }
 
@@ -331,7 +352,7 @@ function findInterestKeywords(text) {
 function generateResponse(senderId, analysisResults) {
     if (analysisResults.eventType.length === 0 && analysisResults.temporalMarkers.length === 0 && analysisResults.locations.length === 0 && analysisResults.interests.length === 0) {
         // found absolutely nothing
-        messageQueue.push({
+        messageBuffer.enqueue({
             text: BOT_TEXTS.Unknown[Math.floor(Math.random() * BOT_TEXTS.Unknown.length)]
         });
     } else {
@@ -349,7 +370,7 @@ function generateResponse(senderId, analysisResults) {
             keywords.push(elem);
         });
 
-        messageQueue.push({
+        messageBuffer.enqueue({
             text: responseText + keywords.join(', ')
         });
 
@@ -364,7 +385,7 @@ function generateResponse(senderId, analysisResults) {
             });
 
             filteredEvents.forEach((eventData) => {
-                messageQueue.push({
+                messageBuffer.enqueue({
                     text: eventData.name + " " + eventData.start_time + "\n" + "https://www.facebook.com/events/" + eventData.id + '/'
                     // shares: {    // TODO: doesn't work like that. Does the API support enriched messages with link previews like "normal" messages?
                     //     id: eventData.id,
@@ -375,12 +396,12 @@ function generateResponse(senderId, analysisResults) {
                 });
             });
 
-            releaseMessages();
+            messageBuffer.flush();
         };
         fetchDataFromS3(callback);
     }
 
-    releaseMessages(); // fire this immediately even if there's more to come after querying S3, I want the debug message for now
+    messageBuffer.flush(); // fire this immediately even if there's more to come after querying S3, I want the debug message for now
 }
 
 function handleDeliveryReceipt(message) {
@@ -403,14 +424,6 @@ function sendTypingIndicator(recipientId, mode) {
     };
 
     // callSendAPI(messagePayload);  FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
-}
-
-function releaseMessages(){ // TODO: probably should make this a real Queue
-    for(var i = 0; i < messageQueue.length; i++){
-        sendTextMessage(messageQueue[i]);
-    }
-
-    messageQueue = [];
 }
 
 function sendTextMessage(content) {
@@ -450,18 +463,13 @@ function fetchDataFromS3(callback) {
     });
 }
 
-function callSendAPI(messagePayload) {
-    console.log("sending this message payload to FB:", messagePayload);
+function callSendAPI(payload) {
+    console.log("sending this message payload to FB:", payload);
 
-    if(!messagePayload.messaging_type){
-        messagePayload.messaging_type = "RESPONSE"; // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
-    }
-
-    var body = JSON.stringify(messagePayload);
-    var path = "/v2.6/me/messages?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN;
+    var body = payload;
     var options = {
         host: "graph.facebook.com",
-        path: path,
+        path: "/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
         method: "POST",
         headers: {
             "Content-Type": "application/json"
