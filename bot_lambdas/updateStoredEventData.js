@@ -1,6 +1,5 @@
 "use strict";
 
-const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
@@ -8,7 +7,6 @@ const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
 
 var https = require("https");
-var crypto = require('crypto');
 
 var AWS = require("aws-sdk");
 AWS.config.update({region: "eu-central-1"});
@@ -37,19 +35,18 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
         Limit: 50
     }, function(err, data) {
         var item;
-        var nodes = {};
+        var nodes = [];
         if (err) {
             console.log("error reading DynamoDB: ", err);
         } else {
             for (var prop in data.Items) {
                 item = data.Items[prop];
 
-                nodes[item.Name.S] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
+                nodes.push({ // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
                     Id: item.NodeId.N,
                     Name: item.Name.S,
-                    Type: item.NodeType.S,
-                    S3Filename: item.S3Filename.S
-                };
+                    Type: item.NodeType.S
+                });
             }
 
             console.log(JSON.stringify(nodes));
@@ -59,11 +56,8 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
     });
 }
 
-function queryFacebookApi(nodes) {
+function queryFacebookApi(organisers) {
     var aggregatedResponse = {}; // this is an object and not an array since this being used as a KVP data container, we want to enforce unique keys
-
-    var callbacksStarted = Object.keys(nodes).length;
-    var callbacksFinished = 0;
 
     var pageEventsCallback = function(organiser, response) {
         var payload = "";
@@ -99,12 +93,6 @@ function queryFacebookApi(nodes) {
                     aggregatedResponse[responseData.data[i].id] = responseData.data[i]; // event ID should be unique, so duplicates can be overwritten
                 }
             }
-
-            callbacksFinished++;
-
-            if (callbacksStarted === callbacksFinished) { // FIXME: This is a dirty way of doing this, find something more elegant (Promises?)
-                updateS3Data(aggregatedResponse);
-            }
         });
     };
 
@@ -128,59 +116,41 @@ function queryFacebookApi(nodes) {
                     // aggregatedResponse[responseData.data[i].id] = responseData.data[i];  event ID should be unique, so duplicates can be overwritten
                 }
             }
-
-            callbacksFinished++;
-
-            if (callbacksStarted === callbacksFinished) { // FIXME: This is a dirty way of doing this, find something more elegant (Promises?)
-                updateS3Data(aggregatedResponse);
-            }
         });
     };
 
-    var errCallback = function(err) {
-        console.log("problem with request: " + err);
-    };
+    var batchRequestContent = [];
 
-    var content = [];
-
-    for (var node in nodes) {
-        // foreach node: query FB for event data and replace the data in the corresponding S3 bucket
-
-        switch (nodes[node].Type) {
+    for (var i = 0; i < organisers.length; i++) {
+        switch (organisers[i].Type) {
             case "page":
                 // scrape this page's events
-                content.push({
-                    relative_url: "/" + nodes[node].Id + "/events?time_filter=upcoming",
+                batchRequestContent.push({
+                    relative_url: "/" + organisers[i].Id + "/events?time_filter=upcoming",
                     method: "GET"
                 });
                 break;
             case "group":
                 // scrape this page's post feed
-                content.push({
-                    relative_url: "/" + nodes[node].Id + "/feed",
+                batchRequestContent.push({
+                    relative_url: "/" + organisers[i].Id + "/feed",
                     method: "GET"
                 });
                 break;
             case "user":
                 // scrape this user's events, NB the user needs to give this app permission!
 
-                content.push({
-                    relative_url: "/" + nodes[node].Id + "/events?time_filter=upcoming",
+                batchRequestContent.push({
+                    relative_url: "/" + organisers[i].Id + "/events?time_filter=upcoming",
                     method: "GET"
                 });
                 break;
             default:
-                console.log("Unexpected node type: ", nodes[node].Type);
+                console.log("Unexpected node type: ", organisers[i].Type);
         }
     }
 
-    // content = {
-    //     batch: content
-    // }
-    // var body = JSON.stringify(content);
-
-
-    var body = "batch=" + JSON.stringify(content);
+    var body = "batch=" + JSON.stringify(batchRequestContent);
 
     console.log("write to body: ", body);
     var options = {
@@ -201,15 +171,38 @@ function queryFacebookApi(nodes) {
         });
 
         response.on("end", () => {
-            var data = JSON.parse(str);
-            console.log(str);
-            console.log(JSON.parse(str));
+            var responseData = JSON.parse(str);
+
+            console.log(responseData);
+
+            formatEventData(organisers, responseData);
         });
     });
-    req.on("error", errCallback);
+    req.on("error", (err) => {
+        console.log("problem with request: " + err);
+    });
 
     req.write(body);
     req.end();
+}
+
+function formatEventData(organisers, responseData){ // TODO: these should be 1-to-1 matched, check that FB doesn't do anything weird though
+    var s3Payload = [];
+
+    if(organisers.length !== responseData.length){
+        console.log("what sorcery is this, the array lengths don't match");
+    }
+
+    for(var i = 0; i < organisers.length; i++){
+        console.log("organiser data index " + i, organisers[i]);
+        console.log("event data index " + i, responseData[i]);
+
+        responseData[i].body.forEach((eventData) => {
+            eventData.organiser = organisers[i];
+        });
+    }
+
+    // updateS3Data(s3Payload);
 }
 
 function updateS3Data(payload) {
