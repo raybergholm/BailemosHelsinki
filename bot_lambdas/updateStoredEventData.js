@@ -115,7 +115,8 @@ function queryFacebookApi(organisers) {
 
             console.log(responseData);
 
-            formatEventData(organisers, responseData);
+            var eventsMap = formatEventData(organisers, responseData);
+            updateS3Data(eventsMap);
         });
     });
     req.on("error", (err) => {
@@ -189,7 +190,7 @@ function formatEventData(organisers, responseData) { // it's a bit dirty that th
         }
     }
 
-    updateS3Data(eventsMap);
+    return eventsMap;
 }
 
 function updateS3Data(payload) {
@@ -208,6 +209,7 @@ function updateS3Data(payload) {
     });
 }
 
+// Converts the payload map into an array of events sorted in ascending chronological order, then stringifies the result in preparation for saving to S3
 function cleanupPayloadToS3(payload) {
     // var cleanedPayload = Object.values(payload); // NB Object.values isn't available until Node 7.0
     var cleanedPayload = Object.keys(payload).map((key) => {
