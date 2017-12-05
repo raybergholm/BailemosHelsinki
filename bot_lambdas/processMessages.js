@@ -531,8 +531,55 @@ function postDeliveryCallback(str) {
     sendTypingIndicator(senderId, false);
 }
 
-function generateDebugMessageTemplate(){
-    var messageTemplate;
+function generateDebugMessageTemplate() {
+    var messageTemplate = {
+        attachment: {
+            type: "template",
+            payload: null
+        }
+    };
+
+    messageTemplate.attachment.payload = {
+        template_type: "generic",
+        elements: [
+            {
+                title:"Hi there",
+                image_url:"",
+                subtitle:"Click me",
+                default_action: {
+                  type: "web_url",
+                  url: "http://www.google.com",
+                  messenger_extensions: true,
+                  webview_height_ratio: "tall",
+                  fallback_url: "http://www.google.com"
+                }
+            },
+            {
+                title:"Hi there",
+                image_url:"",
+                subtitle:"Click me",
+                default_action: {
+                  type: "web_url",
+                  url: "http://www.google.fi/maps",
+                  messenger_extensions: true,
+                  webview_height_ratio: "tall",
+                  fallback_url: "http://www.google.fi/maps"
+                }
+            },
+            {
+                title:"Hi there",
+                image_url:"",
+                subtitle:"Click me",
+                default_action: {
+                  type: "web_url",
+                  url: "http://www.google.fi/maps",
+                  messenger_extensions: true,
+                  webview_height_ratio: "tall",
+                  fallback_url: "http://www.google.com"
+                }
+            }
+        ]
+    };
 
     return messageTemplate;
 }
