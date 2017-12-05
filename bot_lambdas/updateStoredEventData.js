@@ -61,18 +61,18 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
         Limit: 50
     }, function(err, data) {
         var item;
-        var nodes = [];
+        var nodes = {};
         if (err) {
             console.log("error reading DynamoDB: ", err);
         } else {
             for (var prop in data.Items) {
                 item = data.Items[prop];
 
-                nodes.push({ // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
+                nodes[item.NodeId.N] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
                     Id: item.NodeId.N,
                     Name: item.Name.S,
                     Type: item.NodeType.S
-                });
+                };
             }
 
             console.log(JSON.stringify(nodes));
@@ -89,22 +89,22 @@ function queryFacebookApi(organisers) {
     var groupIds = [];
     var userIds = [];
 
-    for (var i = 0; i < organisers.length; i++) {
-        switch (organisers[i].Type) {
+    for(var prop in organisers){
+        switch(organisers[prop].Type){
             case "page":
                 // scrape this page's events
-                pageIds.push(organisers[i].Id);
+                pageIds.push(organisers[prop].Id);
                 break;
             case "group":
                 // scrape this page's post feed
-                groupIds.push(organisers[i].Id);
+                groupIds.push(organisers[prop].Id);
                 break;
             case "user":
                 // scrape this user's events, NB the user needs to give this app permission!
-                userIds.push(organisers[i].Id);
+                userIds.push(organisers[prop].Id);
                 break;
             default:
-                console.log("Unexpected node type: ", organisers[i].Type);
+                console.log("Unexpected node type: ", organisers[prop].Type);
         }
     }
 
@@ -116,13 +116,13 @@ function queryFacebookApi(organisers) {
         }, true),
         method: "GET"
     });
-    batchRequestContent.push({
-        relative_url: queryBuilder.build("/feed/", {
-            ids: groupIds,
-            debug: "all"
-        }, true),
-        method: "GET"
-    });
+    // batchRequestContent.push({   // TODO: reinstate this when I have a decent feed scraping algorithm
+    //     relative_url: queryBuilder.build("/feed/", {
+    //         ids: groupIds,
+    //         debug: "all"
+    //     }, true),
+    //     method: "GET"
+    // });
     batchRequestContent.push({
         relative_url: queryBuilder.build("/events/", {
             time_filter: "upcoming",
@@ -138,7 +138,7 @@ function queryFacebookApi(organisers) {
     console.log("write to body: ", body);
     var options = {
         host: "graph.facebook.com",
-        path: "/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
+        path: "/2.9/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -154,11 +154,11 @@ function queryFacebookApi(organisers) {
         });
 
         response.on("end", () => {
-            var responseData = JSON.parse(str);
+            var responses = JSON.parse(str);
 
-            console.log(responseData);
+            console.log(responses);
 
-            var eventsMap = formatEventData(organisers, responseData);
+            var eventsMap = formatEventData(responses, organisers);
             updateS3Data(eventsMap);
         });
     });
@@ -170,28 +170,27 @@ function queryFacebookApi(organisers) {
     req.end();
 }
 
-function formatEventData(organisers, responseData) { // it's a bit dirty that they're in different arrays, but at least they match 1-to-1
-    var responseBody;
+function formatEventData(responses, organisers) { // it's a bit dirty that they're in different arrays, but at least they match 1-to-1
     var eventsMap = {}; // NOTE: this is an object and not an array since this being used as a KVP data container, we want to enforce unique keys
 
-    if (organisers.length !== responseData.length) {
-        console.log("what sorcery is this, the array lengths don't match. Expect an error in the logs.");
-    }
+    responses.forEach((response) => {
+        console.log(response.body);
 
-    for (var i = 0; i < organisers.length; i++) {
-        console.log("organiser data index " + i, organisers[i]);
+        if(response.error){
+            console.log("Response errored: ", response.error.message);
+        }else{
+            var events;
+            var entries = JSON.parse(response.body);
+            for(var prop in entries){
 
-        console.log("response data index " + i, responseData[i]);
+                console.log(entries[prop]);
 
-        if (responseData[i].error) {
-            console.log("Response errored: ", responseData.error.message);
-        } else {
-            switch (organisers[i].Type) {
-                case "page":
-                    responseBody = JSON.parse(responseData[i].body);
-                    responseBody.data.forEach((eventData) => {
-                        eventData.organiser = organisers[i];
-
+                if(entries[prop].data){
+                    events = entries[prop].data;
+                    events.forEach((eventData) => {
+                        if(organisers[entries[prop]]){
+                            eventData.organiser = organisers[entries[prop]];
+                        }
                         if (eventData.event_times) {
                             var firstUpcomingEvent = eventData.event_times.find((element) => {
                                 return (new Date(element.start_time)).getTime() > Date.now();
@@ -204,39 +203,23 @@ function formatEventData(organisers, responseData) { // it's a bit dirty that th
 
                         eventsMap[eventData.id] = eventData;
                     });
-                    break;
-                case "group":
-                    responseBody = JSON.parse(responseData[i].body);
-                    responseBody.data.forEach((post) => {
-                        // TODO: scrape every post for relevant event info
-                    });
-                    break;
-                case "user":
-                    responseBody = JSON.parse(responseData[i].body);
-                    responseBody.data.forEach((eventData) => {
-                        eventData.organiser = organisers[i];
+                }else{
+                    console.log("Additional metadata in response: ", entries[prop]);
+                }
 
-                        if (eventData.event_times) {
-                            var firstUpcomingEvent = eventData.event_times.find((element) => {
-                                return (new Date(element.start_time)).getTime() > Date.now();
-                            });
 
-                            eventData.id = firstUpcomingEvent.id;
-                            eventData.start_time = firstUpcomingEvent.start_time;
-                            eventData.end_time = firstUpcomingEvent.end_time;
-                        }
-
-                        eventsMap[eventData.id] = eventData;
-                    });
-                    break;
             }
         }
-    }
+    });
 
     return eventsMap;
 }
 
 function updateS3Data(payload) {
+    if(!payload){
+        console.log("Invalid S3 payload: ", payload);
+        return;
+    }
     var content = cleanupPayloadToS3(payload);
 
     s3.putObject({
