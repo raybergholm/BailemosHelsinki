@@ -16,6 +16,27 @@ AWS.config.update({
 var dynamodb = new AWS.DynamoDB();
 var s3 = new AWS.S3();
 
+//----------------------------------------------------------------------------//
+// TODO: move this to a separate file entirely
+
+function FacebookQueryBuilder() {
+    this.build = (basePath, params) => {
+        var path = basePath;
+        if (params) {
+            var paramsArr = [];
+            for (var prop in params) {
+                paramsArr.push(prop + "=" + (params[prop] instanceof Array ? params[prop].join(',') : params[prop]));
+            }
+            path += '?' + paramsArr.join('&');
+        }
+        return path;
+    };
+}
+
+var queryBuilder = new FacebookQueryBuilder();
+
+//----------------------------------------------------------------------------//
+
 exports.handler = (event, context, callback) => {
     console.log(event);
 
@@ -61,34 +82,53 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
 function queryFacebookApi(organisers) {
     var batchRequestContent = [];
 
+    var pageIds = [];
+    var groupIds = [];
+    var userIds = [];
+
     for (var i = 0; i < organisers.length; i++) {
         switch (organisers[i].Type) {
             case "page":
                 // scrape this page's events
-                batchRequestContent.push({
-                    relative_url: "/" + organisers[i].Id + "/events?time_filter=upcoming",
-                    method: "GET"
-                });
+                pageIds.push(organisers[i].Id);
                 break;
             case "group":
                 // scrape this page's post feed
-                batchRequestContent.push({
-                    relative_url: "/" + organisers[i].Id + "/feed",
-                    method: "GET"
-                });
+                groupIds.push(organisers[i].Id);
                 break;
             case "user":
                 // scrape this user's events, NB the user needs to give this app permission!
-
-                batchRequestContent.push({
-                    relative_url: "/" + organisers[i].Id + "/events?time_filter=upcoming",
-                    method: "GET"
-                });
+                userIds.push(organisers[i].Id);
                 break;
             default:
                 console.log("Unexpected node type: ", organisers[i].Type);
         }
     }
+
+    batchRequestContent.push({
+        relative_url: queryBuilder.build("/events/", {
+            time_filter: "upcoming",
+            ids: pageIds,
+            debug: "all"
+        }),
+        method: "GET"
+    });
+    batchRequestContent.push({
+        relative_url: queryBuilder.build("/feed/", {
+            ids: groupIds,
+            debug: "all"
+        }),
+        method: "GET"
+    });
+    batchRequestContent.push({
+        relative_url: queryBuilder.build("/events/", {
+            time_filter: "upcoming",
+            ids: userIds,
+            debug: "all"
+        }),
+        method: "GET"
+    });
+
 
     var body = "batch=" + JSON.stringify(batchRequestContent);
 
