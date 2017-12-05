@@ -85,7 +85,8 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later
         HelpRequest: /\b(?:help)(?:\b|[\!\?])|\bhelp [me|please]\b/i,
         Oops: /\b(?:wtf|you're drunk|wrong)\b/i,
         SurpriseMe: /\bsurprise me\b/i,
-        Debug: /\bdebug test\b/i
+        Debug: /\bdebug test\b/i,
+        TemplateDebug: /\btemplate plz\b/i
     },
     Types: {
         Course: /\b(?:course|courses)\b/i,
@@ -286,6 +287,9 @@ function findSpecialTexts(text) {
                     messageBuffer.enqueue({
                         text: BOT_TEXTS.Apologise[Math.floor(Math.random() * BOT_TEXTS.Apologise.length)]
                     });
+                    break;
+                case "TemplateDebug":
+                    messageBuffer.enqueue(generateDebugMessageTemplate());
                     break;
             }
 
@@ -525,4 +529,10 @@ function postDeliveryCallback(str) {
     console.log("callback end, got " + str);
 
     sendTypingIndicator(senderId, false);
+}
+
+function generateDebugMessageTemplate(){
+    var messageTemplate;
+
+    return messageTemplate;
 }
