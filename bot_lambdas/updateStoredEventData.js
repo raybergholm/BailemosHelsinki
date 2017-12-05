@@ -29,7 +29,7 @@ function FacebookQueryBuilder() {
             }
             path += '?' + paramsArr.join('&');
         }
-        if(escapePath){
+        if (escapePath) {
             path = encodeURIComponent(path);
         }
         return path;
@@ -89,8 +89,8 @@ function queryFacebookApi(organisers) {
     var groupIds = [];
     var userIds = [];
 
-    for(var prop in organisers){
-        switch(organisers[prop].Type){
+    for (var prop in organisers) {
+        switch (organisers[prop].Type) {
             case "page":
                 // scrape this page's events
                 pageIds.push(organisers[prop].Id);
@@ -176,19 +176,19 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
     responses.forEach((response) => {
         console.log(response.body);
 
-        if(response.error){
+        if (response.error) {
             console.log("Response errored: ", response.error.message);
-        }else{
+        } else {
             var events;
             var entries = JSON.parse(response.body);
-            for(var prop in entries){
+            for (var prop in entries) {
 
                 console.log(entries[prop]);
 
-                if(entries[prop].data){
+                if (entries[prop].data) {
                     events = entries[prop].data;
                     events.forEach((eventData) => {
-                        if(organisers[entries[prop]]){
+                        if (organisers[entries[prop]]) {
                             eventData.organiser = organisers[entries[prop]];
                         }
                         if (eventData.event_times) {
@@ -203,7 +203,7 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
 
                         eventsMap[eventData.id] = eventData;
                     });
-                }else{
+                } else {
                     console.log("Additional metadata in response: ", entries[prop]);
                 }
 
@@ -216,7 +216,7 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
 }
 
 function updateS3Data(payload) {
-    if(!payload){
+    if (!payload) {
         console.log("Invalid S3 payload: ", payload);
         return;
     }
