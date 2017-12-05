@@ -541,41 +541,31 @@ function generateDebugMessageTemplate() {
 
     messageTemplate.attachment.payload = {
         template_type: "generic",
-        elements: [
-            {
-                title:"Hi there",
-                image_url:"",
-                subtitle:"Click me",
+        elements: [{
+                title: "Hi there",
+                image_url: "https://scontent.xx.fbcdn.net/v/t31.0-8/s720x720/23632575_1723944837617023_5988946792782455376_o.jpg?oh=0e3b27fb5e6ac9adb9d728a2e2b31685&oe=5A9AC859",
+                subtitle: "lorem ipsum",
                 default_action: {
-                  type: "web_url",
-                  url: "http://www.google.com",
-                  messenger_extensions: true,
-                  webview_height_ratio: "tall",
-                  fallback_url: "http://www.google.com"
+                    type: "web_url",
+                    url: "https://www.facebook.com/events/322279428254954",
                 }
             },
             {
-                title:"Hi there",
-                image_url:"",
-                subtitle:"Click me",
+                title: "Hi there2",
+                image_url: "https://scontent.xx.fbcdn.net/v/t31.0-8/s720x720/23592459_1906885559340836_1475249793396713895_o.jpg?oh=d2f189863b67d2a044bd0666884cbf58&oe=5A934F5E",
+                subtitle: "lorem ipsum",
                 default_action: {
-                  type: "web_url",
-                  url: "http://www.google.fi/maps",
-                  messenger_extensions: true,
-                  webview_height_ratio: "tall",
-                  fallback_url: "http://www.google.fi/maps"
+                    type: "web_url",
+                    url: "https://www.facebook.com/events/146422476113836"
                 }
             },
             {
-                title:"Hi there",
-                image_url:"",
-                subtitle:"Click me",
+                title: "Hi there3",
+                image_url: "https://scontent.xx.fbcdn.net/v/t1.0-9/s720x720/23434801_1575952269133546_6154874085764592548_n.jpg?oh=bb93a0cfe75d680d0e629b64c3e0ef0f&oe=5AD3CA01",
+                subtitle: "lorem ipsum",
                 default_action: {
-                  type: "web_url",
-                  url: "http://www.google.fi/maps",
-                  messenger_extensions: true,
-                  webview_height_ratio: "tall",
-                  fallback_url: "http://www.google.com"
+                    type: "web_url",
+                    url: "https://www.facebook.com/events/125180038152734",
                 }
             }
         ]
