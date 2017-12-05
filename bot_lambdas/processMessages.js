@@ -21,9 +21,9 @@ var senderId; // this is a bit dirty making it global
 
 var messageBuffer = {
     _messages: [],
-    enqueue: function(messagePayload){
+    enqueue: function(messagePayload) {
         var message = {
-            messaging_type: "RESPONSE",    // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
+            messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
             recipient: {
                 id: senderId
             },
@@ -34,17 +34,20 @@ var messageBuffer = {
         };
         this._messages.push(message);
     },
-    flush: function(){
-        if(this._messages.length === 1){
+    flush: function() {
+        if (this._messages.length === 1) {
             callSendAPI(JSON.stringify(this._messages[0]));
-        }else{
+        } else {
             var batchRequestContent = [];
-            for(var i = 0; i < this._messages.length; i++){
-                batchRequestContent.push({
-                    relative_url: "/me/messages",
-                    method: "POST",
-                    body: this._messages[i]
-                });
+            var batchifiedMessagePayload;
+            for (var i = 0; i < this._messages.length; i++) {
+                batchifiedMessagePayload =
+
+                    batchRequestContent.push({
+                        relative_url: "/me/messages",
+                        method: "POST",
+                        body: JSON.stringify(this._messages[i])
+                    });
             }
 
             callSendBatchAPI("batch=" + JSON.stringify(batchRequestContent));
@@ -129,7 +132,7 @@ exports.handler = (event, context, callback) => {
         body: "OK"
     };
 
-    if(event.httpMethod === "POST"){
+    if (event.httpMethod === "POST") {
         var data = JSON.parse(event.body);
         if (data) {
             // Make sure this is a page subscription
@@ -382,11 +385,11 @@ function generateResponse(senderId, analysisResults) {
             text: responseText + keywords.join(', ')
         });
 
-        var callback = function(events){
+        var callback = function(events) {
             var filteredEvents = [];
             events.forEach((eventData) => {
                 analysisResults.interests.forEach((interest) => {
-                    if(KEYWORD_REGEXES.Interests[interest].test(eventData.description)){ // TODO: eww, this is going to create errors isn't it?
+                    if (KEYWORD_REGEXES.Interests[interest].test(eventData.description)) { // TODO: eww, this is going to create errors isn't it?
                         filteredEvents.push(eventData);
                     }
                 });
@@ -434,23 +437,6 @@ function sendTypingIndicator(recipientId, mode) {
     // callSendAPI(messagePayload);  FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
 }
 
-function sendTextMessage(content) {
-    var message = {};
-
-    message = content; // TODO: validation checks: only a subset of stuff is OK here
-    var messagePayload = {
-        sender: {
-            id: FACEBOOK_PAGE_ID
-        },
-        recipient: {
-            id: senderId
-        },
-        message: message
-    };
-
-    callSendAPI(messagePayload);
-}
-
 function fetchDataFromS3(callback) {
     s3.getObject({
         Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
@@ -464,7 +450,7 @@ function fetchDataFromS3(callback) {
 
             console.log(eventData);
 
-            if(callback){
+            if (callback) {
                 callback(eventData);
             }
         }
@@ -503,7 +489,7 @@ function callSendAPI(payload) {
     req.end();
 }
 
-function callSendBatchAPI(payload){
+function callSendBatchAPI(payload) {
     console.log("sending this message payload to FB:", payload);
 
     var body = payload;
