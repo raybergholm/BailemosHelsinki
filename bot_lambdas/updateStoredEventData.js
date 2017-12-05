@@ -20,7 +20,7 @@ var s3 = new AWS.S3();
 // TODO: move this to a separate file entirely
 
 function FacebookQueryBuilder() {
-    this.build = (basePath, params) => {
+    this.build = (basePath, params, escapePath) => {
         var path = basePath;
         if (params) {
             var paramsArr = [];
@@ -28,6 +28,9 @@ function FacebookQueryBuilder() {
                 paramsArr.push(prop + "=" + (params[prop] instanceof Array ? params[prop].join(',') : params[prop]));
             }
             path += '?' + paramsArr.join('&');
+        }
+        if(escapePath){
+            path = encodeURIComponent(path);
         }
         return path;
     };
@@ -110,14 +113,14 @@ function queryFacebookApi(organisers) {
             time_filter: "upcoming",
             ids: pageIds,
             debug: "all"
-        }),
+        }, true),
         method: "GET"
     });
     batchRequestContent.push({
         relative_url: queryBuilder.build("/feed/", {
             ids: groupIds,
             debug: "all"
-        }),
+        }, true),
         method: "GET"
     });
     batchRequestContent.push({
@@ -125,7 +128,7 @@ function queryFacebookApi(organisers) {
             time_filter: "upcoming",
             ids: userIds,
             debug: "all"
-        }),
+        }, true),
         method: "GET"
     });
 
