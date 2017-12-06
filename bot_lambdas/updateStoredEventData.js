@@ -110,24 +110,26 @@ function queryFacebookApi(organisers) {
 
     batchRequestContent.push({
         relative_url: queryBuilder.build("/events/", {
+            debug: "all",
             time_filter: "upcoming",
             ids: pageIds,
-            debug: "all"
+            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "cover", "attending_count"]
         }, true),
         method: "GET"
     });
     // batchRequestContent.push({   // TODO: reinstate this when I have a decent feed scraping algorithm
     //     relative_url: queryBuilder.build("/feed/", {
-    //         ids: groupIds,
-    //         debug: "all"
+    //         debug: "all",
+    //         ids: groupIds
     //     }, true),
     //     method: "GET"
     // });
     batchRequestContent.push({
         relative_url: queryBuilder.build("/events/", {
+            debug: "all",
             time_filter: "upcoming",
             ids: userIds,
-            debug: "all"
+            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "cover", "attending_count"]
         }, true),
         method: "GET"
     });
