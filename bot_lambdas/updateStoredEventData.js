@@ -113,7 +113,7 @@ function queryFacebookApi(organisers) {
             debug: "all",
             time_filter: "upcoming",
             ids: pageIds,
-            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "cover", "attending_count"]
+            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
         }, true),
         method: "GET"
     });
@@ -129,7 +129,7 @@ function queryFacebookApi(organisers) {
             debug: "all",
             time_filter: "upcoming",
             ids: userIds,
-            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "cover", "attending_count"]
+            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
         }, true),
         method: "GET"
     });
@@ -161,7 +161,7 @@ function queryFacebookApi(organisers) {
             console.log(responses);
 
             var eventsMap = formatEventData(responses, organisers);
-            updateS3Data(eventsMap);
+            updateS3Data(eventsMap, organisers);
         });
     });
     req.on("error", (err) => {
@@ -190,8 +190,10 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
                 if (entries[prop].data) {
                     events = entries[prop].data;
                     events.forEach((eventData) => {
-                        if (organisers[entries[prop]]) {
-                            eventData.organiser = organisers[entries[prop]];
+                        if (organisers[prop]) {
+                            // Links this event to the associated organiser. Not using the node's owner field since it's not guaranteed
+                            // they match the whitelisted organisers, especially for the bigger events with multiple organisers
+                            eventData.organiser = organisers[prop].Id;
                         }
                         if (eventData.event_times) {
                             var firstUpcomingEvent = eventData.event_times.find((element) => {
@@ -217,17 +219,23 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
     return eventsMap;
 }
 
-function updateS3Data(payload) {
-    if (!payload) {
-        console.log("Invalid S3 payload: ", payload);
+function updateS3Data(events, organisers) {
+    if (!events) {
+        console.log("Invalid S3 events payload: ", events);
         return;
     }
-    var content = cleanupPayloadToS3(payload);
+
+    var payload = {
+        events: cleanupPayloadToS3(events),
+        organisers: organisers
+    };
+
+    payload = JSON.stringify(payload);
 
     s3.putObject({
         Bucket: S3_BUCKET_NAME,
         Key: S3_EVENT_DATA_OBJECT_KEY,
-        Body: content
+        Body: payload
     }, function(err, data) {
         if (err) {
             console.log("S3 interface error: ", err);
@@ -257,6 +265,5 @@ function cleanupPayloadToS3(payload) {
         }
     });
 
-    cleanedPayload = JSON.stringify(cleanedPayload);
     return cleanedPayload;
 }
