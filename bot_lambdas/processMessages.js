@@ -72,6 +72,52 @@ function FacebookMessageFactory() {
 
 var facebookMessageFactory = new FacebookMessageFactory();
 
+function DateTimeSemanticDecoder(){
+    this.read = (input) => {
+        var dateTimeRange = {
+            from: null,
+            to: null
+        };
+
+        /*
+        Today: /\b(?:today|tonight)\b/i,
+        Monday: /\b(?:monday|mo[n\-\b])/i,
+        Tuesday: /\b(?:tuesday|tu[e\-\b])/i,
+        Wednesday: /\b(?:wednesday|we[d\-\b])/i,
+        Thursday: /\b(?:thursday|th[u\-\b])/i,
+        Friday: /\b(?:friday|fr[i\-\b])/i,
+        Saturday: /\b(?:saturday|sa[t\-\b])/i,
+        Sunday: /\b(?:sunday|su[n\-\b])/i,
+        ThisWeek: /\bthis week\b/i,
+        UpcomingWeekend: /\bthis weekend\b/i,
+        NextWeekend: /\bnext weekend\b/i,
+        NextWeek: /\bnext week\b/i,
+        RangeLike: /\s\-\s|\w\-\w/,
+        DateLike: /\d{1,2}[\.\/]\d{1,2}/,
+        TimeLike: /\d{1,2}[\.\:]\d{2}/,
+        FromMarker: /\b(?:from|starting|after)\b/i,
+        ToMarker: /\b(?:to|until|before)\b/i
+
+        */
+
+
+        return dateTimeRange;
+    };
+    this.getDefaultRange = () => {  // from today to today+7
+        var dateTimeRange = {
+            from: null,
+            to: null
+        };
+
+        dateTimeRange.from = new Date();
+        dateTimeRange.to = (new Date()).setDate(dateTimeRange.from.getDate() + 7);
+
+        return dateTimeRange;
+    };
+}
+
+var dateTimeSemanticDecoder = new DateTimeSemanticDecoder();
+
 var messageBuffer = {
     _messages: [],
     enqueue: function(message) {
@@ -148,9 +194,9 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later
         Saturday: /\b(?:saturday|sa[t\-\b])/i,
         Sunday: /\b(?:sunday|su[n\-\b])/i,
         ThisWeek: /\bthis week\b/i,
-        UpcomingWeekend: /\bthis weekend\b/i,
-        NextWeekend: /\bnext weekend\b/i,
+        ThisWeekend: /\bthis weekend\b/i,
         NextWeek: /\bnext week\b/i,
+        NextWeekend: /\bnext weekend\b/i,
         RangeLike: /\s\-\s|\w\-\w/,
         DateLike: /\d{1,2}[\.\/]\d{1,2}/,
         TimeLike: /\d{1,2}[\.\:]\d{2}/,
@@ -444,15 +490,43 @@ function generateResponse(senderId, analysisResults) {
         // Filter staged events by keywords
         var callback = function(stagedData) {
             var organisers = stagedData.organisers;
-            var filteredEvents = [];
+            var filterMap = {};
+
+            var datetimeRange;
+
+            // Filter by datetime
+            if(analysisResults.temporalMarkers && analysisResults.temporalMarkers.length > 0){
+                datetimeRange = dateTimeSemanticDecoder.read(text);
+            }else{
+                // default
+                datetimeRange = dateTimeSemanticDecoder.getDefaultRange();
+            }
+            stagedData.events.forEach((eventData) => {
+                // TODO: filter by datetime range. Mandatory filter, can't pass everything to the enduser all at once anyway
+            });
 
             // Filter by interests
             stagedData.events.forEach((eventData) => {
                 analysisResults.interests.forEach((interest) => {
                     if (KEYWORD_REGEXES.Interests[interest].test(eventData.description)) { // TODO: eww, this is going to create errors isn't it?
-                        filteredEvents.push(eventData);
+                        filterMap[eventData.id] = eventData;
                     }
                 });
+            });
+
+            var filteredEvents = Object.keys(filterMap).map((id) => {
+                return filterMap[id];
+            });
+
+            filteredEvents.sort((left, right) => {
+                var leftDate = new Date(left.start_time);
+                var rightDate = new Date(right.start_time);
+
+                if (!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()) {
+                    return 0;
+                } else {
+                    return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
+                }
             });
 
             postFilteredEvents(filteredEvents);
