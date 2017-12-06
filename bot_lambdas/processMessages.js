@@ -50,13 +50,24 @@ function FacebookMessageFactory() {
 
     this.createGenericMessageTemplate = function(elements){
         var messageTemplate = this.createBaseTemplate();
-        messageTemplate.payload = {
+        messageTemplate.attachment.payload = {
             template_type: "generic",
             elements: elements
         };
-        return messageTemplate;
+        return this.createMessage(messageTemplate);
     };
 
+    this.createTemplateElement = function(title, subtitle, imageUrl, defaultActionUrl){
+        return {
+            title: title,
+            subtitle: subtitle,
+            image_url: imageUrl,
+            default_action: {
+                type: "web_url",
+                url: defaultActionUrl
+            }
+        };
+    };
 }
 
 var facebookMessageFactory = new FacebookMessageFactory();
@@ -170,8 +181,8 @@ exports.handler = (event, context, callback) => {
 
                 // Iterate over each entry - there may be multiple if batched
                 data.entry.forEach(function(entry) {
-                    var pageID = entry.id;
-                    var timeOfEvent = entry.time;
+                    // var pageID = entry.id;
+                    // var timeOfEvent = entry.time;
                     // Iterate over each messaging event
                     entry.messaging.forEach(function(msg) {
                         if (msg.message) {
@@ -266,7 +277,7 @@ function handleReceivedMessage(receivedMessage) {
     console.log("Received message for user %d and page %d at %d with message:", senderId, recipientId, timeOfMessage);
     console.log("Message data: ", messageData);
 
-    var messageId = messageData.mid;
+    // var messageId = messageData.mid;
     var messageText = messageData.text;
     var messageAttachments = messageData.attachments;
 
@@ -573,44 +584,34 @@ function postDeliveryCallback(str) {
 }
 
 function generateDebugMessageTemplate() {
-    var messageTemplate = {
-        attachment: {
-            type: "template",
-            payload: null
-        }
-    };
-
-    messageTemplate.attachment.payload = {
-        template_type: "generic",
-        elements: [{
-                title: "Hi there",
-                image_url: "https://scontent.xx.fbcdn.net/v/t31.0-8/s720x720/23632575_1723944837617023_5988946792782455376_o.jpg?oh=0e3b27fb5e6ac9adb9d728a2e2b31685&oe=5A9AC859",
-                subtitle: "lorem ipsum",
-                default_action: {
-                    type: "web_url",
-                    url: "https://www.facebook.com/events/322279428254954",
-                }
-            },
-            {
-                title: "Hi there2",
-                image_url: "https://scontent.xx.fbcdn.net/v/t31.0-8/s720x720/23592459_1906885559340836_1475249793396713895_o.jpg?oh=d2f189863b67d2a044bd0666884cbf58&oe=5A934F5E",
-                subtitle: "lorem ipsum",
-                default_action: {
-                    type: "web_url",
-                    url: "https://www.facebook.com/events/146422476113836"
-                }
-            },
-            {
-                title: "Hi there3",
-                image_url: "https://scontent.xx.fbcdn.net/v/t1.0-9/s720x720/23434801_1575952269133546_6154874085764592548_n.jpg?oh=bb93a0cfe75d680d0e629b64c3e0ef0f&oe=5AD3CA01",
-                subtitle: "lorem ipsum",
-                default_action: {
-                    type: "web_url",
-                    url: "https://www.facebook.com/events/125180038152734",
-                }
+    var elements = [
+        {
+            title: "Hi there",
+            image_url: "https://scontent.xx.fbcdn.net/v/t31.0-8/s720x720/23632575_1723944837617023_5988946792782455376_o.jpg?oh=0e3b27fb5e6ac9adb9d728a2e2b31685&oe=5A9AC859",
+            subtitle: "lorem ipsum",
+            default_action: {
+                type: "web_url",
+                url: "https://www.facebook.com/events/322279428254954",
             }
-        ]
-    };
-
-    return messageTemplate;
+        },
+        {
+            title: "Hi there2",
+            image_url: "https://scontent.xx.fbcdn.net/v/t31.0-8/s720x720/23592459_1906885559340836_1475249793396713895_o.jpg?oh=d2f189863b67d2a044bd0666884cbf58&oe=5A934F5E",
+            subtitle: "lorem ipsum",
+            default_action: {
+                type: "web_url",
+                url: "https://www.facebook.com/events/146422476113836"
+            }
+        },
+        {
+            title: "Hi there3",
+            image_url: "https://scontent.xx.fbcdn.net/v/t1.0-9/s720x720/23434801_1575952269133546_6154874085764592548_n.jpg?oh=bb93a0cfe75d680d0e629b64c3e0ef0f&oe=5AD3CA01",
+            subtitle: "lorem ipsum",
+            default_action: {
+                type: "web_url",
+                url: "https://www.facebook.com/events/125180038152734",
+            }
+        }
+    ];
+    return facebookMessageFactory.createGenericMessageTemplate(elements);
 }
