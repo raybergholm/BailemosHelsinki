@@ -442,11 +442,12 @@ function generateResponse(senderId, analysisResults) {
         messageBuffer.enqueue(message);
 
         // Filter staged events by keywords
-        var callback = function(events) {
+        var callback = function(stagedData) {
+            var organisers = stagedData.organisers;
             var filteredEvents = [];
 
             // Filter by interests
-            events.forEach((eventData) => {
+            stagedData.events.forEach((eventData) => {
                 analysisResults.interests.forEach((interest) => {
                     if (KEYWORD_REGEXES.Interests[interest].test(eventData.description)) { // TODO: eww, this is going to create errors isn't it?
                         filteredEvents.push(eventData);
@@ -546,16 +547,16 @@ function fetchDataFromS3(callback) {
         Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
         Key: S3_EVENT_DATA_OBJECT_KEY
     }, (err, s3Object) => {
-        var eventData;
+        var stagedData;
         if (err) {
             console.log("S3 interface error: ", err);
         } else {
-            eventData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
+            stagedData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
 
-            console.log(eventData);
+            console.log(stagedData);
 
             if (callback) {
-                callback(eventData);
+                callback(stagedData);
             }
         }
     });
