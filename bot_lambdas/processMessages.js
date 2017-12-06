@@ -475,7 +475,7 @@ function postFilteredEvents(filteredEvents){
             return value < 10 ? "0" + value : value;
         };
 
-        subtitleString += fillLeadingZero(date.getDay()) + '.' + fillLeadingZero(date.getMonth() + 1) + ' ' + fillLeadingZero(date.getHours()) + ':' + fillLeadingZero(date.getMinutes());
+        subtitleString += fillLeadingZero(date.getDate()) + '.' + fillLeadingZero(date.getMonth() + 1) + ' ' + fillLeadingZero(date.getHours()) + ':' + fillLeadingZero(date.getMinutes());
         try{
             if(eventData.place){
                 subtitleString += "\n" + eventData.place.name;
