@@ -441,8 +441,11 @@ function generateResponse(senderId, analysisResults) {
         });
         messageBuffer.enqueue(message);
 
+        // Filter staged events by keywords
         var callback = function(events) {
             var filteredEvents = [];
+
+            // Filter by interests
             events.forEach((eventData) => {
                 analysisResults.interests.forEach((interest) => {
                     if (KEYWORD_REGEXES.Interests[interest].test(eventData.description)) { // TODO: eww, this is going to create errors isn't it?
@@ -451,65 +454,69 @@ function generateResponse(senderId, analysisResults) {
                 });
             });
 
-            var elements = [];
-
-            filteredEvents.forEach((eventData) => {
-                var subtitleString = "";
-                var date = new Date(eventData.start_time);
-                var coverImageUrl = null;
-
-                // TODO: can I just get moment.js in here to do this?
-                var fillLeadingZero = function(value){
-                    return value < 10 ? "0" + value : value;
-                };
-
-                subtitleString += fillLeadingZero(date.getDay()) + '.' + fillLeadingZero(date.getMonth() + 1) + ' ' + fillLeadingZero(date.getHours()) + ':' + fillLeadingZero(date.getMinutes());
-                try{
-                    if(eventData.place){
-                        subtitleString += "\n" + eventData.place.name;
-                        if(eventData.place.location){
-                            subtitleString += "\n" + eventData.place.location.street + ", " + eventData.place.location.city;
-                        }
-                    }
-                }catch(err){
-                    console.log("Error trying to write the location: ", err.message);
-                }
-
-                if(eventData.attending_count){
-                    subtitleString += "\n " + eventData.attending_count + " people attending";
-                }
-
-                if(eventData.cover && eventData.cover.source){
-                    coverImageUrl = eventData.cover.source;
-                }
-
-                elements.push(facebookMessageFactory.createTemplateElement(
-                    eventData.name,
-                    subtitleString,
-                    coverImageUrl,
-                    "https://www.facebook.com/events/" + eventData.id
-                ));
-            });
-
-            if(elements.length > 10){   // NOTE: the Messenger API only allows up to 10 elements at a time
-                messageBuffer.enqueue(facebookMessageFactory.createMessage({
-                    text: "I got more that 10 results, I'd love to display the rest but Facebook doesn't let me :("
-                }));
-                messageBuffer.flush();
-                while(elements.length > 10){
-                    elements.pop();
-                }
-            }
-
-            var message = facebookMessageFactory.createGenericMessageTemplate(elements);
-            messageBuffer.enqueue(message);
-
-            messageBuffer.flush();
+            postFilteredEvents(filteredEvents);
         };
         fetchDataFromS3(callback);
     }
 
     messageBuffer.flush(); // fire this immediately even if there's more to come after querying S3, I want the debug message for now
+}
+
+function postFilteredEvents(filteredEvents){
+    var elements = [];
+
+    filteredEvents.forEach((eventData) => {
+        var subtitleString = "";
+        var date = new Date(eventData.start_time);
+        var coverImageUrl = null;
+
+        // TODO: can I just get moment.js in here to do this?
+        var fillLeadingZero = function(value){
+            return value < 10 ? "0" + value : value;
+        };
+
+        subtitleString += fillLeadingZero(date.getDay()) + '.' + fillLeadingZero(date.getMonth() + 1) + ' ' + fillLeadingZero(date.getHours()) + ':' + fillLeadingZero(date.getMinutes());
+        try{
+            if(eventData.place){
+                subtitleString += "\n" + eventData.place.name;
+                if(eventData.place.location){
+                    subtitleString += "\n" + eventData.place.location.street + ", " + eventData.place.location.city;
+                }
+            }
+        }catch(err){
+            console.log("Error trying to write the location: ", err.message);
+        }
+
+        if(eventData.attending_count){
+            subtitleString += "\n " + eventData.attending_count + " people attending";
+        }
+
+        if(eventData.cover && eventData.cover.source){
+            coverImageUrl = eventData.cover.source;
+        }
+
+        elements.push(facebookMessageFactory.createTemplateElement(
+            eventData.name,
+            subtitleString,
+            coverImageUrl,
+            "https://www.facebook.com/events/" + eventData.id
+        ));
+    });
+
+    if(elements.length > 10){   // NOTE: the Messenger API only allows up to 10 elements at a time
+        messageBuffer.enqueue(facebookMessageFactory.createMessage({
+            text: "I got more that 10 results, I'd love to display the rest but Facebook doesn't let me :("
+        }));
+        messageBuffer.flush();
+        while(elements.length > 10){
+            elements.pop();
+        }
+    }
+
+    var message = facebookMessageFactory.createGenericMessageTemplate(elements);
+    messageBuffer.enqueue(message);
+
+    messageBuffer.flush();
 }
 
 function handleDeliveryReceipt(message) {
