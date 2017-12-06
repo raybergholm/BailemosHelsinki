@@ -455,7 +455,7 @@ function generateResponse(senderId, analysisResults) {
 
             filteredEvents.forEach((eventData) => {
                 var subtitleString = "";
-                var date = new Date(eventData.startTime);
+                var date = new Date(eventData.start_time);
 
                 subtitleString += date.getDay() + '.' + (date.getMonth() + 1) + ' ' + date.getHours() + ':' + date.getMinutes();
                 try{
