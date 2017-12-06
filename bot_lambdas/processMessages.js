@@ -456,6 +456,7 @@ function generateResponse(senderId, analysisResults) {
             filteredEvents.forEach((eventData) => {
                 var subtitleString = "";
                 var date = new Date(eventData.start_time);
+                var coverImageUrl = null;
 
                 subtitleString += date.getDay() + '.' + (date.getMonth() + 1) + ' ' + date.getHours() + ':' + date.getMinutes();
                 try{
@@ -469,10 +470,14 @@ function generateResponse(senderId, analysisResults) {
                     console.log("Error trying to write the location: ", err.message);
                 }
 
+                if(eventData.cover && eventData.cover.source){
+                    coverImageUrl = eventData.cover.source;
+                }
+
                 elements.push(facebookMessageFactory.createTemplateElement(
                     eventData.name,
                     subtitleString,
-                    eventData.image_url,
+                    coverImageUrl,
                     "https://www.facebook.com/events/" + eventData.id
                 ));
             });
