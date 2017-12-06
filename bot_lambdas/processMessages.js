@@ -19,19 +19,51 @@ var s3 = new AWS.S3();
 
 var senderId; // this is a bit dirty making it global
 
-var messageBuffer = {
-    _messages: [],
-    enqueue: function(messagePayload) {
-        var message = {
+function FacebookMessageFactory() {
+    this._targetId = null;
+
+    this.setTargetId = function(targetId){
+        this._targetId = targetId;
+    };
+
+    this.createMessage = function(payload){
+        return {
             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
             recipient: {
-                id: senderId
+                id: this._targetId
             },
             sender: {
                 id: FACEBOOK_PAGE_ID
             },
-            message: messagePayload
+            message: payload
         };
+    };
+
+    this.createBaseTemplate = function(){
+        return {
+            attachment: {
+                type: "template",
+                payload: null
+            }
+        };
+    };
+
+    this.createGenericMessageTemplate = function(elements){
+        var messageTemplate = this.createBaseTemplate();
+        messageTemplate.payload = {
+            template_type: "generic",
+            elements: elements
+        };
+        return messageTemplate;
+    };
+
+}
+
+var facebookMessageFactory = new FacebookMessageFactory();
+
+var messageBuffer = {
+    _messages: [],
+    enqueue: function(message) {
         this._messages.push(message);
     },
     flush: function() {
@@ -39,15 +71,12 @@ var messageBuffer = {
             callSendAPI(JSON.stringify(this._messages[0]));
         } else {
             var batchRequestContent = [];
-            var batchifiedMessagePayload;
             for (var i = 0; i < this._messages.length; i++) {
-                batchifiedMessagePayload =
-
-                    batchRequestContent.push({
-                        relative_url: "/me/messages",
-                        method: "POST",
-                        body: JSON.stringify(this._messages[i])
-                    });
+                batchRequestContent.push({
+                    relative_url: "/me/messages",
+                    method: "POST",
+                    body: JSON.stringify(this._messages[i])
+                });
             }
 
             callSendBatchAPI("batch=" + JSON.stringify(batchRequestContent));
@@ -211,7 +240,7 @@ function verifySignature(payload) {
     return false;
 }
 
-function handleReceivedMessage(message) {
+function handleReceivedMessage(receivedMessage) {
     /*
         message = {
             sender: {id: [SENDER_ID]},          // should be the user
@@ -224,12 +253,15 @@ function handleReceivedMessage(message) {
             }
         }
     */
-    senderId = message.sender.id;
-    var recipientId = message.recipient.id;
-    var timeOfMessage = message.timestamp;
-    var messageData = message.message;
+    senderId = receivedMessage.sender.id;
 
-    console.log("entire message data structure: ", message);
+    facebookMessageFactory.setTargetId(receivedMessage.sender.id);
+
+    var recipientId = receivedMessage.recipient.id;
+    var timeOfMessage = receivedMessage.timestamp;
+    var messageData = receivedMessage.message;
+
+    console.log("entire message data structure: ", receivedMessage);
 
     console.log("Received message for user %d and page %d at %d with message:", senderId, recipientId, timeOfMessage);
     console.log("Message data: ", messageData);
@@ -244,49 +276,55 @@ function handleReceivedMessage(message) {
             generateResponse(senderId, result);
         }
     } else if (messageAttachments) {
-        messageBuffer.enqueue({
+        var message = facebookMessageFactory.createMessage({
             text: "Message with attachment received"
         });
+        messageBuffer.enqueue(message);
 
         messageBuffer.flush();
     }
 }
 
 function findSpecialTexts(text) {
-    var i;
+    var i, message;
 
     for (var prop in KEYWORD_REGEXES.Special) {
         if (KEYWORD_REGEXES.Special[prop].test(text)) {
             switch (prop) {
                 case "Greetings":
-                    messageBuffer.enqueue({
+                    message = facebookMessageFactory.createMessage({
                         text: BOT_TEXTS.Greetings[Math.floor(Math.random() * BOT_TEXTS.Greetings.length)]
                     });
+                    messageBuffer.enqueue(message);
                     break;
                 case "Info":
                     for (i = 0; i < BOT_TEXTS.Disclaimer.length; i++) {
-                        messageBuffer.enqueue({
+                        message = facebookMessageFactory.createMessage({
                             text: BOT_TEXTS.Disclaimer[i]
                         });
+                        messageBuffer.enqueue(message);
                     }
                     break;
                 case "HelpRequest":
                     for (i = 0; i < BOT_TEXTS.HelpInfo.length; i++) {
-                        messageBuffer.enqueue({
+                        message = facebookMessageFactory.createMessage({
                             text: BOT_TEXTS.HelpInfo[i]
                         });
+                        messageBuffer.enqueue(message);
                     }
                     break;
                 case "Debug":
                     fetchDataFromS3(null);
-                    messageBuffer.enqueue({
+                    message = facebookMessageFactory.createMessage({
                         text: BOT_TEXTS.Affirmative[Math.floor(Math.random() * BOT_TEXTS.Affirmative.length)]
                     });
+                    messageBuffer.enqueue(message);
                     break;
                 case "Oops":
-                    messageBuffer.enqueue({
+                    message = facebookMessageFactory.createMessage({
                         text: BOT_TEXTS.Apologise[Math.floor(Math.random() * BOT_TEXTS.Apologise.length)]
                     });
+                    messageBuffer.enqueue(message);
                     break;
                 case "TemplateDebug":
                     messageBuffer.enqueue(generateDebugMessageTemplate());
@@ -365,11 +403,13 @@ function findInterestKeywords(text) {
 }
 
 function generateResponse(senderId, analysisResults) {
+    var message;
     if (analysisResults.eventType.length === 0 && analysisResults.temporalMarkers.length === 0 && analysisResults.locations.length === 0 && analysisResults.interests.length === 0) {
         // found absolutely nothing
-        messageBuffer.enqueue({
+        message = facebookMessageFactory.createMessage({
             text: BOT_TEXTS.Unknown[Math.floor(Math.random() * BOT_TEXTS.Unknown.length)]
         });
+        messageBuffer.enqueue(message);
     } else {
         console.log("analysis picked up these keywords: ", analysisResults);
 
@@ -385,9 +425,10 @@ function generateResponse(senderId, analysisResults) {
             keywords.push(elem);
         });
 
-        messageBuffer.enqueue({
+        message = facebookMessageFactory.createMessage({
             text: responseText + keywords.join(', ')
         });
+        messageBuffer.enqueue(message);
 
         var callback = function(events) {
             var filteredEvents = [];
