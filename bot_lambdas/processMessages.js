@@ -84,9 +84,9 @@ var messageBuffer = {
             var batchRequestContent = [];
             for (var i = 0; i < this._messages.length; i++) {
                 batchRequestContent.push({
-                    relative_url: "/me/messages",
+                    relative_url: encodeURIComponent("/me/messages/"),
                     method: "POST",
-                    body: JSON.stringify(this._messages[i])
+                    body: encodeURIComponent(JSON.stringify(this._messages[i])) // TODO: This is hella broken, body needs a different format entirely?
                 });
             }
 
@@ -463,7 +463,7 @@ function generateResponse(senderId, analysisResults) {
                     return value < 10 ? "0" + value : value;
                 };
 
-                subtitleString += fillLeadingZero(date.getDay()) + '.' + fillLeadingZero(date.getMonth()) + ' ' + fillLeadingZero(date.getHours()) + ':' + fillLeadingZero(date.getMinutes());
+                subtitleString += fillLeadingZero(date.getDay()) + '.' + fillLeadingZero(date.getMonth() + 1) + ' ' + fillLeadingZero(date.getHours()) + ':' + fillLeadingZero(date.getMinutes());
                 try{
                     if(eventData.place){
                         subtitleString += "\n" + eventData.place.name;
@@ -495,6 +495,7 @@ function generateResponse(senderId, analysisResults) {
                 messageBuffer.enqueue(facebookMessageFactory.createMessage({
                     text: "I got more that 10 results, I'd love to display the rest but Facebook doesn't let me :("
                 }));
+                messageBuffer.flush();
                 while(elements.length > 10){
                     elements.pop();
                 }
