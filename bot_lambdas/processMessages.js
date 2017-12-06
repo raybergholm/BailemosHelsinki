@@ -506,13 +506,18 @@ function postFilteredEvents(filteredEvents){
 
     if(elements.length > 10){   // NOTE: the Messenger API only allows up to 10 elements at a time
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
-            text: "I got more that 10 results, I'd love to display the rest but Facebook doesn't let me :("
+            text: "I got " + elements.length + " results, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
         }));
-        messageBuffer.flush();
+
         while(elements.length > 10){
             elements.pop();
         }
+    }else{
+        messageBuffer.enqueue(facebookMessageFactory.createMessage({
+            text: "Alright! I got " + elements.length + " results:"
+        }));
     }
+    messageBuffer.flush();
 
     var message = facebookMessageFactory.createGenericMessageTemplate(elements);
     messageBuffer.enqueue(message);
