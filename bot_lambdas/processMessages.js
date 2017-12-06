@@ -451,17 +451,34 @@ function generateResponse(senderId, analysisResults) {
                 });
             });
 
+            var elements = [];
+
             filteredEvents.forEach((eventData) => {
-                messageBuffer.enqueue({
-                    text: eventData.name + " " + eventData.start_time + "\n" + "https://www.facebook.com/events/" + eventData.id + '/'
-                    // shares: {    // TODO: doesn't work like that. Does the API support enriched messages with link previews like "normal" messages?
-                    //     id: eventData.id,
-                    //     name: eventData.name,
-                    //     description: eventData.name,
-                    //     link: "https://www.facebook.com/events/" + eventData.id + '/'
-                    // }
-                });
+                var subtitleString = "";
+                var date = new Date(eventData.startTime);
+
+                subtitleString = date.getDay() + '.' + (date.getMonth() + 1) + ' ' + date.getHours() + ':' + date.getMinutes();
+                try{
+                    if(eventData.place){
+                        subtitleString = "\n" + eventData.place.name;
+                        if(eventData.place.location){
+                            subtitleString = "\n" + eventData.place.location.street + ", " + eventData.place.location.city;
+                        }
+                    }
+                }catch(err){
+                    console.log("Error trying to write the location: ", err.message);
+                }
+
+                elements.push(facebookMessageFactory.createTemplateElement(
+                    eventData.name,
+                    subtitleString,
+                    eventData.image_url,
+                    "https://www.facebook.com/events/" + eventData.id
+                ));
             });
+
+            var message = facebookMessageFactory.createGenericMessageTemplate(elements);
+            messageBuffer.enqueue(message);
 
             messageBuffer.flush();
         };
