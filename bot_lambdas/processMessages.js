@@ -458,7 +458,12 @@ function generateResponse(senderId, analysisResults) {
                 var date = new Date(eventData.start_time);
                 var coverImageUrl = null;
 
-                subtitleString += date.getDay() + '.' + (date.getMonth() + 1) + ' ' + date.getHours() + ':' + date.getMinutes();
+                // TODO: can I just get moment.js in here to do this?
+                var fillLeadingZero = function(value){
+                    return value < 10 ? "0" + value : value;
+                };
+
+                subtitleString += fillLeadingZero(date.getDay()) + '.' + fillLeadingZero(date.getMonth()) + ' ' + fillLeadingZero(date.getHours()) + ':' + fillLeadingZero(date.getMinutes());
                 try{
                     if(eventData.place){
                         subtitleString += "\n" + eventData.place.name;
@@ -468,6 +473,10 @@ function generateResponse(senderId, analysisResults) {
                     }
                 }catch(err){
                     console.log("Error trying to write the location: ", err.message);
+                }
+
+                if(eventData.attending_count){
+                    subtitleString += "\n " + eventData.attending_count + " people attending";
                 }
 
                 if(eventData.cover && eventData.cover.source){
@@ -483,6 +492,9 @@ function generateResponse(senderId, analysisResults) {
             });
 
             if(elements.length > 10){   // NOTE: the Messenger API only allows up to 10 elements at a time
+                messageBuffer.enqueue(facebookMessageFactory.createMessage({
+                    text: "I got more that 10 results, I'd love to display the rest but Facebook doesn't let me :("
+                }));
                 while(elements.length > 10){
                     elements.pop();
                 }
