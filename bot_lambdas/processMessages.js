@@ -457,12 +457,12 @@ function generateResponse(senderId, analysisResults) {
                 var subtitleString = "";
                 var date = new Date(eventData.startTime);
 
-                subtitleString = date.getDay() + '.' + (date.getMonth() + 1) + ' ' + date.getHours() + ':' + date.getMinutes();
+                subtitleString += date.getDay() + '.' + (date.getMonth() + 1) + ' ' + date.getHours() + ':' + date.getMinutes();
                 try{
                     if(eventData.place){
-                        subtitleString = "\n" + eventData.place.name;
+                        subtitleString += "\n" + eventData.place.name;
                         if(eventData.place.location){
-                            subtitleString = "\n" + eventData.place.location.street + ", " + eventData.place.location.city;
+                            subtitleString += "\n" + eventData.place.location.street + ", " + eventData.place.location.city;
                         }
                     }
                 }catch(err){
