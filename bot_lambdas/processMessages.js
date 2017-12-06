@@ -477,6 +477,12 @@ function generateResponse(senderId, analysisResults) {
                 ));
             });
 
+            if(elements.length > 10){   // NOTE: the Messenger API only allows up to 10 elements at a time
+                while(elements.length > 10){
+                    elements.pop();
+                }
+            }
+
             var message = facebookMessageFactory.createGenericMessageTemplate(elements);
             messageBuffer.enqueue(message);
 
