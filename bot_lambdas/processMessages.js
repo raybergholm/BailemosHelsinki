@@ -20,11 +20,11 @@ var s3 = new AWS.S3();
 function FacebookMessageFactory() {
     this._targetId = null;
 
-    this.setTargetId = function(targetId){
+    this.setTargetId = function(targetId) {
         this._targetId = targetId;
     };
 
-    this.createMessage = function(payload){
+    this.createMessage = function(payload) {
         return {
             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
             recipient: {
@@ -37,7 +37,7 @@ function FacebookMessageFactory() {
         };
     };
 
-    this.createSenderActionMessage = function(action){
+    this.createSenderActionMessage = function(action) {
         return {
             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
             recipient: {
@@ -47,10 +47,10 @@ function FacebookMessageFactory() {
                 id: FACEBOOK_PAGE_ID
             },
             sender_action: action
-        }
+        };
     };
 
-    this.createBaseTemplate = function(){
+    this.createBaseTemplate = function() {
         return {
             attachment: {
                 type: "template",
@@ -59,7 +59,7 @@ function FacebookMessageFactory() {
         };
     };
 
-    this.createGenericMessageTemplate = function(elements){
+    this.createGenericMessageTemplate = function(elements) {
         var messageTemplate = this.createBaseTemplate();
         messageTemplate.attachment.payload = {
             template_type: "generic",
@@ -68,7 +68,7 @@ function FacebookMessageFactory() {
         return this.createMessage(messageTemplate);
     };
 
-    this.createTemplateElement = function(title, subtitle, imageUrl, defaultActionUrl){
+    this.createTemplateElement = function(title, subtitle, imageUrl, defaultActionUrl) {
         return {
             title: title,
             subtitle: subtitle,
@@ -83,7 +83,7 @@ function FacebookMessageFactory() {
 
 var facebookMessageFactory = new FacebookMessageFactory();
 
-function DateTimeSemanticDecoder(){
+function DateTimeSemanticDecoder() {
     this.read = (input) => {
         var dateTimeRange = {
             from: null,
@@ -114,7 +114,7 @@ function DateTimeSemanticDecoder(){
 
         return dateTimeRange;
     };
-    this.getDefaultRange = () => {  // from today to today+7
+    this.getDefaultRange = () => { // from today to today+7
         var dateTimeRange = {
             from: null,
             to: null
@@ -197,20 +197,20 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later
     },
     Temporal: {
         Today: /\b(?:today|tonight)\b/i,
-        Monday: /\b(?:monday|mo[n\-\b])/i,
-        Tuesday: /\b(?:tuesday|tu[e\-\b])/i,
-        Wednesday: /\b(?:wednesday|we[d\-\b])/i,
-        Thursday: /\b(?:thursday|th[u\-\b])/i,
-        Friday: /\b(?:friday|fr[i\-\b])/i,
-        Saturday: /\b(?:saturday|sa[t\-\b])/i,
-        Sunday: /\b(?:sunday|su[n\-\b])/i,
+        Monday: /\b(?:monday|mo(n?))\b/i,
+        Tuesday: /\b(?:tuesday|tu(e?))\b/i,
+        Wednesday: /\b(?:wednesday|we(d?))\b/i,
+        Thursday: /\b(?:thursday|th(u?))\b/i,
+        Friday: /\b(?:friday|fr(i?))\b/i,
+        Saturday: /\b(?:saturday|sa(t?))\b/i,
+        Sunday: /\b(?:sunday|su(n?))\b/i,
         ThisWeek: /\bthis week\b/i,
         ThisWeekend: /\bthis weekend\b/i,
         NextWeek: /\bnext week\b/i,
         NextWeekend: /\bnext weekend\b/i,
         RangeLike: /\s\-\s|\w\-\w/,
         DateLike: /\d{1,2}[\.\/]\d{1,2}/,
-        TimeLike: /\d{1,2}[\.\:]\d{2}/,
+        TimeLike: /\b(?:\d{1,2}[\:]\d{2}|(?:klo) \d{1,2}\.\d{2})\b/,
         FromMarker: /\b(?:from|starting|after)\b/i,
         ToMarker: /\b(?:to|until|before)\b/i
     }
@@ -506,9 +506,9 @@ function generateResponse(analysisResults) {
             var datetimeRange;
 
             // Filter by datetime
-            if(analysisResults.temporalMarkers && analysisResults.temporalMarkers.length > 0){
+            if (analysisResults.temporalMarkers && analysisResults.temporalMarkers.length > 0) {
                 datetimeRange = dateTimeSemanticDecoder.read(text);
-            }else{
+            } else {
                 // default
                 datetimeRange = dateTimeSemanticDecoder.getDefaultRange();
             }
@@ -548,7 +548,7 @@ function generateResponse(analysisResults) {
     messageBuffer.flush(); // fire this immediately even if there's more to come after querying S3, I want the debug message for now
 }
 
-function postFilteredEvents(filteredEvents){
+function postFilteredEvents(filteredEvents) {
     var elements = [];
 
     filteredEvents.forEach((eventData) => {
@@ -557,27 +557,27 @@ function postFilteredEvents(filteredEvents){
         var coverImageUrl = null;
 
         // TODO: can I just get moment.js in here to do this?
-        var fillLeadingZero = function(value){
+        var fillLeadingZero = function(value) {
             return value < 10 ? "0" + value : value;
         };
 
         subtitleString += fillLeadingZero(date.getDate()) + '.' + fillLeadingZero(date.getMonth() + 1) + ' ' + fillLeadingZero(date.getHours()) + ':' + fillLeadingZero(date.getMinutes());
-        try{
-            if(eventData.place){
+        try {
+            if (eventData.place) {
                 subtitleString += "\n" + eventData.place.name;
-                if(eventData.place.location){
+                if (eventData.place.location) {
                     subtitleString += "\n" + eventData.place.location.street + ", " + eventData.place.location.city;
                 }
             }
-        }catch(err){
+        } catch (err) {
             console.log("Error trying to write the location: ", err.message);
         }
 
-        if(eventData.attending_count){
+        if (eventData.attending_count) {
             subtitleString += "\n " + eventData.attending_count + " people attending";
         }
 
-        if(eventData.cover && eventData.cover.source){
+        if (eventData.cover && eventData.cover.source) {
             coverImageUrl = eventData.cover.source;
         }
 
@@ -589,15 +589,15 @@ function postFilteredEvents(filteredEvents){
         ));
     });
 
-    if(elements.length > 10){   // NOTE: the Messenger API only allows up to 10 elements at a time
+    if (elements.length > 10) { // NOTE: the Messenger API only allows up to 10 elements at a time
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
             text: "I got " + elements.length + " results, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
         }));
 
-        while(elements.length > 10){
+        while (elements.length > 10) {
             elements.pop();
         }
-    }else{
+    } else {
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
             text: "Alright! I got " + elements.length + " results:"
         }));
