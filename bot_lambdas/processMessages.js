@@ -110,7 +110,7 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
                 }
 
                 friday = new Date(sunday);
-                friday.setDate(friday.getDate() -3);
+                friday.setDate(friday.getDate() - 2);
 
                 dateTimeRange.from = friday;
                 dateTimeRange.to = sunday;
@@ -139,7 +139,7 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
                 }
 
                 friday = new Date(sunday);
-                friday.setDate(friday.getDate() -3);
+                friday.setDate(friday.getDate() - 2);
 
                 dateTimeRange.from = friday;
                 dateTimeRange.to = sunday;
@@ -150,8 +150,7 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
             }
         }
 
-        return this.getDefaultRange(); // FIXME: use the real value when it's actually there
-        // return dateTimeRange;
+        return dateTimeRange;
     };
     this.getDefaultRange = () => { // from today to today+7
         var dateTimeRange = {
