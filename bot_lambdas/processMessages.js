@@ -175,7 +175,7 @@ const BOT_TEXTS = { // probably should be fetched from S3
     ]
 };
 
-const KEYWORD_REGEXES = { // TODO: worry about localisation later
+const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could end up requiring a major rewrite of these regexes since \b considers stuff like åäö as word breaks
     Special: {
         Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[\!\?])/i,
         Info: /\b(?:info|disclaimer)\b/i,
