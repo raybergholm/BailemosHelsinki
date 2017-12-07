@@ -17,8 +17,6 @@ AWS.config.update({
 
 var s3 = new AWS.S3();
 
-var senderId; // this is a bit dirty making it global
-
 function FacebookMessageFactory() {
     this._targetId = null;
 
@@ -37,6 +35,19 @@ function FacebookMessageFactory() {
             },
             message: payload
         };
+    };
+
+    this.createSenderActionMessage = function(action){
+        return {
+            messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
+            recipient: {
+                id: this._targetId
+            },
+            sender: {
+                id: FACEBOOK_PAGE_ID
+            },
+            sender_action: action
+        }
     };
 
     this.createBaseTemplate = function(){
@@ -234,7 +245,7 @@ exports.handler = (event, context, callback) => {
                         if (msg.message) {
                             // Normal message
 
-                            sendTypingIndicator(msg.sender.id, true); // send the typing_on indicator immediately
+                            sendTypingIndicator(true); // send the typing_on indicator immediately
 
                             handleReceivedMessage(msg);
                         } else if (msg.delivery) {
@@ -310,9 +321,9 @@ function handleReceivedMessage(receivedMessage) {
             }
         }
     */
-    senderId = receivedMessage.sender.id;
+    var senderId = receivedMessage.sender.id;
 
-    facebookMessageFactory.setTargetId(receivedMessage.sender.id);
+    facebookMessageFactory.setTargetId(senderId);
 
     var recipientId = receivedMessage.recipient.id;
     var timeOfMessage = receivedMessage.timestamp;
@@ -330,7 +341,7 @@ function handleReceivedMessage(receivedMessage) {
     if (messageText) {
         if (!findSpecialTexts(messageText)) {
             var result = analyseMessage(messageText);
-            generateResponse(senderId, result);
+            generateResponse(result);
         }
     } else if (messageAttachments) {
         var message = facebookMessageFactory.createMessage({
@@ -459,7 +470,7 @@ function findInterestKeywords(text) {
     return interests;
 }
 
-function generateResponse(senderId, analysisResults) {
+function generateResponse(analysisResults) {
     var message;
     if (analysisResults.eventType.length === 0 && analysisResults.temporalMarkers.length === 0 && analysisResults.locations.length === 0 && analysisResults.interests.length === 0) {
         // found absolutely nothing
@@ -607,18 +618,12 @@ function handleReadReceipt(message) {
     console.log("Message read response: ", message.read);
 }
 
-function sendTypingIndicator(recipientId, mode) {
-    var messagePayload = {
-        sender: {
-            id: FACEBOOK_PAGE_ID
-        },
-        recipient: {
-            id: recipientId
-        },
-        sender_action: (mode ? "typing_on" : "typing_off")
-    };
+function sendTypingIndicator(mode) {
+    var typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(mode ? "typing_on" : "typing_off");
 
-    // callSendAPI(messagePayload);  FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
+    // FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
+    // messageBuffer.enqueue(typingIndicatorMessage);
+    // messageBuffer.flush();
 }
 
 function fetchDataFromS3(callback) {
@@ -708,7 +713,7 @@ function callSendBatchAPI(payload) {
 function postDeliveryCallback(str) {
     console.log("callback end, got " + str);
 
-    sendTypingIndicator(senderId, false);
+    sendTypingIndicator(false);
 }
 
 function generateDebugMessageTemplate() {
