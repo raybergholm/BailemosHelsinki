@@ -529,25 +529,28 @@ function generateResponse(analysisResults) {
             var matchedKeyword;
 
             // Start throwing out things which don't fit the rest of the keywords
-            for (var prop in filterMap) {
-                matchedKeyword = false;
+            if (analysisResults.interests.length > 0 || analysisResults.locations > 0) {
+                for (var prop in filterMap) {
+                    matchedKeyword = false;
 
-                // Lazy match: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
-                for (i = 0; i < analysisResults.interests; i++) {
-                    if (KEYWORD_REGEXES.Interests[analysisResults.interests[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
-                        matchedKeyword = true;
-                        break;
+                    // Lazy match: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
+                    for (i = 0; i < analysisResults.interests.length; i++) {
+                        if (KEYWORD_REGEXES.Interests[analysisResults.interests[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
+                            matchedKeyword = true;
+                            break;
+                        }
                     }
-                }
-                for (i = 0; i < analysisResults.locations; i++) {
-                    if (KEYWORD_REGEXES.Locations[analysisResults.locations[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
-                        matchedKeyword = true;
-                        break;
+                    
+                    for (i = 0; i < analysisResults.locations.length; i++) {
+                        if (KEYWORD_REGEXES.Locations[analysisResults.locations[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
+                            matchedKeyword = true;
+                            break;
+                        }
                     }
-                }
 
-                if (!matchedKeyword) {
-                    delete filterMap[prop];
+                    if (!matchedKeyword) {
+                        delete filterMap[prop];
+                    }
                 }
             }
 
