@@ -503,6 +503,8 @@ function generateResponse(analysisResults) {
 
             var dateTimeRange;
 
+            console.log("before filtering: " + stagedData.events.length + " events");
+
             if (analysisResults.temporalMarkers && analysisResults.temporalMarkers.length > 0) {
                 dateTimeRange = dateTimeSemanticDecoder.read(analysisResults.originalText);
             } else {
@@ -521,10 +523,14 @@ function generateResponse(analysisResults) {
                 }
             });
 
+            console.log("after temporal filtering: " + Object.Keys(filterMap).length + " events");
+
+            var i;
+            var matchedKeyword;
+
             // Start throwing out things which don't fit the rest of the keywords
             for(var prop in filterMap){
-                var i;
-                var matchedKeyword = false;
+                matchedKeyword = false;
 
                 // Lazy match: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
                 for(i = 0; i < analysisResults.interests; i++){
@@ -544,6 +550,8 @@ function generateResponse(analysisResults) {
                     delete filterMap[prop];
                 }
             }
+
+            console.log("after all filtering: " + Object.Keys(filterMap).length + " events");
 
             // Convert back to an array
             var filteredEvents = Object.keys(filterMap).map((id) => {
@@ -607,9 +615,13 @@ function postFilteredEvents(filteredEvents) {
         ));
     });
 
-    if (elements.length > 10) { // NOTE: the Messenger API only allows up to 10 elements at a time
+    if(filteredEvents.length === 0) {
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
-            text: "I got " + elements.length + " results, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
+            text: "I didn't find any events, maybe this is a free day?"
+        }));
+    }else if (filteredEvents.length > 10) { // NOTE: the Messenger API only allows up to 10 elements at a time
+        messageBuffer.enqueue(facebookMessageFactory.createMessage({
+            text: "I got " + filteredEvents.length + " results, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
         }));
 
         while (elements.length > 10) {
@@ -617,7 +629,7 @@ function postFilteredEvents(filteredEvents) {
         }
     } else {
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
-            text: "Alright! I got " + elements.length + " results:"
+            text: "Alright! I got " + filteredEvents.length + " results:"
         }));
     }
     messageBuffer.flush();
