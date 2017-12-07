@@ -512,6 +512,8 @@ function generateResponse(analysisResults) {
                 dateTimeRange = dateTimeSemanticDecoder.getDefaultRange();
             }
 
+            console.log(dateTimeRange);
+
             // Filter by datetime: this is the only mandatory filter so build the whitelist from everything within the time range
             stagedData.events.forEach((eventData) => {
                 // TODO: filter by datetime range. Mandatory filter, can't pass everything to the end-user all at once anyway
@@ -552,13 +554,10 @@ function generateResponse(analysisResults) {
 
             // Sort array by ascending time
             filteredEvents.sort((left, right) => {
-                var leftDate = new Date(left.start_time);
-                var rightDate = new Date(right.start_time);
-
-                if (!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()) {
+                if (!left.start_time.getTime() === right.start_time.getTime()) {
                     return 0;
                 } else {
-                    return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
+                    return left.start_time.getTime() < right.start_time.getTime() ? -1 : 1;
                 }
             });
 
@@ -575,7 +574,6 @@ function postFilteredEvents(filteredEvents) {
 
     filteredEvents.forEach((eventData) => {
         var subtitleString = "";
-        var date = new Date(eventData.start_time);
         var coverImageUrl = null;
 
         // TODO: can I just get moment.js in here to do this?
@@ -583,7 +581,7 @@ function postFilteredEvents(filteredEvents) {
             return value < 10 ? "0" + value : value;
         };
 
-        subtitleString += fillLeadingZero(date.getDate()) + '.' + fillLeadingZero(date.getMonth() + 1) + ' ' + fillLeadingZero(date.getHours()) + ':' + fillLeadingZero(date.getMinutes());
+        subtitleString += fillLeadingZero(eventData.start_time.getDate()) + '.' + fillLeadingZero(eventData.start_time.getMonth() + 1) + ' ' + fillLeadingZero(eventData.start_time.getHours()) + ':' + fillLeadingZero(eventData.start_time.getMinutes());
         try {
             if (eventData.place) {
                 subtitleString += "\n" + eventData.place.name;
@@ -658,6 +656,20 @@ function fetchDataFromS3(callback) {
             console.log("S3 interface error: ", err);
         } else {
             stagedData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
+
+            // Convert all date strings to date objects (all date/time calculations require it, and JSON.stringify will convert back to string correctly)
+            for(var i = 0; i < stagedData.events.length; i++){
+                stagedData.events[i].start_time = new Date(stagedData.events[i].start_time);
+                stagedData.events[i].end_time = new Date(stagedData.events[i].start_time);
+                
+                if(stagedData.events[i].event_times){
+                    for(var j = 0; j < stagedData.events[i].event_times.length; j++){
+                        stagedData.events[i].event_times[j].start_time = new Date(stagedData.events[i].event_times[j].start_time);
+                        stagedData.events[i].event_times[j].end_time = new Date(stagedData.events[i].event_times[j].end_time); 
+                    }
+
+                }
+            }
 
             console.log(stagedData);
 
