@@ -97,15 +97,15 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
         var friday;
         var sunday;
 
-        if(quickAnalysisResults){
+        if (quickAnalysisResults) {
             // quick shortcuts. FIXME: All of these are dirty hacks, figure out how to upload moment to lambda and use that instead
-            if(quickAnalysisResults.temporalMarkers.indexOf("ThisWeek") > -1){
-                while(dateTimeRange.to.getDay() > 0){
+            if (quickAnalysisResults.temporalMarkers.indexOf("ThisWeek") > -1) {
+                while (dateTimeRange.to.getDay() > 0) {
                     dateTimeRange.to.setDate(dateTimeRange.to.getDate() + 1);
                 }
-            }else if(quickAnalysisResults.temporalMarkers.indexOf("ThisWeekend") > -1){
+            } else if (quickAnalysisResults.temporalMarkers.indexOf("ThisWeekend") > -1) {
                 sunday = new Date();
-                while(sunday.getDay() > 0){
+                while (sunday.getDay() > 0) {
                     sunday.setDate(sunday.getDate() + 1);
                 }
 
@@ -114,27 +114,27 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
 
                 dateTimeRange.from = friday;
                 dateTimeRange.to = sunday;
-            }else if(quickAnalysisResults.temporalMarkers.indexOf("NextWeek") > -1){
+            } else if (quickAnalysisResults.temporalMarkers.indexOf("NextWeek") > -1) {
                 sunday = new Date();
-                while(sunday.getDay() > 0){
+                while (sunday.getDay() > 0) {
                     sunday.setDate(sunday.getDate() + 1);
                 }
                 sunday.setDate(sunday.getDate() + 1);
                 monday = new Date(sunday);
-                while(sunday.getDay() > 0){
+                while (sunday.getDay() > 0) {
                     sunday.setDate(sunday.getDate() + 1);
                 }
 
                 dateTimeRange.from = monday;
                 dateTimeRange.to = sunday;
-            }else if(quickAnalysisResults.temporalMarkers.indexOf("NextWeekend") > -1) {
+            } else if (quickAnalysisResults.temporalMarkers.indexOf("NextWeekend") > -1) {
                 sunday = new Date();
-                while(sunday.getDay() > 0){
+                while (sunday.getDay() > 0) {
                     sunday.setDate(sunday.getDate() + 1);
                 }
                 sunday.setDate(sunday.getDate() + 1);
                 monday = new Date(sunday);
-                while(sunday.getDay() > 0){
+                while (sunday.getDay() > 0) {
                     sunday.setDate(sunday.getDate() + 1);
                 }
 
@@ -143,7 +143,7 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
 
                 dateTimeRange.from = friday;
                 dateTimeRange.to = sunday;
-            }else if(quickAnalysisResults.temporalMarkers.indexOf("ThisMonth") > -1) {
+            } else if (quickAnalysisResults.temporalMarkers.indexOf("ThisMonth") > -1) {
                 dateTimeRange.to.setMonth(dateTimeRange.to.getMonth() + 1);
                 dateTimeRange.to.setDate(1);
                 dateTimeRange.to.setDate(dateTimeRange.to.getDate() - 1);
