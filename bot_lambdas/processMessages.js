@@ -522,28 +522,28 @@ function generateResponse(analysisResults) {
             });
 
             // Start throwing out things which don't fit the rest of the keywords
-            filterMap.forEach((eventData) => {
+            for(var prop in filterMap){
                 var i;
                 var matchedKeyword = false;
 
                 // Lazy match: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
                 for(i = 0; i < analysisResults.interests; i++){
-                    if (KEYWORD_REGEXES.Interests[analysisResults.interests[i]].test(eventData.description)) { // TODO: eww, this is going to create errors isn't it?
+                    if (KEYWORD_REGEXES.Interests[analysisResults.interests[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
                         matchedKeyword = true;
                         break;
                     }
                 }
                 for(i = 0; i < analysisResults.locations; i++){
-                    if (KEYWORD_REGEXES.Locations[analysisResults.locations[i]].test(eventData.description)) { // TODO: eww, this is going to create errors isn't it?
+                    if (KEYWORD_REGEXES.Locations[analysisResults.locations[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
                         matchedKeyword = true;
                         break;
                     }
                 }
 
                 if(!matchedKeyword){
-                    delete filterMap[eventData.id];
+                    delete filterMap[prop];
                 }
-            });
+            }
 
             // Convert back to an array
             var filteredEvents = Object.keys(filterMap).map((id) => {
