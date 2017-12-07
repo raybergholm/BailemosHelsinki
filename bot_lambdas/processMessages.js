@@ -83,33 +83,72 @@ function FacebookMessageFactory() {
 
 var facebookMessageFactory = new FacebookMessageFactory();
 
-function DateTimeSemanticDecoder() {
-    this.read = (input) => {
+function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic decoding should be rolled into one class
+    this.read = (input, quickAnalysisResults) => {
         var dateTimeRange = {
-            from: null,
-            to: null
+            from: new Date(),
+            to: new Date()
         };
 
-        /*
-        Today: /\b(?:today|tonight)\b/i,
-        Monday: /\b(?:monday|mo[n\-\b])/i,
-        Tuesday: /\b(?:tuesday|tu[e\-\b])/i,
-        Wednesday: /\b(?:wednesday|we[d\-\b])/i,
-        Thursday: /\b(?:thursday|th[u\-\b])/i,
-        Friday: /\b(?:friday|fr[i\-\b])/i,
-        Saturday: /\b(?:saturday|sa[t\-\b])/i,
-        Sunday: /\b(?:sunday|su[n\-\b])/i,
-        ThisWeek: /\bthis week\b/i,
-        UpcomingWeekend: /\bthis weekend\b/i,
-        NextWeekend: /\bnext weekend\b/i,
-        NextWeek: /\bnext week\b/i,
-        RangeLike: /\s\-\s|\w\-\w/,
-        DateLike: /\d{1,2}[\.\/]\d{1,2}/,
-        TimeLike: /\d{1,2}[\.\:]\d{2}/,
-        FromMarker: /\b(?:from|starting|after)\b/i,
-        ToMarker: /\b(?:to|until|before)\b/i
+        var bob = [];
+        bob.indexOf()
 
-        */
+        var monday;
+        var friday;
+        var sunday;
+
+        if(quickAnalysisResults){
+            // quick shortcuts. FIXME: All of these are dirty hacks, figure out how to upload moment to lambda and use that instead
+            if(quickAnalysisResults.temporalMarkers.indexOf("ThisWeek") > -1){
+                while(dateTimeRange.to.getDay() > 0){
+                    dateTimeRange.to.setDate(dateTimeRange.to.getDate() + 1);
+                }
+            }else if(quickAnalysisResults.temporalMarkers.indexOf("ThisWeekend") > -1){
+                sunday = new Date();
+                while(sunday.getDay() > 0){
+                    sunday.setDate(sunday.getDate() + 1);
+                }
+
+                friday = new Date(sunday);
+                friday.setDate(friday.getDate() -3);
+
+                dateTimeRange.from = friday;
+                dateTimeRange.to = sunday;
+            }else if(quickAnalysisResults.temporalMarkers.indexOf("NextWeek") > -1){
+                sunday = new Date();
+                while(sunday.getDay() > 0){
+                    sunday.setDate(sunday.getDate() + 1);
+                }
+                sunday.setDate(sunday.getDate() + 1);
+                monday = new Date(sunday);
+                while(sunday.getDay() > 0){
+                    sunday.setDate(sunday.getDate() + 1);
+                }
+
+                dateTimeRange.from = monday;
+                dateTimeRange.to = sunday;
+            }else if(quickAnalysisResults.temporalMarkers.indexOf("NextWeekend") > -1) {
+                sunday = new Date();
+                while(sunday.getDay() > 0){
+                    sunday.setDate(sunday.getDate() + 1);
+                }
+                sunday.setDate(sunday.getDate() + 1);
+                monday = new Date(sunday);
+                while(sunday.getDay() > 0){
+                    sunday.setDate(sunday.getDate() + 1);
+                }
+
+                friday = new Date(sunday);
+                friday.setDate(friday.getDate() -3);
+
+                dateTimeRange.from = friday;
+                dateTimeRange.to = sunday;
+            }else if(quickAnalysisResults.temporalMarkers.indexOf("ThisMonth") > -1) {
+                dateTimeRange.to.setMonth(dateTimeRange.to.getMonth() + 1);
+                dateTimeRange.to.setDate(1);
+                dateTimeRange.to.setDate(dateTimeRange.to.getDate() - 1);
+            }
+        }
 
         return this.getDefaultRange(); // FIXME: use the real value when it's actually there
         // return dateTimeRange;
@@ -179,9 +218,7 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could en
         Info: /\b(?:info|disclaimer)\b/i,
         HelpRequest: /\b(?:help)(?:\b|[\!\?])|\bhelp [me|please]\b/i,
         Oops: /\b(?:wtf|you're drunk|wrong)\b/i,
-        SurpriseMe: /\bsurprise me\b/i,
-        Debug: /\bdebug test\b/i,
-        TemplateDebug: /\btemplate plz\b/i
+        SurpriseMe: /\bsurprise me\b/i
     },
     Types: {
         Course: /\b(?:course|courses)\b/i,
@@ -203,10 +240,11 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could en
         Saturday: /\b(?:saturday|sa(t?))\b/i,
         Sunday: /\b(?:sunday|su(n?))\b/i,
         ThisWeek: /\bthis week\b/i,
-        ThisWeekend: /\bthis weekend\b/i,
+        ThisWeekend: /\b(?:this|upcoming) weekend\b/i,
         NextWeek: /\bnext week\b/i,
         NextWeekend: /\bnext weekend\b/i,
-        RangeLike: /\s\-\s|\w\-\w/,
+        ThisMonth: /\b(?:this|upcoming) month\b/i,
+        RangeLike: /(?:\s|\w)( ?)\-( ?)(?:\s|\w)/i,
         DateLike: /\d{1,2}[\.\/]\d{1,2}/,
         TimeLike: /\b(?:\d{1,2}[\:]\d{2}|(?:klo) \d{1,2}\.\d{2})\b/,
         FromMarker: /\b(?:from|starting|after)\b/i,
@@ -307,18 +345,6 @@ function verifySignature(payload) {
 }
 
 function handleReceivedMessage(receivedMessage) {
-    /*
-        message = {
-            sender: {id: [SENDER_ID]},          // should be the user
-            recipient: {id: [RECIPIENT_ID]},    // should be page ID
-            timestamp: [TIMESTAMP],
-            message: {
-                mid: [MESSAGE_ID],
-                text: [MESSAGE_TEXT],
-                attachments: [ATTACHMENTS]
-            }
-        }
-    */
     var senderId = receivedMessage.sender.id;
 
     facebookMessageFactory.setTargetId(senderId);
@@ -379,21 +405,11 @@ function findSpecialTexts(text) {
                         messageBuffer.enqueue(message);
                     }
                     break;
-                case "Debug":
-                    fetchDataFromS3(null);
-                    message = facebookMessageFactory.createMessage({
-                        text: BOT_TEXTS.Affirmative[Math.floor(Math.random() * BOT_TEXTS.Affirmative.length)]
-                    });
-                    messageBuffer.enqueue(message);
-                    break;
                 case "Oops":
                     message = facebookMessageFactory.createMessage({
                         text: BOT_TEXTS.Apologise[Math.floor(Math.random() * BOT_TEXTS.Apologise.length)]
                     });
                     messageBuffer.enqueue(message);
-                    break;
-                case "TemplateDebug":
-                    messageBuffer.enqueue(generateDebugMessageTemplate());
                     break;
             }
 
@@ -506,7 +522,7 @@ function generateResponse(analysisResults) {
             console.log("before filtering: " + stagedData.events.length + " events");
 
             if (analysisResults.temporalMarkers && analysisResults.temporalMarkers.length > 0) {
-                dateTimeRange = dateTimeSemanticDecoder.read(analysisResults.originalText);
+                dateTimeRange = dateTimeSemanticDecoder.read(analysisResults.originalText, analysisResults);
             } else {
                 // default
                 dateTimeRange = dateTimeSemanticDecoder.getDefaultRange();
@@ -535,14 +551,14 @@ function generateResponse(analysisResults) {
 
                     // Lazy match: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
                     for (i = 0; i < analysisResults.interests.length; i++) {
-                        if (KEYWORD_REGEXES.Interests[analysisResults.interests[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
+                        if (KEYWORD_REGEXES.Interests[analysisResults.interests[i]].test(filterMap[prop].description)) {
                             matchedKeyword = true;
                             break;
                         }
                     }
-                    
+
                     for (i = 0; i < analysisResults.locations.length; i++) {
-                        if (KEYWORD_REGEXES.Locations[analysisResults.locations[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
+                        if (KEYWORD_REGEXES.Locations[analysisResults.locations[i]].test(filterMap[prop].description)) {
                             matchedKeyword = true;
                             break;
                         }
@@ -570,7 +586,7 @@ function generateResponse(analysisResults) {
                 }
             });
 
-            postFilteredEvents(filteredEvents);
+            postFilteredEvents(filteredEvents, dateTimeRange);
         };
         fetchDataFromS3(callback);
     }
@@ -578,7 +594,7 @@ function generateResponse(analysisResults) {
     messageBuffer.flush(); // fire this immediately even if there's more to come after querying S3, I want the debug message for now
 }
 
-function postFilteredEvents(filteredEvents) {
+function postFilteredEvents(filteredEvents, dateTimeRange) {
     var elements = [];
 
     if (filteredEvents.length > 0) {
@@ -626,7 +642,7 @@ function postFilteredEvents(filteredEvents) {
         }));
     } else if (filteredEvents.length > 10) { // NOTE: the Messenger API only allows up to 10 elements at a time
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
-            text: "I got " + filteredEvents.length + " results, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
+            text: "I got " + filteredEvents.length + " results for " + dateTimeRange.from + " to " + dateTimeRange.to + ", here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
         }));
 
         while (elements.length > 10) {
@@ -634,7 +650,7 @@ function postFilteredEvents(filteredEvents) {
         }
     } else {
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
-            text: "Alright! I got " + filteredEvents.length + " results:"
+            text: "Alright! I got " + filteredEvents.length + " results for " + dateTimeRange.from + " to " + dateTimeRange.to + ":"
         }));
     }
     messageBuffer.flush();
@@ -765,29 +781,4 @@ function postDeliveryCallback(str) {
     console.log("callback end, got " + str);
 
     sendTypingIndicator(false);
-}
-
-function generateDebugMessageTemplate() {
-
-    var elements = [
-        facebookMessageFactory.createTemplateElement(
-            "Hi there",
-            "lorem ipsum",
-            "https://scontent.xx.fbcdn.net/v/t31.0-8/s720x720/23632575_1723944837617023_5988946792782455376_o.jpg?oh=0e3b27fb5e6ac9adb9d728a2e2b31685&oe=5A9AC859",
-            "https://www.facebook.com/events/322279428254954"
-        ),
-        facebookMessageFactory.createTemplateElement(
-            "Hi there2",
-            "lorem ipsum",
-            "https://scontent.xx.fbcdn.net/v/t31.0-8/s720x720/23592459_1906885559340836_1475249793396713895_o.jpg?oh=d2f189863b67d2a044bd0666884cbf58&oe=5A934F5E",
-            "https://www.facebook.com/events/146422476113836"
-        ),
-        facebookMessageFactory.createTemplateElement(
-            "Hi there3",
-            "lorem ipsum",
-            "https://scontent.xx.fbcdn.net/v/t1.0-9/s720x720/23434801_1575952269133546_6154874085764592548_n.jpg?oh=bb93a0cfe75d680d0e629b64c3e0ef0f&oe=5AD3CA01",
-            "https://www.facebook.com/events/125180038152734"
-        )
-    ];
-    return facebookMessageFactory.createGenericMessageTemplate(elements);
 }
