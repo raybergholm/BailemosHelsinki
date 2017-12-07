@@ -111,8 +111,8 @@ function DateTimeSemanticDecoder() {
 
         */
 
-
-        return dateTimeRange;
+        return this.getDefaultRange(); // FIXME: use the real value when it's actually there
+        // return dateTimeRange;
     };
     this.getDefaultRange = () => { // from today to today+7
         var dateTimeRange = {
@@ -503,32 +503,54 @@ function generateResponse(analysisResults) {
             var organisers = stagedData.organisers;
             var filterMap = {};
 
-            var datetimeRange;
+            var dateTimeRange;
 
-            // Filter by datetime
             if (analysisResults.temporalMarkers && analysisResults.temporalMarkers.length > 0) {
-                datetimeRange = dateTimeSemanticDecoder.read(text);
+                dateTimeRange = dateTimeSemanticDecoder.read(analysisResults.originalText);
             } else {
                 // default
-                datetimeRange = dateTimeSemanticDecoder.getDefaultRange();
+                dateTimeRange = dateTimeSemanticDecoder.getDefaultRange();
             }
+
+            // Filter by datetime: this is the only mandatory filter so build the whitelist from everything within the time range
             stagedData.events.forEach((eventData) => {
-                // TODO: filter by datetime range. Mandatory filter, can't pass everything to the enduser all at once anyway
+                // TODO: filter by datetime range. Mandatory filter, can't pass everything to the end-user all at once anyway
+                
+                if(eventData.start_time.getTime() > dateTimeRange.from.getTime() && eventData.end_time.getTime() < dateTimeRange.to.getTime()){
+                    filterMap[eventData.id] = eventData;
+                }
             });
 
-            // Filter by interests
-            stagedData.events.forEach((eventData) => {
-                analysisResults.interests.forEach((interest) => {
-                    if (KEYWORD_REGEXES.Interests[interest].test(eventData.description)) { // TODO: eww, this is going to create errors isn't it?
-                        filterMap[eventData.id] = eventData;
+            // Start throwing out things which don't fit the rest of the keywords
+            filterMap.forEach((eventData) => {
+                var i;
+                var matchedKeyword = false;
+
+                // Lazy match: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
+                for(i = 0; i < analysisResults.interests; i++){
+                    if (KEYWORD_REGEXES.Interests[analysisResults.interests[i]].test(eventData.description)) { // TODO: eww, this is going to create errors isn't it?
+                        matchedKeyword = true;
+                        break;
                     }
-                });
+                }
+                for(i = 0; i < analysisResults.locations; i++){
+                    if (KEYWORD_REGEXES.Locations[analysisResults.locations[i]].test(eventData.description)) { // TODO: eww, this is going to create errors isn't it?
+                        matchedKeyword = true;
+                        break;
+                    }
+                }
+
+                if(!matchedKeyword){
+                    delete filterMap[eventData.id];
+                }
             });
 
+            // Convert back to an array
             var filteredEvents = Object.keys(filterMap).map((id) => {
                 return filterMap[id];
             });
 
+            // Sort array by ascending time
             filteredEvents.sort((left, right) => {
                 var leftDate = new Date(left.start_time);
                 var rightDate = new Date(right.start_time);
