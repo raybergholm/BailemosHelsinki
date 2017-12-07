@@ -147,9 +147,10 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
                 dateTimeRange.to.setMonth(dateTimeRange.to.getMonth() + 1);
                 dateTimeRange.to.setDate(1);
                 dateTimeRange.to.setDate(dateTimeRange.to.getDate() - 1);
+            } else {
+                return this.getDefaultRange();
             }
         }
-
         return dateTimeRange;
     };
     this.getDefaultRange = () => { // from today to today+7
