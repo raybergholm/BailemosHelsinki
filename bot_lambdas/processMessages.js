@@ -116,12 +116,10 @@ function DateTimeSemanticDecoder() {
     };
     this.getDefaultRange = () => { // from today to today+7
         var dateTimeRange = {
-            from: null,
-            to: null
+            from: new Date(),
+            to: new Date()
         };
-
-        dateTimeRange.from = new Date();
-        dateTimeRange.to = (new Date()).setDate(dateTimeRange.from.getDate() + 7);
+        dateTimeRange.to.setDate(dateTimeRange.to.getDate() + 7);
 
         return dateTimeRange;
     };
