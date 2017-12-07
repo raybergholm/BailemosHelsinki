@@ -20,11 +20,11 @@ var s3 = new AWS.S3();
 function FacebookMessageFactory() {
     this._targetId = null;
 
-    this.setTargetId = function(targetId) {
+    this.setTargetId = function (targetId) {
         this._targetId = targetId;
     };
 
-    this.createMessage = function(payload) {
+    this.createMessage = function (payload) {
         return {
             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
             recipient: {
@@ -37,7 +37,7 @@ function FacebookMessageFactory() {
         };
     };
 
-    this.createSenderActionMessage = function(action) {
+    this.createSenderActionMessage = function (action) {
         return {
             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
             recipient: {
@@ -50,7 +50,7 @@ function FacebookMessageFactory() {
         };
     };
 
-    this.createBaseTemplate = function() {
+    this.createBaseTemplate = function () {
         return {
             attachment: {
                 type: "template",
@@ -59,7 +59,7 @@ function FacebookMessageFactory() {
         };
     };
 
-    this.createGenericMessageTemplate = function(elements) {
+    this.createGenericMessageTemplate = function (elements) {
         var messageTemplate = this.createBaseTemplate();
         messageTemplate.attachment.payload = {
             template_type: "generic",
@@ -68,7 +68,7 @@ function FacebookMessageFactory() {
         return this.createMessage(messageTemplate);
     };
 
-    this.createTemplateElement = function(title, subtitle, imageUrl, defaultActionUrl) {
+    this.createTemplateElement = function (title, subtitle, imageUrl, defaultActionUrl) {
         return {
             title: title,
             subtitle: subtitle,
@@ -129,10 +129,10 @@ var dateTimeSemanticDecoder = new DateTimeSemanticDecoder();
 
 var messageBuffer = {
     _messages: [],
-    enqueue: function(message) {
+    enqueue: function (message) {
         this._messages.push(message);
     },
-    flush: function() {
+    flush: function () {
         if (this._messages.length === 1) {
             callSendAPI(JSON.stringify(this._messages[0]));
         } else {
@@ -235,11 +235,11 @@ exports.handler = (event, context, callback) => {
             if (data.object === "page") {
 
                 // Iterate over each entry - there may be multiple if batched
-                data.entry.forEach(function(entry) {
+                data.entry.forEach(function (entry) {
                     // var pageID = entry.id;
                     // var timeOfEvent = entry.time;
                     // Iterate over each messaging event
-                    entry.messaging.forEach(function(msg) {
+                    entry.messaging.forEach(function (msg) {
                         if (msg.message) {
                             // Normal message
 
@@ -497,7 +497,7 @@ function generateResponse(analysisResults) {
         messageBuffer.enqueue(message);
 
         // Filter staged events by keywords
-        var callback = function(stagedData) {
+        var callback = function (stagedData) {
             var organisers = stagedData.organisers;
             var filterMap = {};
 
@@ -517,8 +517,8 @@ function generateResponse(analysisResults) {
             // Filter by datetime: this is the only mandatory filter so build the whitelist from everything within the time range
             stagedData.events.forEach((eventData) => {
                 // TODO: filter by datetime range. Mandatory filter, can't pass everything to the end-user all at once anyway
-                
-                if(eventData.start_time.getTime() > dateTimeRange.from.getTime() && eventData.end_time.getTime() < dateTimeRange.to.getTime()){
+
+                if (eventData.start_time.getTime() > dateTimeRange.from.getTime() && eventData.end_time.getTime() < dateTimeRange.to.getTime()) {
                     filterMap[eventData.id] = eventData;
                 }
             });
@@ -529,24 +529,24 @@ function generateResponse(analysisResults) {
             var matchedKeyword;
 
             // Start throwing out things which don't fit the rest of the keywords
-            for(var prop in filterMap){
+            for (var prop in filterMap) {
                 matchedKeyword = false;
 
                 // Lazy match: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
-                for(i = 0; i < analysisResults.interests; i++){
+                for (i = 0; i < analysisResults.interests; i++) {
                     if (KEYWORD_REGEXES.Interests[analysisResults.interests[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
                         matchedKeyword = true;
                         break;
                     }
                 }
-                for(i = 0; i < analysisResults.locations; i++){
+                for (i = 0; i < analysisResults.locations; i++) {
                     if (KEYWORD_REGEXES.Locations[analysisResults.locations[i]].test(filterMap[prop].description)) { // TODO: eww, this is going to create errors isn't it?
                         matchedKeyword = true;
                         break;
                     }
                 }
 
-                if(!matchedKeyword){
+                if (!matchedKeyword) {
                     delete filterMap[prop];
                 }
             }
@@ -578,48 +578,50 @@ function generateResponse(analysisResults) {
 function postFilteredEvents(filteredEvents) {
     var elements = [];
 
-    filteredEvents.forEach((eventData) => {
-        var subtitleString = "";
-        var coverImageUrl = null;
+    if (filteredEvents.length > 0) {
+        filteredEvents.forEach((eventData) => {
+            var subtitleString = "";
+            var coverImageUrl = null;
 
-        // TODO: can I just get moment.js in here to do this?
-        var fillLeadingZero = function(value) {
-            return value < 10 ? "0" + value : value;
-        };
+            // TODO: can I just get moment.js in here to do this?
+            var fillLeadingZero = function (value) {
+                return value < 10 ? "0" + value : value;
+            };
 
-        subtitleString += fillLeadingZero(eventData.start_time.getDate()) + '.' + fillLeadingZero(eventData.start_time.getMonth() + 1) + ' ' + fillLeadingZero(eventData.start_time.getHours()) + ':' + fillLeadingZero(eventData.start_time.getMinutes());
-        try {
-            if (eventData.place) {
-                subtitleString += "\n" + eventData.place.name;
-                if (eventData.place.location) {
-                    subtitleString += "\n" + eventData.place.location.street + ", " + eventData.place.location.city;
+            subtitleString += fillLeadingZero(eventData.start_time.getDate()) + '.' + fillLeadingZero(eventData.start_time.getMonth() + 1) + ' ' + fillLeadingZero(eventData.start_time.getHours()) + ':' + fillLeadingZero(eventData.start_time.getMinutes());
+            try {
+                if (eventData.place) {
+                    subtitleString += "\n" + eventData.place.name;
+                    if (eventData.place.location) {
+                        subtitleString += "\n" + eventData.place.location.street + ", " + eventData.place.location.city;
+                    }
                 }
+            } catch (err) {
+                console.log("Error trying to write the location: ", err.message);
             }
-        } catch (err) {
-            console.log("Error trying to write the location: ", err.message);
-        }
 
-        if (eventData.attending_count) {
-            subtitleString += "\n " + eventData.attending_count + " people attending";
-        }
+            if (eventData.attending_count) {
+                subtitleString += "\n " + eventData.attending_count + " people attending";
+            }
 
-        if (eventData.cover && eventData.cover.source) {
-            coverImageUrl = eventData.cover.source;
-        }
+            if (eventData.cover && eventData.cover.source) {
+                coverImageUrl = eventData.cover.source;
+            }
 
-        elements.push(facebookMessageFactory.createTemplateElement(
-            eventData.name,
-            subtitleString,
-            coverImageUrl,
-            "https://www.facebook.com/events/" + eventData.id
-        ));
-    });
+            elements.push(facebookMessageFactory.createTemplateElement(
+                eventData.name,
+                subtitleString,
+                coverImageUrl,
+                "https://www.facebook.com/events/" + eventData.id
+            ));
+        });
+    }
 
-    if(filteredEvents.length === 0) {
+    if (filteredEvents.length === 0) {
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
             text: "I didn't find any events, maybe this is a free day?"
         }));
-    }else if (filteredEvents.length > 10) { // NOTE: the Messenger API only allows up to 10 elements at a time
+    } else if (filteredEvents.length > 10) { // NOTE: the Messenger API only allows up to 10 elements at a time
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
             text: "I got " + filteredEvents.length + " results, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
         }));
@@ -634,8 +636,10 @@ function postFilteredEvents(filteredEvents) {
     }
     messageBuffer.flush();
 
-    var message = facebookMessageFactory.createGenericMessageTemplate(elements);
-    messageBuffer.enqueue(message);
+    if (filteredEvents.length > 0) {
+        var message = facebookMessageFactory.createGenericMessageTemplate(elements);
+        messageBuffer.enqueue(message);
+    }
 
     messageBuffer.flush();
 }
@@ -668,14 +672,14 @@ function fetchDataFromS3(callback) {
             stagedData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
 
             // Convert all date strings to date objects (all date/time calculations require it, and JSON.stringify will convert back to string correctly)
-            for(var i = 0; i < stagedData.events.length; i++){
+            for (var i = 0; i < stagedData.events.length; i++) {
                 stagedData.events[i].start_time = new Date(stagedData.events[i].start_time);
                 stagedData.events[i].end_time = new Date(stagedData.events[i].start_time);
-                
-                if(stagedData.events[i].event_times){
-                    for(var j = 0; j < stagedData.events[i].event_times.length; j++){
+
+                if (stagedData.events[i].event_times) {
+                    for (var j = 0; j < stagedData.events[i].event_times.length; j++) {
                         stagedData.events[i].event_times[j].start_time = new Date(stagedData.events[i].event_times[j].start_time);
-                        stagedData.events[i].event_times[j].end_time = new Date(stagedData.events[i].event_times[j].end_time); 
+                        stagedData.events[i].event_times[j].end_time = new Date(stagedData.events[i].event_times[j].end_time);
                     }
 
                 }
@@ -703,18 +707,18 @@ function callSendAPI(payload) {
         }
     };
 
-    var callback = function(response) {
+    var callback = function (response) {
         var str = "";
-        response.on("data", function(chunk) {
+        response.on("data", function (chunk) {
             str += chunk;
         });
-        response.on("end", function() {
+        response.on("end", function () {
             postDeliveryCallback(str);
         });
     };
 
     var req = https.request(options, callback);
-    req.on("error", function(e) {
+    req.on("error", function (e) {
         console.log("problem with request: " + e);
     });
 
@@ -735,18 +739,18 @@ function callSendBatchAPI(payload) {
         }
     };
 
-    var callback = function(response) {
+    var callback = function (response) {
         var str = "";
-        response.on("data", function(chunk) {
+        response.on("data", function (chunk) {
             str += chunk;
         });
-        response.on("end", function() {
+        response.on("end", function () {
             postDeliveryCallback(str);
         });
     };
 
     var req = https.request(options, callback);
-    req.on("error", function(e) {
+    req.on("error", function (e) {
         console.log("problem with request: " + e);
     });
 
