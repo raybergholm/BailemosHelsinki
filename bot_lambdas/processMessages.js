@@ -523,7 +523,7 @@ function generateResponse(analysisResults) {
                 }
             });
 
-            console.log("after temporal filtering: " + Object.Keys(filterMap).length + " events");
+            console.log("after temporal filtering: " + Object.keys(filterMap).length + " events");
 
             var i;
             var matchedKeyword;
@@ -551,7 +551,7 @@ function generateResponse(analysisResults) {
                 }
             }
 
-            console.log("after all filtering: " + Object.Keys(filterMap).length + " events");
+            console.log("after all filtering: " + Object.keys(filterMap).length + " events");
 
             // Convert back to an array
             var filteredEvents = Object.keys(filterMap).map((id) => {
