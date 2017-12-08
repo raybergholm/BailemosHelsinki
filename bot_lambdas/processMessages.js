@@ -90,9 +90,6 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
             to: new Date()
         };
 
-        var bob = [];
-        bob.indexOf()
-
         var monday;
         var friday;
         var sunday;
