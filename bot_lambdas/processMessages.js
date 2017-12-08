@@ -214,9 +214,9 @@ const BOT_TEXTS = { // probably should be fetched from S3
 
 const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could end up requiring a major rewrite of these regexes since \b considers stuff like åäö as word breaks
     Special: {
-        Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[\!\?])/i,
+        Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
         Info: /\b(?:info|disclaimer)\b/i,
-        HelpRequest: /\b(?:help)(?:\b|[\!\?])|\bhelp [me|please]\b/i,
+        HelpRequest: /\b(?:help)(?:\b|[!?])|\bhelp [me|please]\b/i,
         Oops: /\b(?:wtf|you're drunk|wrong)\b/i,
         SurpriseMe: /\bsurprise me\b/i
     },
@@ -244,9 +244,9 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could en
         NextWeek: /\bnext week\b/i,
         NextWeekend: /\bnext weekend\b/i,
         ThisMonth: /\b(?:this|upcoming) month\b/i,
-        RangeLike: /(?:\s|\w)( ?)\-( ?)(?:\s|\w)/i,
-        DateLike: /\d{1,2}[\.\/]\d{1,2}/,
-        TimeLike: /\b(?:\d{1,2}[\:]\d{2}|(?:klo) \d{1,2}\.\d{2})\b/,
+        RangeLike: /(?:\s|\w)( ?)-( ?)(?:\s|\w)/i,
+        DateLike: /\d{1,2}[./]\d{1,2}/,
+        TimeLike: /\b(?:\d{1,2}[:]\d{2}|(?:klo) \d{1,2}\.\d{2})\b/,
         FromMarker: /\b(?:from|starting|after)\b/i,
         ToMarker: /\b(?:to|until|before)\b/i
     }
