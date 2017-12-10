@@ -93,10 +93,13 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
         var monday;
         var friday;
         var sunday;
+        var execResults;
 
         if (quickAnalysisResults) {
             // quick shortcuts. FIXME: All of these are dirty hacks, figure out how to upload moment to lambda and use that instead
-            if (quickAnalysisResults.temporalMarkers.indexOf("ThisWeek") > -1) {
+            if (quickAnalysisResults.temporalMarkers.indexOf("Today") > -1) {
+                // do nothing, the initial values are already set to today
+            }else if (quickAnalysisResults.temporalMarkers.indexOf("ThisWeek") > -1) {
                 while (dateTimeRange.to.getDay() > 0) {
                     dateTimeRange.to.setDate(dateTimeRange.to.getDate() + 1);
                 }
@@ -145,6 +148,14 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
                 dateTimeRange.to.setDate(1);
                 dateTimeRange.to.setDate(dateTimeRange.to.getDate() - 1);
             } else {
+                // more complex stuff, have to exec regexes
+
+                execResults = KEYWORD_REGEXES.Temporal.OnExactDate.exec(input);
+                console.log("OnExactDate regex exec: ", execResults);
+
+                execResults = KEYWORD_REGEXES.Temporal.ExactDateRange.exec(input);
+                console.log("ExactDateRange regex exec: ", execResults);
+
                 return this.getDefaultRange();
             }
         }
@@ -241,11 +252,12 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could en
         NextWeek: /\bnext week\b/i,
         NextWeekend: /\bnext weekend\b/i,
         ThisMonth: /\b(?:this|upcoming) month\b/i,
-        RangeLike: /(?:\s|\w)( ?)-( ?)(?:\s|\w)/i,
         DateLike: /\d{1,2}[./]\d{1,2}/,
         TimeLike: /\b(?:\d{1,2}[:]\d{2}|(?:klo) \d{1,2}\.\d{2})\b/,
         FromMarker: /\b(?:from|starting|after)\b/i,
-        ToMarker: /\b(?:to|until|before)\b/i
+        ToMarker: /\b(?:to|until|before)\b/i,
+        OnExactDate: /\b(?:on) \d{1,2}[./]\d{1,2}/i,
+        ExactDateRange: /\d{1,2}[./]\d{1,2}( ?)(?:-|to|until)( ?)\d{1,2}[./]\d{1,2}/i,
     }
 };
 
