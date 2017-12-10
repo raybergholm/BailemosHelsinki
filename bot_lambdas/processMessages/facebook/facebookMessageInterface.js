@@ -7,6 +7,28 @@ var facebookMessageHelper = require("./facebookMessageHelper");
 var _messageBuffer = new MessageBuffer();
 
 module.exports = {
+    sendMessage: function (params) {
+        var message = facebookMessageHelper.createMessage(params.text, params.attachment);
+        _messageBuffer.enqueue(message);
+    },
+
+    sendTemplatedMessage: function (inputElements) {
+        var elements = [];
+        for (var i = 0; i < inputElements.length; i++) {
+            elements.push(facebookMessageHelper.createTemplateElement(
+                inputElements[i].title,
+                inputElements[i].subtitle,
+                inputElements[i].imageUrl,
+                inputElements[i].actionUrl
+            ));
+        }
+        var message = facebookMessageHelper.createGenericMessageTemplate(elements);
+    },
+
+    setTargetId: function (targetId) {
+        facebookMessageHelper.setTargetId(targetId);
+    },
+
     sendTypingIndicator: function (mode) {
         var typingIndicatorMessage = facebookMessageHelper.createSenderActionMessage(mode ? "typing_on" : "typing_off");
         // this.sendMessage(typingIndicatorMessage); // FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
@@ -14,13 +36,14 @@ module.exports = {
 
     enqueueMessage: function (message) {
         _messageBuffer.enqueue(message);
+        this.send();
     },
 
     send: function () {
         var payload;
         if (_messageBuffer.length === 0) {
             payload = _messageBuffer.flush();
-            this.sendMessage(payload);
+            this.sendMessageToFacebook(payload);
         } else {
             payload = _messageBuffer.flush();
             this.sendBatchedMessage(payload);
@@ -28,7 +51,7 @@ module.exports = {
 
     },
 
-    sendMessage: function (payload) {
+    sendMessageToFacebook: function (payload) {
         console.log("sending this message payload to FB:", payload);
 
         var body = payload;

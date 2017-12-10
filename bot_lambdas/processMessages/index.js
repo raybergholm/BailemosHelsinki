@@ -20,8 +20,6 @@ var s3 = new AWS.S3();
 // Custom modules
 
 var facebookRequestVerifier = require("./facebook/facebookRequestVerifier");
-var facebookApiInterface = require("./facebook/facebookApiInterface");
-var facebookMessageHelper = require("./facebook/facebookMessageHelper");
 var facebookMessageInterface = require("./facebook/facebookMessageInterface");
 
 var botty = require("./botty/botty");
@@ -152,31 +150,6 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
 
 var dateTimeSemanticDecoder = new DateTimeSemanticDecoder();
 
-var messageBuffer = {
-    _messages: [],
-    enqueue: function (message) {
-        this._messages.push(message);
-    },
-    flush: function () {
-        if (this._messages.length === 1) {
-            callSendAPI(JSON.stringify(this._messages[0]));
-        } else {
-            var batchRequestContent = [];
-            for (var i = 0; i < this._messages.length; i++) {
-                batchRequestContent.push({
-                    relative_url: encodeURIComponent("/me/messages/"),
-                    method: "POST",
-                    body: encodeURIComponent(JSON.stringify(this._messages[i])) // TODO: This is hella broken, body needs a different format entirely?
-                });
-            }
-
-            callSendBatchAPI("batch=" + JSON.stringify(batchRequestContent));
-        }
-
-        this._messages = [];
-    }
-};
-
 const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could end up requiring a major rewrite of these regexes since \b considers stuff like åäö as word breaks
     Special: {
         Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
@@ -247,7 +220,7 @@ exports.handler = (event, context, callback) => {
                         if (msg.message) {
                             // Normal message
 
-                            sendTypingIndicator(true); // send the typing_on indicator immediately
+                            facebookMessageInterface.sendTypingIndicator(true); // send the typing_on indicator immediately
 
                             handleReceivedMessage(msg);
                         } else if (msg.delivery) {
@@ -290,7 +263,7 @@ exports.handler = (event, context, callback) => {
 function handleReceivedMessage(receivedMessage) {
     var senderId = receivedMessage.sender.id;
 
-    facebookMessageHelper.setTargetId(senderId);
+    facebookMessageInterface.setTargetId(senderId);
 
     var recipientId = receivedMessage.recipient.id;
     var timeOfMessage = receivedMessage.timestamp;
@@ -311,12 +284,9 @@ function handleReceivedMessage(receivedMessage) {
             generateResponse(result);
         }
     } else if (messageAttachments) {
-        var message = facebookMessageHelper.createMessage({
+        facebookMessageInterface.sendMessage({
             text: "Message with attachment received"
         });
-        messageBuffer.enqueue(message);
-
-        messageBuffer.flush();
     }
 }
 
@@ -327,38 +297,32 @@ function findSpecialTexts(text) {
         if (KEYWORD_REGEXES.Special[prop].test(text)) {
             switch (prop) {
                 case "Greetings":
-                    message = facebookMessageHelper.createMessage({
+                    facebookMessageInterface.sendMessage({
                         text: botty.greet()
                     });
-                    messageBuffer.enqueue(message);
                     break;
                 case "Info":
                     botTexts = botty.giveDisclaimer();
                     for (i = 0; i < botTexts.length; i++) {
-                        message = facebookMessageHelper.createMessage({
+                        facebookMessageInterface.sendMessage({
                             text: botTexts[i]
                         });
-                        messageBuffer.enqueue(message);
                     }
                     break;
                 case "HelpRequest":
                     botTexts = botty.giveUserHelp();
                     for (i = 0; i < botTexts.length; i++) {
-                        message = facebookMessageHelper.createMessage({
+                        facebookMessageInterface.sendMessage({
                             text: botTexts[i]
                         });
-                        messageBuffer.enqueue(message);
                     }
                     break;
                 case "Oops":
-                    message = facebookMessageHelper.createMessage({
-                        text: botty.apologise()
-                    });
-                    messageBuffer.enqueue(message);
+                facebookMessageInterface.sendMessage({
+                    text: botty.greet()
+                });
                     break;
             }
-
-            messageBuffer.flush();
             return true;
         }
     }
@@ -433,10 +397,9 @@ function generateResponse(analysisResults) {
     var message;
     if (analysisResults.eventType.length === 0 && analysisResults.temporalMarkers.length === 0 && analysisResults.locations.length === 0 && analysisResults.interests.length === 0) {
         // found absolutely nothing
-        message = facebookMessageHelper.createMessage({
+        facebookMessageInterface.sendMessage({
             text: botty.beUncertain()
         });
-        messageBuffer.enqueue(message);
     } else {
         console.log("analysis picked up these keywords: ", analysisResults);
 
@@ -452,10 +415,9 @@ function generateResponse(analysisResults) {
             keywords.push(elem);
         });
 
-        message = facebookMessageHelper.createMessage({
+        facebookMessageInterface.sendMessage({
             text: responseText + keywords.join(', ')
         });
-        messageBuffer.enqueue(message);
 
         // Filter staged events by keywords
         var callback = function (stagedData) {
@@ -535,8 +497,6 @@ function generateResponse(analysisResults) {
         };
         fetchDataFromS3(callback);
     }
-
-    messageBuffer.flush(); // fire this immediately even if there's more to come after querying S3, I want the debug message for now
 }
 
 function postFilteredEvents(filteredEvents, dateTimeRange) {
@@ -572,12 +532,12 @@ function postFilteredEvents(filteredEvents, dateTimeRange) {
                 coverImageUrl = eventData.cover.source;
             }
 
-            elements.push(facebookMessageHelper.createTemplateElement(
-                eventData.name,
-                subtitleString,
-                coverImageUrl,
-                "https://www.facebook.com/events/" + eventData.id
-            ));
+            elements.push({
+                title: eventData.name,
+                subtitle: subtitleString,
+                imageUrl: coverImageUrl,
+                actionUrl: "https://www.facebook.com/events/" + eventData.id
+            });
         });
     }
 
@@ -588,17 +548,14 @@ function postFilteredEvents(filteredEvents, dateTimeRange) {
             elements.pop();
         }
     }
-    messageBuffer.enqueue(facebookMessageHelper.createMessage({
+    
+    facebookMessageInterface.sendMessage({
         text: bottyText
-    }));
-    messageBuffer.flush();
+    })
 
     if (filteredEvents.length > 0) {
-        var message = facebookMessageHelper.createGenericMessageTemplate(elements);
-        messageBuffer.enqueue(message);
+        facebookMessageInterface.sendTemplatedMessage(elements);
     }
-
-    messageBuffer.flush();
 }
 
 function handleDeliveryReceipt(message) {
@@ -607,14 +564,6 @@ function handleDeliveryReceipt(message) {
 
 function handleReadReceipt(message) {
     console.log("Message read response: ", message.read);
-}
-
-function sendTypingIndicator(mode) {
-    var typingIndicatorMessage = facebookMessageHelper.createSenderActionMessage(mode ? "typing_on" : "typing_off");
-
-    // FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
-    // messageBuffer.enqueue(typingIndicatorMessage);
-    // messageBuffer.flush();
 }
 
 function fetchDataFromS3(callback) {
@@ -649,72 +598,4 @@ function fetchDataFromS3(callback) {
             }
         }
     });
-}
-
-function callSendAPI(payload) {
-    console.log("sending this message payload to FB:", payload);
-
-    var body = payload;
-    var options = facebookApiInterface.createSendMessageOptions();
-
-    var callback = function (response) {
-        var str = "";
-        response.on("data", function (chunk) {
-            str += chunk;
-        });
-        response.on("end", function () {
-            postDeliveryCallback(str);
-        });
-    };
-
-    var req = https.request(options, callback);
-    req.on("error", function (e) {
-        console.log("problem with request: " + e);
-    });
-
-    req.write(body);
-    req.end();
-}
-
-function callSendBatchAPI(payload) {
-    console.log("sending this message payload to FB:", payload);
-
-    var body = payload;
-    var options = facebookApiInterface.createSendMessageOptions();
-
-    var callback = function (response) {
-        var str = "";
-        response.on("data", function (chunk) {
-            str += chunk;
-        });
-        response.on("end", function () {
-            postDeliveryCallback(str);
-        });
-    };
-
-    var req = https.request(options, callback);
-    req.on("error", function (e) {
-        console.log("problem with request: " + e);
-    });
-
-    req.write(body);
-    req.end();
-}
-
-function postDeliveryCallback(str) {
-    console.log("callback end, got " + str);
-
-    sendTypingIndicator(false);
-}
-
-function displayDate(date) {
-    var userFriendlyDate = "";
-
-    var fillLeadingZero = function (value) {
-        return value < 10 ? "0" + value : value;
-    };
-
-    userFriendlyDate += fillLeadingZero(date.getDate()) + '.' + fillLeadingZero(date.getMonth() + 1);
-
-    return userFriendlyDate;
 }
