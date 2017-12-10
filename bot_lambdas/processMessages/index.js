@@ -1,7 +1,5 @@
 "use strict";
 
-const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
 
@@ -21,7 +19,7 @@ var s3 = new AWS.S3();
 //---------------------------------------------------------------------------//
 // Custom modules
 
-var facebookVerifier = require("./facebook/facebookVerifier");
+var facebookRequestVerifier = require("./facebook/facebookRequestVerifier");
 var facebookApiInterface = require("./facebook/facebookApiInterface");
 var facebookMessageHelper = require("./facebook/facebookMessageHelper");
 
@@ -241,7 +239,7 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could en
 exports.handler = (event, context, callback) => {
     console.log(event);
 
-    if (!facebookVerifier.verifySignature(event.headers['X-Hub-Signature'])) {
+    if (!facebookRequestVerifier.verifySignature(event.headers['X-Hub-Signature'])) {
         console.log("X-Hub_Signature did not match the expected value");
         // return;  TODO: allow it to pass for now, debug it later
     }
@@ -680,14 +678,7 @@ function callSendAPI(payload) {
     console.log("sending this message payload to FB:", payload);
 
     var body = payload;
-    var options = {
-        host: "graph.facebook.com",
-        path: "/v2.11/me/messages/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        }
-    };
+    var options = facebookApiInterface.createSendMessageOptions();
 
     var callback = function (response) {
         var str = "";
@@ -712,14 +703,7 @@ function callSendBatchAPI(payload) {
     console.log("sending this message payload to FB:", payload);
 
     var body = payload;
-    var options = {
-        host: "graph.facebook.com",
-        path: "/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        }
-    };
+    var options = facebookApiInterface.createSendMessageOptions();
 
     var callback = function (response) {
         var str = "";
