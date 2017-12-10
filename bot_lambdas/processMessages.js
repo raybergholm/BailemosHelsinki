@@ -89,10 +89,14 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
             from: new Date(),
             to: new Date()
         };
-
+        
         var monday;
         var friday;
         var sunday;
+        var day;
+        var month;
+        var newFromDate;
+        var newToDate;
         var execResults;
 
         if (quickAnalysisResults) {
@@ -152,9 +156,32 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
 
                 execResults = KEYWORD_REGEXES.Temporal.OnExactDate.exec(input);
                 console.log("OnExactDate regex exec: ", execResults);
+                if(execResults !== null){
+                    execResults = KEYWORD_REGEXES.Temporal.DateLike.exec(execResults[0]);
+                    console.log("DateLike regex exec: ", execResults);
+                    execResults = execResults[0].split(/\.|\//);
+                    day = execResults[0];
+                    month = execResults[1];
+                    
+                    // FIXME: serious, get moment.js. There's so many edge cases not covered in this sort of naive implementation
+                    dateTimeRange.from.setMonth(month - 1);
+                    dateTimeRange.from.setDate(day);
+
+
+                    dateTimeRange.to = dateTimeRange.from;
+                    return dateTimeRange;
+                }
 
                 execResults = KEYWORD_REGEXES.Temporal.ExactDateRange.exec(input);
                 console.log("ExactDateRange regex exec: ", execResults);
+                if(execResults !== null){
+                    execResults = KEYWORD_REGEXES.Temporal.DateLike.exec(execResults[0]);
+                    console.log("DateLike regex exec: ", execResults);
+
+
+
+                    return dateTimeRange;
+                }
 
                 return this.getDefaultRange();
             }
