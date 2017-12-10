@@ -5,6 +5,15 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "Hi! :)",
         "Hello! :)"
     ],
+    Thank: [
+        "Thank you :)",
+        "Thanks!"
+    ],
+    ReplyToThanks: [
+        "You're welcome! :)",
+        "No problems! :)",
+        "Glad to be of service!"
+    ],
     Uncertain: [
         "I have no idea what you mean :(",
         "This bot is not quite advanced enough to understand that. Yet.",

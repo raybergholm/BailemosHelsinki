@@ -7,6 +7,14 @@ module.exports = {
         return textGenerator.getText("Greetings");
     },
     
+    thank: () => {
+        return textGenerator.getText("Thank");
+    },
+
+    replyToThanks: () => {
+        return textGenerator.getText("ReplyToThanks");
+    },
+
     apologise: () => {
         return textGenerator.getText("Apologise");
     },
