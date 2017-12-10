@@ -44,7 +44,7 @@ function fetchNodes() { // scan the entire event organiser table (won't take lon
     dynamodb.scan({
         TableName: EVENT_ORGANISER_TABLE_NAME,
         Limit: 50
-    }, function(err, data) {
+    }, function (err, data) {
         var item;
         var nodes = {};
         if (err) {
@@ -214,7 +214,7 @@ function updateS3Data(events, organisers) {
         Bucket: S3_BUCKET_NAME,
         Key: S3_EVENT_DATA_OBJECT_KEY,
         Body: payload
-    }, function(err, data) {
+    }, function (err, data) {
         if (err) {
             console.log("S3 interface error: ", err);
         } else {
@@ -232,7 +232,7 @@ function cleanupPayloadToS3(payload) {
 
     console.log("cleaned payload content: ", cleanedPayload);
 
-    cleanedPayload.sort(function(left, right) {
+    cleanedPayload.sort(function (left, right) {
         var leftDate = new Date(left.start_time);
         var rightDate = new Date(right.start_time);
 
