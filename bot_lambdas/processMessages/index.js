@@ -7,6 +7,8 @@ const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
 
+//---------------------------------------------------------------------------//
+// Built-in modules
 var https = require("https");
 var crypto = require("crypto");
 var moment = require("moment");
@@ -17,72 +19,81 @@ AWS.config.update({
 });
 
 var s3 = new AWS.S3();
+//---------------------------------------------------------------------------//
 
-function FacebookMessageFactory() {
-    this._targetId = null;
+//---------------------------------------------------------------------------//
+// Custom modules
 
-    this.setTargetId = function (targetId) {
-        this._targetId = targetId;
-    };
+var facebookApiInterface = require("./facebookApiInterface");
+var facebookMessageHelper = require("./facebookMessageHelper");
 
-    this.createMessage = function (payload) {
-        return {
-            messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
-            recipient: {
-                id: this._targetId
-            },
-            sender: {
-                id: FACEBOOK_PAGE_ID
-            },
-            message: payload
-        };
-    };
+//---------------------------------------------------------------------------//
 
-    this.createSenderActionMessage = function (action) {
-        return {
-            messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
-            recipient: {
-                id: this._targetId
-            },
-            sender: {
-                id: FACEBOOK_PAGE_ID
-            },
-            sender_action: action
-        };
-    };
+// function FacebookMessageFactory() {
+//     this._targetId = null;
 
-    this.createBaseTemplate = function () {
-        return {
-            attachment: {
-                type: "template",
-                payload: null
-            }
-        };
-    };
+//     this.setTargetId = function (targetId) {
+//         this._targetId = targetId;
+//     };
 
-    this.createGenericMessageTemplate = function (elements) {
-        var messageTemplate = this.createBaseTemplate();
-        messageTemplate.attachment.payload = {
-            template_type: "generic",
-            elements: elements
-        };
-        return this.createMessage(messageTemplate);
-    };
+//     this.createMessage = function (payload) {
+//         return {
+//             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
+//             recipient: {
+//                 id: this._targetId
+//             },
+//             sender: {
+//                 id: FACEBOOK_PAGE_ID
+//             },
+//             message: payload
+//         };
+//     };
 
-    this.createTemplateElement = function (title, subtitle, imageUrl, defaultActionUrl) {
-        return {
-            title: title,
-            subtitle: subtitle,
-            image_url: imageUrl,
-            default_action: {
-                type: "web_url",
-                url: defaultActionUrl
-            }
-        };
-    };
-}
+//     this.createSenderActionMessage = function (action) {
+//         return {
+//             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
+//             recipient: {
+//                 id: this._targetId
+//             },
+//             sender: {
+//                 id: FACEBOOK_PAGE_ID
+//             },
+//             sender_action: action
+//         };
+//     };
 
-var facebookMessageFactory = new FacebookMessageFactory();
+//     this.createBaseTemplate = function () {
+//         return {
+//             attachment: {
+//                 type: "template",
+//                 payload: null
+//             }
+//         };
+//     };
+
+//     this.createGenericMessageTemplate = function (elements) {
+//         var messageTemplate = this.createBaseTemplate();
+//         messageTemplate.attachment.payload = {
+//             template_type: "generic",
+//             elements: elements
+//         };
+//         return this.createMessage(messageTemplate);
+//     };
+
+//     this.createTemplateElement = function (title, subtitle, imageUrl, defaultActionUrl) {
+//         return {
+//             title: title,
+//             subtitle: subtitle,
+//             image_url: imageUrl,
+//             default_action: {
+//                 type: "web_url",
+//                 url: defaultActionUrl
+//             }
+//         };
+//     };
+// }
+
+// var facebookMessageFactory = new FacebookMessageFactory();
 
 function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic decoding should be rolled into one class
     this.read = (input, quickAnalysisResults) => {
@@ -90,7 +101,7 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
             from: new Date(),
             to: new Date()
         };
-        
+
         var monday;
         var friday;
         var sunday;
@@ -100,9 +111,9 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
         var newToDate;
         var execResults;
 
-        try{
+        try {
             console.log("moment: ", moment().format("YYYY-MM-DD"));
-        }catch(err){
+        } catch (err) {
             console.log("yeah that didn't work: ", err.message);
         }
 
@@ -110,7 +121,7 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
             // quick shortcuts. FIXME: All of these are dirty hacks, figure out how to upload moment to lambda and use that instead
             if (quickAnalysisResults.temporalMarkers.indexOf("Today") > -1) {
                 // do nothing, the initial values are already set to today
-            }else if (quickAnalysisResults.temporalMarkers.indexOf("ThisWeek") > -1) {
+            } else if (quickAnalysisResults.temporalMarkers.indexOf("ThisWeek") > -1) {
                 while (dateTimeRange.to.getDay() > 0) {
                     dateTimeRange.to.setDate(dateTimeRange.to.getDate() + 1);
                 }
@@ -163,13 +174,13 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
 
                 execResults = KEYWORD_REGEXES.Temporal.OnExactDate.exec(input);
                 console.log("OnExactDate regex exec: ", execResults);
-                if(execResults !== null){
+                if (execResults !== null) {
                     execResults = KEYWORD_REGEXES.Temporal.DateLike.exec(execResults[0]);
                     console.log("DateLike regex exec: ", execResults);
                     execResults = execResults[0].split(/\.|\//);
                     day = execResults[0];
                     month = execResults[1];
-                    
+
                     // FIXME: serious, get moment.js. There's so many edge cases not covered in this sort of naive implementation
                     dateTimeRange.from.setMonth(month - 1);
                     dateTimeRange.from.setDate(day);
@@ -181,7 +192,7 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
 
                 execResults = KEYWORD_REGEXES.Temporal.ExactDateRange.exec(input);
                 console.log("ExactDateRange regex exec: ", execResults);
-                if(execResults !== null){
+                if (execResults !== null) {
                     execResults = KEYWORD_REGEXES.Temporal.DateLike.exec(execResults[0]);
                     console.log("DateLike regex exec: ", execResults);
 
@@ -390,7 +401,7 @@ function verifySignature(payload) {
 function handleReceivedMessage(receivedMessage) {
     var senderId = receivedMessage.sender.id;
 
-    facebookMessageFactory.setTargetId(senderId);
+    facebookMessageHelper.setTargetId(senderId);
 
     var recipientId = receivedMessage.recipient.id;
     var timeOfMessage = receivedMessage.timestamp;
@@ -411,7 +422,7 @@ function handleReceivedMessage(receivedMessage) {
             generateResponse(result);
         }
     } else if (messageAttachments) {
-        var message = facebookMessageFactory.createMessage({
+        var message = facebookMessageHelper.createMessage({
             text: "Message with attachment received"
         });
         messageBuffer.enqueue(message);
@@ -427,14 +438,14 @@ function findSpecialTexts(text) {
         if (KEYWORD_REGEXES.Special[prop].test(text)) {
             switch (prop) {
                 case "Greetings":
-                    message = facebookMessageFactory.createMessage({
+                    message = facebookMessageHelper.createMessage({
                         text: BOT_TEXTS.Greetings[Math.floor(Math.random() * BOT_TEXTS.Greetings.length)]
                     });
                     messageBuffer.enqueue(message);
                     break;
                 case "Info":
                     for (i = 0; i < BOT_TEXTS.Disclaimer.length; i++) {
-                        message = facebookMessageFactory.createMessage({
+                        message = facebookMessageHelper.createMessage({
                             text: BOT_TEXTS.Disclaimer[i]
                         });
                         messageBuffer.enqueue(message);
@@ -442,14 +453,14 @@ function findSpecialTexts(text) {
                     break;
                 case "HelpRequest":
                     for (i = 0; i < BOT_TEXTS.HelpInfo.length; i++) {
-                        message = facebookMessageFactory.createMessage({
+                        message = facebookMessageHelper.createMessage({
                             text: BOT_TEXTS.HelpInfo[i]
                         });
                         messageBuffer.enqueue(message);
                     }
                     break;
                 case "Oops":
-                    message = facebookMessageFactory.createMessage({
+                    message = facebookMessageHelper.createMessage({
                         text: BOT_TEXTS.Apologise[Math.floor(Math.random() * BOT_TEXTS.Apologise.length)]
                     });
                     messageBuffer.enqueue(message);
@@ -531,7 +542,7 @@ function generateResponse(analysisResults) {
     var message;
     if (analysisResults.eventType.length === 0 && analysisResults.temporalMarkers.length === 0 && analysisResults.locations.length === 0 && analysisResults.interests.length === 0) {
         // found absolutely nothing
-        message = facebookMessageFactory.createMessage({
+        message = facebookMessageHelper.createMessage({
             text: BOT_TEXTS.Unknown[Math.floor(Math.random() * BOT_TEXTS.Unknown.length)]
         });
         messageBuffer.enqueue(message);
@@ -550,7 +561,7 @@ function generateResponse(analysisResults) {
             keywords.push(elem);
         });
 
-        message = facebookMessageFactory.createMessage({
+        message = facebookMessageHelper.createMessage({
             text: responseText + keywords.join(', ')
         });
         messageBuffer.enqueue(message);
@@ -670,7 +681,7 @@ function postFilteredEvents(filteredEvents, dateTimeRange) {
                 coverImageUrl = eventData.cover.source;
             }
 
-            elements.push(facebookMessageFactory.createTemplateElement(
+            elements.push(facebookMessageHelper.createTemplateElement(
                 eventData.name,
                 subtitleString,
                 coverImageUrl,
@@ -680,11 +691,11 @@ function postFilteredEvents(filteredEvents, dateTimeRange) {
     }
 
     if (filteredEvents.length === 0) {
-        messageBuffer.enqueue(facebookMessageFactory.createMessage({
+        messageBuffer.enqueue(facebookMessageHelper.createMessage({
             text: "I didn't find any events for " + displayDate(dateTimeRange.from) + " to " + displayDate(dateTimeRange.to)
         }));
     } else if (filteredEvents.length > 10) { // NOTE: the Messenger API only allows up to 10 elements at a time
-        messageBuffer.enqueue(facebookMessageFactory.createMessage({
+        messageBuffer.enqueue(facebookMessageHelper.createMessage({
             text: "I got " + filteredEvents.length + " results for " + displayDate(dateTimeRange.from) + " to " + displayDate(dateTimeRange.to) + ", here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
         }));
 
@@ -692,14 +703,14 @@ function postFilteredEvents(filteredEvents, dateTimeRange) {
             elements.pop();
         }
     } else {
-        messageBuffer.enqueue(facebookMessageFactory.createMessage({
+        messageBuffer.enqueue(facebookMessageHelper.createMessage({
             text: "Alright! I got " + filteredEvents.length + " results for " + displayDate(dateTimeRange.from) + " to " + displayDate(dateTimeRange.to) + ":"
         }));
     }
     messageBuffer.flush();
 
     if (filteredEvents.length > 0) {
-        var message = facebookMessageFactory.createGenericMessageTemplate(elements);
+        var message = facebookMessageHelper.createGenericMessageTemplate(elements);
         messageBuffer.enqueue(message);
     }
 
@@ -715,7 +726,7 @@ function handleReadReceipt(message) {
 }
 
 function sendTypingIndicator(mode) {
-    var typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(mode ? "typing_on" : "typing_off");
+    var typingIndicatorMessage = facebookMessageHelper.createSenderActionMessage(mode ? "typing_on" : "typing_off");
 
     // FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
     // messageBuffer.enqueue(typingIndicatorMessage);
@@ -826,7 +837,7 @@ function postDeliveryCallback(str) {
     sendTypingIndicator(false);
 }
 
-function displayDate(date){
+function displayDate(date) {
     var userFriendlyDate = "";
 
     var fillLeadingZero = function (value) {
