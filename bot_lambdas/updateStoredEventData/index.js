@@ -1,7 +1,5 @@
 "use strict";
 
-const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-
 const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
@@ -123,7 +121,7 @@ function queryFacebookApi(organisers) {
     var body = "batch=" + JSON.stringify(batchRequestContent);
 
     // console.log("write to body: ", body);
-    var options = facebookApiInterface.createGraphApiOptions(FACEBOOK_PAGE_ACCESS_TOKEN);
+    var options = facebookApiInterface.createGraphApiOptions();
 
     var req = https.request(options, (response) => {
         console.log(response);

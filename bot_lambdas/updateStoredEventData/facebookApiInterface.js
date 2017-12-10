@@ -1,3 +1,5 @@
+const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+
 module.exports = {
     buildQueryUrl: (basePath, params, escapePath) => {
         var path = basePath;
@@ -13,10 +15,11 @@ module.exports = {
         }
         return path;
     },
-    createGraphApiOptions: (pageAccessToken) => {
+
+    createGraphApiOptions: () => {
         return {
             host: "graph.facebook.com",
-            path: "/2.9/?access_token=" + pageAccessToken,
+            path: "/2.9/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
