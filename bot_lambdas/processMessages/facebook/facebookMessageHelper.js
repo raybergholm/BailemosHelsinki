@@ -26,10 +26,10 @@ module.exports = {
             message: {}
         };
         if(payload.text){
-            message.text = payload.text;
+            message.message.text = payload.text;
         }
         if(payload.attachment){
-            message.attachment = payload.attachment;
+            message.message.attachment = payload.attachment;
         }
         return message;
     },
