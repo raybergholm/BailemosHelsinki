@@ -9,7 +9,9 @@ var _messageBuffer = new MessageBuffer();
 module.exports = {
     sendMessage: function (params) {
         var message = facebookMessageHelper.createMessage(params.text, params.attachment);
-        _messageBuffer.enqueue(message);
+
+        // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
+        this.sendMessageToFacebook(message);
     },
 
     sendTemplatedMessage: function (inputElements) {
@@ -23,6 +25,9 @@ module.exports = {
             ));
         }
         var message = facebookMessageHelper.createGenericMessageTemplate(elements);
+
+        // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
+        this.sendMessageToFacebook(message);
     },
 
     setTargetId: function (targetId) {
@@ -31,15 +36,10 @@ module.exports = {
 
     sendTypingIndicator: function (mode) {
         var typingIndicatorMessage = facebookMessageHelper.createSenderActionMessage(mode ? "typing_on" : "typing_off");
-        // this.sendMessage(typingIndicatorMessage); // FIXME: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
+        // this.sendMessage(typingIndicatorMessage); // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
     },
 
-    enqueueMessage: function (message) {
-        _messageBuffer.enqueue(message);
-        this.send();  // FIXME: there's some formatting issue with this whole thing right now so temp fix is to send messages immediately
-    },
-
-    send: function () {
+    sendAsync: function () {
         var payload;
         if (_messageBuffer.length === 0) {
             payload = _messageBuffer.flush();
@@ -48,13 +48,12 @@ module.exports = {
             payload = _messageBuffer.flush();
             this.sendBatchedMessage(payload);
         }
-
     },
 
     sendMessageToFacebook: function (payload) {
         console.log("sending this message payload to FB:", payload);
 
-        var body = payload;
+        var body = JSON.stringify(payload);
         var options = facebookApiInterface.createSendMessageOptions();
 
         var callback = function (response) {
@@ -105,14 +104,14 @@ module.exports = {
 function postDeliveryCallback(str) {
     console.log("callback end, got " + str);
 
-    module.sendTypingIndicator(false);
+    module.exports.sendTypingIndicator(false);
 }
 
 function MessageBuffer() {
-    this._queuedMessages = [],
-        this.enqueue = function (message) {
-            this._queuedMessages.push(message);
-        };
+    this._queuedMessages = [];
+    this.enqueue = function (message) {
+        this._queuedMessages.push(message);
+    };
     this.flush = function () {
         var content;
         if (this._queuedMessages.length === 1) {
@@ -123,7 +122,7 @@ function MessageBuffer() {
                 batchRequestContent.push({
                     relative_url: encodeURIComponent("/me/messages/"),
                     method: "POST",
-                    body: encodeURIComponent(JSON.stringify(this._queuedMessages[i])) // TODO: This is hella broken, body needs a different format entirely?
+                    body: encodeURIComponent(JSON.stringify(this._queuedMessages[i])) // FIXME: This is hella broken, body needs a different format entirely?
                 });
             }
 
