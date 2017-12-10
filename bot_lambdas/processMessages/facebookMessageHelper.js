@@ -1,6 +1,10 @@
 module.exports = {
+    _ownId: null,
     _targetId: null,
 
+    setOwnId: function (ownId) {
+        this._ownId = ownId;
+    },
     setTargetId: function (targetId) {
         this._targetId = targetId;
     },
@@ -12,7 +16,7 @@ module.exports = {
                 id: this._targetId
             },
             sender: {
-                id: FACEBOOK_PAGE_ID
+                id: this._ownId
             },
             message: payload
         };
@@ -25,7 +29,7 @@ module.exports = {
                 id: this._targetId
             },
             sender: {
-                id: FACEBOOK_PAGE_ID
+                id: this._ownId
             },
             sender_action: action
         };
