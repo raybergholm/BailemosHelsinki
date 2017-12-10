@@ -2,13 +2,20 @@ const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
 module.exports = {
     _targetId: null,
-    
+
     setTargetId: function (targetId) {
         this._targetId = targetId;
     },
 
-    createMessage: function (payload) {
-        return {
+    createMessage: function (text, attachment) {
+        return this.createMessageWithPayload({
+            text: text,
+            attachment: attachment
+        });
+    },
+
+    createMessageWithPayload: function (payload) {
+        var message = {
             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
             recipient: {
                 id: this._targetId
@@ -16,8 +23,15 @@ module.exports = {
             sender: {
                 id: FACEBOOK_PAGE_ID
             },
-            message: payload
+            message: {}
         };
+        if(payload.text){
+            message.text = payload.text;
+        }
+        if(payload.attachment){
+            message.attachment = payload.attachment;
+        }
+        return message;
     },
 
     createSenderActionMessage: function (action) {
@@ -48,7 +62,7 @@ module.exports = {
             template_type: "generic",
             elements: elements
         };
-        return this.createMessage(messageTemplate);
+        return this.createMessageWithPayload(messageTemplate);
     },
 
     createTemplateElement: function (title, subtitle, imageUrl, defaultActionUrl) {
