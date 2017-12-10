@@ -6,6 +6,8 @@ const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
 
+//---------------------------------------------------------------------------//
+// Built-in modules
 var https = require("https");
 
 var AWS = require("aws-sdk");
@@ -15,30 +17,13 @@ AWS.config.update({
 
 var dynamodb = new AWS.DynamoDB();
 var s3 = new AWS.S3();
+//---------------------------------------------------------------------------//
 
-//----------------------------------------------------------------------------//
-// TODO: move this to a separate file entirely
+//---------------------------------------------------------------------------//
+// Custom modules
+var facebookApiInterface = require("./facebookApiInterface");
 
-function FacebookQueryBuilder() {
-    this.build = (basePath, params, escapePath) => {
-        var path = basePath;
-        if (params) {
-            var paramsArr = [];
-            for (var prop in params) {
-                paramsArr.push(prop + "=" + (params[prop] instanceof Array ? params[prop].join(',') : params[prop]));
-            }
-            path += '?' + paramsArr.join('&');
-        }
-        if (escapePath) {
-            path = encodeURIComponent(path);
-        }
-        return path;
-    };
-}
-
-var queryBuilder = new FacebookQueryBuilder();
-
-//----------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
     console.log(event);
@@ -109,7 +94,7 @@ function queryFacebookApi(organisers) {
     }
 
     batchRequestContent.push({
-        relative_url: queryBuilder.build("/events/", {
+        relative_url: facebookApiInterface.buildQueryUrl("/events/", {
             debug: "all",
             time_filter: "upcoming",
             ids: pageIds,
@@ -118,14 +103,14 @@ function queryFacebookApi(organisers) {
         method: "GET"
     });
     // batchRequestContent.push({   // TODO: reinstate this when I have a decent feed scraping algorithm
-    //     relative_url: queryBuilder.build("/feed/", {
+    //     relative_url: facebookApiInterface.buildQueryUrl("/feed/", {
     //         debug: "all",
     //         ids: groupIds
     //     }, true),
     //     method: "GET"
     // });
     batchRequestContent.push({
-        relative_url: queryBuilder.build("/events/", {
+        relative_url: facebookApiInterface.buildQueryUrl("/events/", {
             debug: "all",
             time_filter: "upcoming",
             ids: userIds,
@@ -137,15 +122,8 @@ function queryFacebookApi(organisers) {
 
     var body = "batch=" + JSON.stringify(batchRequestContent);
 
-    console.log("write to body: ", body);
-    var options = {
-        host: "graph.facebook.com",
-        path: "/2.9/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        }
-    };
+    // console.log("write to body: ", body);
+    var options = facebookApiInterface.createGraphApiOptions(FACEBOOK_PAGE_ACCESS_TOKEN);
 
     var req = https.request(options, (response) => {
         console.log(response);
