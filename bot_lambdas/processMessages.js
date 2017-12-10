@@ -647,11 +647,11 @@ function postFilteredEvents(filteredEvents, dateTimeRange) {
 
     if (filteredEvents.length === 0) {
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
-            text: "I didn't find any events, maybe this is a free day?"
+            text: "I didn't find any events for " + displayDate(dateTimeRange.from) + " to " + displayDate(dateTimeRange.to)
         }));
     } else if (filteredEvents.length > 10) { // NOTE: the Messenger API only allows up to 10 elements at a time
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
-            text: "I got " + filteredEvents.length + " results for " + dateTimeRange.from + " to " + dateTimeRange.to + ", here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
+            text: "I got " + filteredEvents.length + " results for " + displayDate(dateTimeRange.from) + " to " + displayDate(dateTimeRange.to) + ", here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
         }));
 
         while (elements.length > 10) {
@@ -659,7 +659,7 @@ function postFilteredEvents(filteredEvents, dateTimeRange) {
         }
     } else {
         messageBuffer.enqueue(facebookMessageFactory.createMessage({
-            text: "Alright! I got " + filteredEvents.length + " results for " + dateTimeRange.from + " to " + dateTimeRange.to + ":"
+            text: "Alright! I got " + filteredEvents.length + " results for " + displayDate(dateTimeRange.from) + " to " + displayDate(dateTimeRange.to) + ":"
         }));
     }
     messageBuffer.flush();
@@ -790,4 +790,16 @@ function postDeliveryCallback(str) {
     console.log("callback end, got " + str);
 
     sendTypingIndicator(false);
+}
+
+function displayDate(date){
+    var userFriendlyDate = "";
+
+    var fillLeadingZero = function (value) {
+        return value < 10 ? "0" + value : value;
+    };
+
+    userFriendlyDate += fillLeadingZero(date.getDate()) + '.' + fillLeadingZero(date.getMonth() + 1);
+
+    return userFriendlyDate;
 }
