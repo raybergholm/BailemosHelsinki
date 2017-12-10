@@ -1,8 +1,6 @@
 "use strict";
 
-const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
@@ -10,7 +8,6 @@ const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
 //---------------------------------------------------------------------------//
 // Built-in modules
 var https = require("https");
-var crypto = require("crypto");
 var moment = require("moment");
 
 var AWS = require("aws-sdk");
@@ -24,76 +21,11 @@ var s3 = new AWS.S3();
 //---------------------------------------------------------------------------//
 // Custom modules
 
-var facebookApiInterface = require("./facebookApiInterface");
-var facebookMessageHelper = require("./facebookMessageHelper");
+var facebookVerifier = require("./facebook/facebookVerifier");
+var facebookApiInterface = require("./facebook/facebookApiInterface");
+var facebookMessageHelper = require("./facebook/facebookMessageHelper");
 
 //---------------------------------------------------------------------------//
-
-// function FacebookMessageFactory() {
-//     this._targetId = null;
-
-//     this.setTargetId = function (targetId) {
-//         this._targetId = targetId;
-//     };
-
-//     this.createMessage = function (payload) {
-//         return {
-//             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
-//             recipient: {
-//                 id: this._targetId
-//             },
-//             sender: {
-//                 id: FACEBOOK_PAGE_ID
-//             },
-//             message: payload
-//         };
-//     };
-
-//     this.createSenderActionMessage = function (action) {
-//         return {
-//             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
-//             recipient: {
-//                 id: this._targetId
-//             },
-//             sender: {
-//                 id: FACEBOOK_PAGE_ID
-//             },
-//             sender_action: action
-//         };
-//     };
-
-//     this.createBaseTemplate = function () {
-//         return {
-//             attachment: {
-//                 type: "template",
-//                 payload: null
-//             }
-//         };
-//     };
-
-//     this.createGenericMessageTemplate = function (elements) {
-//         var messageTemplate = this.createBaseTemplate();
-//         messageTemplate.attachment.payload = {
-//             template_type: "generic",
-//             elements: elements
-//         };
-//         return this.createMessage(messageTemplate);
-//     };
-
-//     this.createTemplateElement = function (title, subtitle, imageUrl, defaultActionUrl) {
-//         return {
-//             title: title,
-//             subtitle: subtitle,
-//             image_url: imageUrl,
-//             default_action: {
-//                 type: "web_url",
-//                 url: defaultActionUrl
-//             }
-//         };
-//     };
-// }
-
-// var facebookMessageFactory = new FacebookMessageFactory();
 
 function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic decoding should be rolled into one class
     this.read = (input, quickAnalysisResults) => {
@@ -309,7 +241,7 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could en
 exports.handler = (event, context, callback) => {
     console.log(event);
 
-    if (!verifySignature(event.headers['X-Hub-Signature'])) {
+    if (!facebookVerifier.verifySignature(event.headers['X-Hub-Signature'])) {
         console.log("X-Hub_Signature did not match the expected value");
         // return;  TODO: allow it to pass for now, debug it later
     }
@@ -374,29 +306,6 @@ exports.handler = (event, context, callback) => {
     console.log("returning the following response: ", JSON.stringify(response));
     callback(null, response);
 };
-
-function verifySignature(payload) {
-    var shasum;
-
-    var signature = payload.split('=')[1];
-
-    if (signature) {
-        shasum = crypto.createHash('sha1');
-        shasum.update(FACEBOOK_APP_SECRET);
-
-        var digest = shasum.digest("hex");
-
-        if (signature === digest) { // TODO: always a mismatch right now, investigate why
-            return true;
-        } else {
-            console.log("Verification mismatch!", {
-                fromFB: signature,
-                digest: digest
-            });
-        }
-    }
-    return false;
-}
 
 function handleReceivedMessage(receivedMessage) {
     var senderId = receivedMessage.sender.id;

@@ -1,10 +1,8 @@
-module.exports = {
-    _ownId: null,
-    _targetId: null,
+const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
-    setOwnId: function (ownId) {
-        this._ownId = ownId;
-    },
+module.exports = {
+    _targetId: null,
+    
     setTargetId: function (targetId) {
         this._targetId = targetId;
     },
@@ -16,7 +14,7 @@ module.exports = {
                 id: this._targetId
             },
             sender: {
-                id: this._ownId
+                id: FACEBOOK_PAGE_ID
             },
             message: payload
         };
@@ -29,7 +27,7 @@ module.exports = {
                 id: this._targetId
             },
             sender: {
-                id: this._ownId
+                id: FACEBOOK_PAGE_ID
             },
             sender_action: action
         };
