@@ -42,22 +42,19 @@ const BOT_TEXTS = { // probably should be fetched from S3
 };
 
 module.exports = {
-    getText: (category) => {
+    getText: function(category) {
         if (!BOT_TEXTS[category]) {
             console.log("tried to get an nonexistent bot text category");
             return "Major error, botty bugged out";
         }
 
-        return BOT_TEXTS[category].length === 1 ? BOT_TEXTS[category][0] : this.getRandomText();
-    },
-
-    getRandomText: (category) => {
-        if (!BOT_TEXTS[category]) {
-            console.log("tried to get an nonexistent bot text category");
-            return "Major error, botty bugged out";
+        var reply;
+        if(BOT_TEXTS[category].length === 1){
+            reply = BOT_TEXTS[category][0];
+        }else {
+            reply = BOT_TEXTS[category][Math.floor(Math.random() * BOT_TEXTS[category].length)];
         }
-
-        return BOT_TEXTS[category][Math.floor(Math.random() * BOT_TEXTS[category].length)]
+        return reply;
     },
 
     getAllText: (category) => {
