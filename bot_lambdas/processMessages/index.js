@@ -23,6 +23,8 @@ var facebookRequestVerifier = require("./facebook/facebookRequestVerifier");
 var facebookApiInterface = require("./facebook/facebookApiInterface");
 var facebookMessageHelper = require("./facebook/facebookMessageHelper");
 
+var botty = require("./botty/botty");
+
 //---------------------------------------------------------------------------//
 
 function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic decoding should be rolled into one class
@@ -174,27 +176,6 @@ var messageBuffer = {
     }
 };
 
-const BOT_TEXTS = { // probably should be fetched from S3
-    Greetings: [
-        "Hi!", "Hello!", "Hi! :)", "Hello! :)"
-    ],
-    Disclaimer: [
-        "This bot is currently under construction, so don't worry if things break.", "I don't really understand full sentences yet, just so you know :(", "If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages!", "Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
-    ],
-    HelpInfo: [
-        "Currently I can detect some keywords related to the dance scene in Helsinki based on things like time, event types and interests. You can freely combine terms to narrow down your search", "e.g. try something like \"any salsa parties this weekend?\" and I can pick up \"salsa\", \"party\" and \"this weekend\" and check what's out there.", "Or you could just ask \"what's happening next Friday?\" if you just want to know what's happening then", "Or you could just try \"Surprise me\" :)"
-    ],
-    Unknown: [
-        "I have no idea what you mean :(", "This bot is not quite advanced enough to understand that. Yet.", "Uh, try to say that again in a different way?"
-    ],
-    Affirmative: [
-        "Ok, on it!", "Sure, I can do that", "Alrighty!", "Sure thing!"
-    ],
-    Apologise: [
-        "Whoops, did I get it wrong?", "I guess that didn't quite work as intended", "Yeah, I have problems too :("
-    ]
-};
-
 const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could end up requiring a major rewrite of these regexes since \b considers stuff like åäö as word breaks
     Special: {
         Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
@@ -339,36 +320,38 @@ function handleReceivedMessage(receivedMessage) {
 }
 
 function findSpecialTexts(text) {
-    var i, message;
+    var i, botTexts, message;
 
     for (var prop in KEYWORD_REGEXES.Special) {
         if (KEYWORD_REGEXES.Special[prop].test(text)) {
             switch (prop) {
                 case "Greetings":
                     message = facebookMessageHelper.createMessage({
-                        text: BOT_TEXTS.Greetings[Math.floor(Math.random() * BOT_TEXTS.Greetings.length)]
+                        text: botty.greet()
                     });
                     messageBuffer.enqueue(message);
                     break;
                 case "Info":
-                    for (i = 0; i < BOT_TEXTS.Disclaimer.length; i++) {
+                    botTexts = botty.giveDisclaimer();
+                    for (i = 0; i < botTexts.length; i++) {
                         message = facebookMessageHelper.createMessage({
-                            text: BOT_TEXTS.Disclaimer[i]
+                            text: botTexts[i]
                         });
                         messageBuffer.enqueue(message);
                     }
                     break;
                 case "HelpRequest":
-                    for (i = 0; i < BOT_TEXTS.HelpInfo.length; i++) {
+                    botTexts = botty.giveUserHelp();
+                    for (i = 0; i < botTexts.length; i++) {
                         message = facebookMessageHelper.createMessage({
-                            text: BOT_TEXTS.HelpInfo[i]
+                            text: botTexts[i]
                         });
                         messageBuffer.enqueue(message);
                     }
                     break;
                 case "Oops":
                     message = facebookMessageHelper.createMessage({
-                        text: BOT_TEXTS.Apologise[Math.floor(Math.random() * BOT_TEXTS.Apologise.length)]
+                        text: botty.apologise()
                     });
                     messageBuffer.enqueue(message);
                     break;
@@ -450,7 +433,7 @@ function generateResponse(analysisResults) {
     if (analysisResults.eventType.length === 0 && analysisResults.temporalMarkers.length === 0 && analysisResults.locations.length === 0 && analysisResults.interests.length === 0) {
         // found absolutely nothing
         message = facebookMessageHelper.createMessage({
-            text: BOT_TEXTS.Unknown[Math.floor(Math.random() * BOT_TEXTS.Unknown.length)]
+            text: botty.beUncertain()
         });
         messageBuffer.enqueue(message);
     } else {
@@ -597,23 +580,16 @@ function postFilteredEvents(filteredEvents, dateTimeRange) {
         });
     }
 
-    if (filteredEvents.length === 0) {
-        messageBuffer.enqueue(facebookMessageHelper.createMessage({
-            text: "I didn't find any events for " + displayDate(dateTimeRange.from) + " to " + displayDate(dateTimeRange.to)
-        }));
-    } else if (filteredEvents.length > 10) { // NOTE: the Messenger API only allows up to 10 elements at a time
-        messageBuffer.enqueue(facebookMessageHelper.createMessage({
-            text: "I got " + filteredEvents.length + " results for " + displayDate(dateTimeRange.from) + " to " + displayDate(dateTimeRange.to) + ", here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
-        }));
+    var bottyText = botty.replyWithResults(filteredEvents.length, moment(dateTimeRange.from).format("DD.MM"), moment(dateTimeRange.to).format("DD.MM"));
 
+    if (filteredEvents.length > 10) {
         while (elements.length > 10) {
             elements.pop();
         }
-    } else {
-        messageBuffer.enqueue(facebookMessageHelper.createMessage({
-            text: "Alright! I got " + filteredEvents.length + " results for " + displayDate(dateTimeRange.from) + " to " + displayDate(dateTimeRange.to) + ":"
-        }));
     }
+    messageBuffer.enqueue(facebookMessageHelper.createMessage({
+        text: bottyText
+    }));
     messageBuffer.flush();
 
     if (filteredEvents.length > 0) {
