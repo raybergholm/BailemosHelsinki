@@ -36,7 +36,7 @@ module.exports = {
 
     enqueueMessage: function (message) {
         _messageBuffer.enqueue(message);
-        this.send();
+        this.send();  // FIXME: there's some formatting issue with this whole thing right now so temp fix is to send messages immediately
     },
 
     send: function () {
@@ -111,9 +111,7 @@ function postDeliveryCallback(str) {
 function MessageBuffer() {
     this._queuedMessages = [],
         this.enqueue = function (message) {
-
             this._queuedMessages.push(message);
-            this.flush(); // FIXME: there's some formatting issue with this whole thing right now so temp fix is to send messages immediately
         };
     this.flush = function () {
         var content;
