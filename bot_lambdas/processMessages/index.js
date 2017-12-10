@@ -22,6 +22,7 @@ var s3 = new AWS.S3();
 var facebookRequestVerifier = require("./facebook/facebookRequestVerifier");
 var facebookApiInterface = require("./facebook/facebookApiInterface");
 var facebookMessageHelper = require("./facebook/facebookMessageHelper");
+var facebookMessageInterface = require("./facebook/facebookMessageInterface");
 
 var botty = require("./botty/botty");
 
