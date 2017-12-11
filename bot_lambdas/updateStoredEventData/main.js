@@ -98,13 +98,7 @@ function queryFacebookApi(organisers) {
 
             var payload = formatEventData(responses, organisers);
             if (payload) {
-                dataStagingInterface.updateEventData(payload, function (err, data) {
-                    if (err) {
-                        console.log("S3 interface error: ", err);
-                    } else {
-                        console.log("putObject response metadata:", data);
-                    }
-                });
+                dataStagingInterface.updateEventData(payload);
             }
         });
     });
