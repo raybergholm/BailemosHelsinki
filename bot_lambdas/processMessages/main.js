@@ -267,7 +267,7 @@ function handleReceivedMessage(receivedMessage) {
     var messageText = messageData.text;
     var messageAttachments = messageData.attachments;
 
-    // botty.read(messageText, messageAttachments); // TODO: let botty kick off the rest
+    // botty.readMessage(messageText, messageAttachments); // TODO: let botty kick off the rest
 
     if (messageText) {
         if (!findSpecialTexts(messageText)) {
