@@ -42,16 +42,15 @@ const KEYWORDS = { // TODO: worry about localisation later. This could end up re
             ThisWeekend: /\b(?:the|this|upcoming) weekend(\??)\b/i,
             NextWeek: /\bnext week(\??)\b/i,
             NextWeekend: /\bnext weekend(\??)\b/i,
-            ThisMonth: /\b(?:this|upcoming) month(\??)\b/i
+            ThisMonth: /\b(?:this|upcoming) month(\??)\b/i,
+            NextMonth: /\bnext month(\??)\b/i
         },
         Precise: {
             OnExactDate: /\b(?:on) \d{1,2}[./]\d{1,2}/i,
-            ExactDateRange: /\d{1,2}[./]\d{1,2}( ?)(?:-|to|until)( ?)\d{1,2}[./]\d{1,2}/i
-        }
+            ExactDateRange: /\d{1,2}[./]\d{1,2}(?: ?)(?:-|to|until)(?: ?)\d{1,2}[./]\d{1,2}/i
+        },
 
-
-
-        // DateLike: /\d{1,2}[./]\d{1,2}/,
+        DateLike: /\d{1,2}[./]\d{1,2}(?:\d{2,4}?)/
         // TimeLike: /\b(?:\d{1,2}[:]\d{2}|(?:klo) \d{1,2}\.\d{2})\b/,
         // FromMarker: /\b(?:from|starting|after)\b/i,
         // ToMarker: /\b(?:to|until|before)\b/i
@@ -118,6 +117,7 @@ function checkForTemporalCues(text) {   // this one is more special because we c
         to: null
     };
 
+    var results;
     var offset;
 
     // Semantic ranges don't directly reference numbers, so we have to convert it from language actual dates
@@ -129,8 +129,8 @@ function checkForTemporalCues(text) {   // this one is more special because we c
                     dateRange.to = moment().endOf("day");
                     break;
                 case "Tomorrow":
-                    dateRange.from = moment().add(1, "days").startOf("day");
-                    dateRange.to = moment().add(1, "days").endOf("day");
+                    dateRange.from = moment().add(1, "day").startOf("day");
+                    dateRange.to = moment().add(1, "day").endOf("day");
                     break;
                 case "ThisWeek":
                     dateRange.from = moment().startOf("days");
@@ -156,9 +156,46 @@ function checkForTemporalCues(text) {   // this one is more special because we c
                     break;
                 case "ThisMonth":
                     dateRange.from = moment().startOf("day");
-                    dateRange.to = moment().endOf("month").endOf("day");
+                    dateRange.to = moment().endOf("month");
+                    break;
+                case "NextMonth":
+                    dateRange.from = moment().add(1, "month").startOf("month");
+                    dateRange.to = moment().endOf("month");
                     break;
             }
+            return dateRange;
+        }
+    }
+
+    // FIXME: datelike is behaving strangely and can't quite catch dd.mm, and dd.mm.yyyy becomes dd.mm.yy
+
+    results = KEYWORDS.Temporal.Precise.OnExactDate(text);
+    if(results){
+        results = KEYWORDS.Temporal.DateLike.exec(results[0]);
+        if(results){
+            dateRange.from = moment(results[0]).startOf("day");
+            dateRange.from.year(dateRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
+            
+            dateRange.to = dateRange.from.clone();
+            dateRange.to.endOf("day");
+
+            return dateRange;
+        }
+    }
+
+    results = KEYWORDS.Temporal.Precise.ExactDateRange(text);
+    if(results){
+        results = KEYWORDS.Temporal.DateLike.exec(results[0]);
+        if(results){
+            dateRange.from = moment(results[0]).startOf("day");
+            dateRange.from.year(dateRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
+            
+            dateRange.to = moment(results[1]).endOf("day");
+            dateRange.to.year(dateRange.from.year());
+            if(dateRange.to.month() < dateRange.from.month()){
+                dateRange.to.add(1, "year");
+            }
+
             return dateRange;
         }
     }
@@ -169,17 +206,6 @@ function checkForTemporalCues(text) {   // this one is more special because we c
     return dateRange;
 }
 
-
-/*
-            Today: /\b(?:today|tonight)(\??)\b/i,
-            Tomorrow: /\btomorrow(\??)\b/i,
-            ThisWeek: /\bthis week(\??)\b/i,
-            ThisWeekend: /\b(?:the|this|upcoming) weekend(\??)\b/i,
-            NextSeven: /\b(?:7|seven) days(\??)\b/i,
-            NextWeek: /\bnext week(\??)\b/i,
-            NextWeekend: /\bnext weekend(\??)\b/i,
-            ThisMonth: /\b(?:this|upcoming) month(\??)\b/i
-*/
 
 function checkForEventTypes(text) {
     var eventTypes = [];
@@ -204,165 +230,3 @@ function checkForInterests(text) {
 
     return interests.length > 0 ? interests : null;
 }
-
-//----------------------------------------------------------
-
-
-function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic decoding should be rolled into one class
-    this.read = (input, quickAnalysisResults) => {
-        var dateTimeRange = {
-            from: new Date(),
-            to: new Date()
-        };
-
-        var monday;
-        var friday;
-        var sunday;
-        var day;
-        var month;
-        var newFromDate;
-        var newToDate;
-        var execResults;
-
-        if (quickAnalysisResults) {
-            // quick shortcuts. FIXME: All of these are dirty hacks, figure out how to upload moment to lambda and use that instead
-            if (quickAnalysisResults.temporalMarkers.indexOf("Today") > -1) {
-                // do nothing, the initial values are already set to today
-            } else if (quickAnalysisResults.temporalMarkers.indexOf("ThisWeek") > -1) {
-                while (dateTimeRange.to.getDay() > 0) {
-                    dateTimeRange.to.setDate(dateTimeRange.to.getDate() + 1);
-                }
-            } else if (quickAnalysisResults.temporalMarkers.indexOf("ThisWeekend") > -1) {
-                sunday = new Date();
-                while (sunday.getDay() > 0) {
-                    sunday.setDate(sunday.getDate() + 1);
-                }
-
-                friday = new Date(sunday);
-                friday.setDate(friday.getDate() - 2);
-
-                dateTimeRange.from = friday;
-                dateTimeRange.to = sunday;
-            } else if (quickAnalysisResults.temporalMarkers.indexOf("NextWeek") > -1) {
-                sunday = new Date();
-                while (sunday.getDay() > 0) {
-                    sunday.setDate(sunday.getDate() + 1);
-                }
-                sunday.setDate(sunday.getDate() + 1);
-                monday = new Date(sunday);
-                while (sunday.getDay() > 0) {
-                    sunday.setDate(sunday.getDate() + 1);
-                }
-
-                dateTimeRange.from = monday;
-                dateTimeRange.to = sunday;
-            } else if (quickAnalysisResults.temporalMarkers.indexOf("NextWeekend") > -1) {
-                sunday = new Date();
-                while (sunday.getDay() > 0) {
-                    sunday.setDate(sunday.getDate() + 1);
-                }
-                sunday.setDate(sunday.getDate() + 1);
-                monday = new Date(sunday);
-                while (sunday.getDay() > 0) {
-                    sunday.setDate(sunday.getDate() + 1);
-                }
-
-                friday = new Date(sunday);
-                friday.setDate(friday.getDate() - 2);
-
-                dateTimeRange.from = friday;
-                dateTimeRange.to = sunday;
-            } else if (quickAnalysisResults.temporalMarkers.indexOf("ThisMonth") > -1) {
-                dateTimeRange.to.setMonth(dateTimeRange.to.getMonth() + 1);
-                dateTimeRange.to.setDate(1);
-                dateTimeRange.to.setDate(dateTimeRange.to.getDate() - 1);
-            } else {
-                // more complex stuff, have to exec regexes
-
-                execResults = KEYWORD_REGEXES.Temporal.OnExactDate.exec(input);
-                console.log("OnExactDate regex exec: ", execResults);
-                if (execResults !== null) {
-                    execResults = KEYWORD_REGEXES.Temporal.DateLike.exec(execResults[0]);
-                    console.log("DateLike regex exec: ", execResults);
-                    execResults = execResults[0].split(/\.|\//);
-                    day = execResults[0];
-                    month = execResults[1];
-
-                    // FIXME: serious, get moment.js. There's so many edge cases not covered in this sort of naive implementation
-                    dateTimeRange.from.setMonth(month - 1);
-                    dateTimeRange.from.setDate(day);
-
-
-                    dateTimeRange.to = dateTimeRange.from;
-                    return dateTimeRange;
-                }
-
-                execResults = KEYWORD_REGEXES.Temporal.ExactDateRange.exec(input);
-                console.log("ExactDateRange regex exec: ", execResults);
-                if (execResults !== null) {
-                    execResults = KEYWORD_REGEXES.Temporal.DateLike.exec(execResults[0]);
-                    console.log("DateLike regex exec: ", execResults);
-
-
-
-                    return dateTimeRange;
-                }
-
-                return this.getDefaultRange();
-            }
-        }
-        return dateTimeRange;
-    };
-    this.getDefaultRange = () => { // from today to today+7
-        var dateTimeRange = {
-            from: new Date(),
-            to: new Date()
-        };
-        dateTimeRange.to.setDate(dateTimeRange.to.getDate() + 7);
-
-        return dateTimeRange;
-    };
-}
-
-var dateTimeSemanticDecoder = new DateTimeSemanticDecoder();
-
-const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could end up requiring a major rewrite of these regexes since \b considers stuff like åäö as word breaks
-    Special: {
-        Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
-        Info: /\b(?:info|disclaimer)\b/i,
-        HelpRequest: /\b(?:help)(?:\b|[!?])|\bhelp [me|please]\b/i,
-        Oops: /\b(?:wtf|you're drunk|wrong)\b/i,
-        SurpriseMe: /\bsurprise me\b/i
-    },
-    Types: {
-        Course: /\b(?:course|courses)\b/i,
-        Party: /\b(?:party|parties)\b/i
-    },
-    Interests: {
-        Salsa: /\bsalsa\b/i,
-        Bachata: /\bbachata\b/i,
-        Kizomba: /\bkizomba\b/i,
-        Zouk: /\bzouk\b/i
-    },
-    Temporal: {
-        Today: /\b(?:today|tonight)\b/i,
-        Monday: /\b(?:monday|mo(n?))\b/i,
-        Tuesday: /\b(?:tuesday|tu(e?))\b/i,
-        Wednesday: /\b(?:wednesday|we(d?))\b/i,
-        Thursday: /\b(?:thursday|th(u?))\b/i,
-        Friday: /\b(?:friday|fr(i?))\b/i,
-        Saturday: /\b(?:saturday|sa(t?))\b/i,
-        Sunday: /\b(?:sunday|su(n?))\b/i,
-        ThisWeek: /\bthis week\b/i,
-        ThisWeekend: /\b(?:this|upcoming) weekend\b/i,
-        NextWeek: /\bnext week\b/i,
-        NextWeekend: /\bnext weekend\b/i,
-        ThisMonth: /\b(?:this|upcoming) month\b/i,
-        DateLike: /\d{1,2}[./]\d{1,2}/,
-        TimeLike: /\b(?:\d{1,2}[:]\d{2}|(?:klo) \d{1,2}\.\d{2})\b/,
-        FromMarker: /\b(?:from|starting|after)\b/i,
-        ToMarker: /\b(?:to|until|before)\b/i,
-        OnExactDate: /\b(?:on) \d{1,2}[./]\d{1,2}/i,
-        ExactDateRange: /\d{1,2}[./]\d{1,2}( ?)(?:-|to|until)( ?)\d{1,2}[./]\d{1,2}/i,
-    }
-};
