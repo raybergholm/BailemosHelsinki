@@ -208,9 +208,6 @@ exports.handler = (event, context, callback) => {
                     entry.messaging.forEach(function (msg) {
                         if (msg.message) {
                             // Normal message
-
-                            facebookMessageInterface.sendTypingIndicator(true); // send the typing_on indicator immediately
-
                             handleReceivedMessage(msg);
                         } else if (msg.delivery) {
                             handleDeliveryReceipt(msg);
@@ -252,8 +249,6 @@ exports.handler = (event, context, callback) => {
 function handleReceivedMessage(receivedMessage) {
     var senderId = receivedMessage.sender.id;
 
-    facebookMessageInterface.setTargetId(senderId);
-
     var recipientId = receivedMessage.recipient.id;
     var timeOfMessage = receivedMessage.timestamp;
     var messageData = receivedMessage.message;
@@ -267,6 +262,7 @@ function handleReceivedMessage(receivedMessage) {
     var messageText = messageData.text;
     var messageAttachments = messageData.attachments;
 
+    botty.setConversationTarget(senderId);
     // botty.readMessage(messageText, messageAttachments); // TODO: let botty kick off the rest
 
     if (messageText) {
@@ -274,10 +270,6 @@ function handleReceivedMessage(receivedMessage) {
             var result = analyseMessage(messageText);
             generateResponse(result);
         }
-    } else if (messageAttachments) {
-        facebookMessageInterface.sendMessage({
-            text: "Message with attachment received"
-        });
     }
 }
 
