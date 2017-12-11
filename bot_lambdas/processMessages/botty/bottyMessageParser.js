@@ -1,5 +1,7 @@
 "use strict";
 
+var moment = require("../node_modules/moment");
+
 const QUICK_ACTION_KEYWORDS = {
     Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
     Info: /\b(?:info|disclaimer)\b/i,
@@ -24,7 +26,6 @@ const KEYWORDS = { // TODO: worry about localisation later. This could end up re
     },
     Temporal: {
         Days: {
-            Today: /\b(?:today|tonight)\b/i,
             Monday: /\b(?:monday|mo(n?))\b/i,
             Tuesday: /\b(?:tuesday|tu(e?))\b/i,
             Wednesday: /\b(?:wednesday|we(d?))\b/i,
@@ -34,12 +35,14 @@ const KEYWORDS = { // TODO: worry about localisation later. This could end up re
             Sunday: /\b(?:sunday|su(n?))\b/i
         },
         SemanticRanges: {
-            NextSeven: /\b(?:7|seven) days\b/i,
-            ThisWeek: /\bthis week\b/i,
-            ThisWeekend: /\b(?:the|this|upcoming) weekend\b/i,
-            NextWeek: /\bnext week\b/i,
-            NextWeekend: /\bnext weekend\b/i,
-            ThisMonth: /\b(?:this|upcoming) month\b/i
+            Today: /\b(?:today|tonight)(\??)\b/i,
+            Tomorrow: /\btomorrow(\??)\b/i,
+            NextSeven: /\b(?:7|seven) days(\??)\b/i,
+            ThisWeek: /\bthis week(\??)\b/i,
+            ThisWeekend: /\b(?:the|this|upcoming) weekend(\??)\b/i,
+            NextWeek: /\bnext week(\??)\b/i,
+            NextWeekend: /\bnext weekend(\??)\b/i,
+            ThisMonth: /\b(?:this|upcoming) month(\??)\b/i
         },
         Precise: {
             OnExactDate: /\b(?:on) \d{1,2}[./]\d{1,2}/i,
@@ -69,7 +72,7 @@ module.exports = {
     deepScan: function (text) {
         var result = {
             dateRange: checkForTemporalCues(text)
-        }
+        };
 
         var interests = checkForInterests(text);
         if (interests) {
@@ -109,13 +112,74 @@ module.exports = {
     }
 };
 
-function checkForTemporalCues(text) {
+function checkForTemporalCues(text) {   // this one is more special because we can only have one date range
     var dateRange = {
         from: null,
         to: null
     };
-    // this one is more special because we can only have one date range
+
+    var offset;
+
+    // Semantic ranges don't directly reference numbers, so we have to convert it from language actual dates
+    for(var prop in KEYWORDS.Temporal.SemanticRanges){
+        if(KEYWORDS.Temporal.SemanticRanges[prop]){
+            switch(KEYWORDS.Temporal.SemanticRanges[prop]){
+                case "Today":
+                    dateRange.from = moment().startOf("day");
+                    dateRange.to = moment().endOf("day");
+                    break;
+                case "Tomorrow":
+                    dateRange.from = moment().add(1, "days").startOf("day");
+                    dateRange.to = moment().add(1, "days").endOf("day");
+                    break;
+                case "ThisWeek":
+                    dateRange.from = moment().startOf("days");
+                    dateRange.to = moment().endOf("isoWeek");
+                    break;
+                case "ThisWeekend":
+                    offset = 5 - moment().isoWeekday();
+                    dateRange.from = moment().add(offset, "days").startOf("day");
+                    dateRange.to = moment().endOf("isoWeek");
+                    break;
+                case "NextSeven":
+                    dateRange.from = moment().startOf("day");
+                    dateRange.to = moment().add(7, "days").endOf("day");
+                    break;
+                case "NextWeek":
+                    dateRange.from = moment().add(7, "days").startOf("isoWeek");
+                    dateRange.to = moment().add(7, "days").endOf("isoWeek");
+                    break;
+                case "NextWeekend":
+                    offset = 5 - moment().isoWeekday();
+                    dateRange.from = moment().add(7 + offset, "days").startOf("day");
+                    dateRange.to = moment().add(7, "days").endOf("isoWeek");
+                    break;
+                case "ThisMonth":
+                    dateRange.from = moment().startOf("day");
+                    dateRange.to = moment().endOf("month").endOf("day");
+                    break;
+            }
+            return dateRange;
+        }
+    }
+
+    // default
+    dateRange.from = moment().startOf("day");
+    dateRange.to = moment().add(7, "days").endOf("day");
+    return dateRange;
 }
+
+
+/*
+            Today: /\b(?:today|tonight)(\??)\b/i,
+            Tomorrow: /\btomorrow(\??)\b/i,
+            ThisWeek: /\bthis week(\??)\b/i,
+            ThisWeekend: /\b(?:the|this|upcoming) weekend(\??)\b/i,
+            NextSeven: /\b(?:7|seven) days(\??)\b/i,
+            NextWeek: /\bnext week(\??)\b/i,
+            NextWeekend: /\bnext weekend(\??)\b/i,
+            ThisMonth: /\b(?:this|upcoming) month(\??)\b/i
+*/
 
 function checkForEventTypes(text) {
     var eventTypes = [];
@@ -159,12 +223,6 @@ function DateTimeSemanticDecoder() { // TODO: to be honest, all of this semantic
         var newFromDate;
         var newToDate;
         var execResults;
-
-        try {
-            console.log("moment: ", moment().format("YYYY-MM-DD"));
-        } catch (err) {
-            console.log("yeah that didn't work: ", err.message);
-        }
 
         if (quickAnalysisResults) {
             // quick shortcuts. FIXME: All of these are dirty hacks, figure out how to upload moment to lambda and use that instead
