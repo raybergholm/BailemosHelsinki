@@ -1,19 +1,9 @@
 "use strict";
 
-const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
-const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
-
 //---------------------------------------------------------------------------//
 // Built-in modules
 var https = require("https");
 var moment = require("moment");
-
-var AWS = require("aws-sdk");
-AWS.config.update({
-    region: "eu-central-1"
-});
-
-var s3 = new AWS.S3();
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
@@ -21,6 +11,8 @@ var s3 = new AWS.S3();
 
 var facebookRequestVerifier = require("./facebook/facebookRequestVerifier");
 var facebookMessageInterface = require("./facebook/facebookMessageInterface");
+
+var dataStagingInterface = require("./dataStagingInterface");
 
 var botty = require("./botty/botty");
 
@@ -495,7 +487,8 @@ function generateResponse(analysisResults) {
 
             postFilteredEvents(filteredEvents, dateTimeRange);
         };
-        fetchDataFromS3(callback);
+
+        dataStagingInterface.getEventData(callback);
     }
 }
 
@@ -564,38 +557,4 @@ function handleDeliveryReceipt(message) {
 
 function handleReadReceipt(message) {
     console.log("Message read response: ", message.read);
-}
-
-function fetchDataFromS3(callback) {
-    s3.getObject({
-        Bucket: S3_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
-        Key: S3_EVENT_DATA_OBJECT_KEY
-    }, (err, s3Object) => {
-        var stagedData;
-        if (err) {
-            console.log("S3 interface error: ", err);
-        } else {
-            stagedData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
-
-            // Convert all date strings to date objects (all date/time calculations require it, and JSON.stringify will convert back to string correctly)
-            for (var i = 0; i < stagedData.events.length; i++) {
-                stagedData.events[i].start_time = new Date(stagedData.events[i].start_time);
-                stagedData.events[i].end_time = new Date(stagedData.events[i].start_time);
-
-                if (stagedData.events[i].event_times) {
-                    for (var j = 0; j < stagedData.events[i].event_times.length; j++) {
-                        stagedData.events[i].event_times[j].start_time = new Date(stagedData.events[i].event_times[j].start_time);
-                        stagedData.events[i].event_times[j].end_time = new Date(stagedData.events[i].event_times[j].end_time);
-                    }
-
-                }
-            }
-
-            console.log(stagedData);
-
-            if (callback) {
-                callback(stagedData);
-            }
-        }
-    });
 }
