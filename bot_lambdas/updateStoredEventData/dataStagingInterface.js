@@ -48,7 +48,7 @@ module.exports = {
         }, (err, s3Object) => {
             var stagedData;
             if (err) {
-                console.log("S3 interface error: ", err);
+                console.log("S3 getObject error: ", err);
             } else {
                 stagedData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
     
@@ -81,9 +81,9 @@ module.exports = {
             Body: payload
         }, function (err, data) {
             if (err) {
-                console.log("S3 interface error: ", err);
+                console.log("S3 putObject error: ", err);
             } else {
-                console.log("putObject response metadata:", data);
+                console.log("S3 putObject response metadata:", data);
                 if(callback){
                     callback(data);
                 }
