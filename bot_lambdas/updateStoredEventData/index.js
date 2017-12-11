@@ -1,69 +1,29 @@
 "use strict";
 
-const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
-const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
-const S3_EVENT_DATA_OBJECT_KEY = process.env.S3_EVENT_DATA_OBJECT_KEY;
-
 //---------------------------------------------------------------------------//
 // Built-in modules
 var https = require("https");
 
-var AWS = require("aws-sdk");
-AWS.config.update({
-    region: "eu-central-1"
-});
-
-var dynamodb = new AWS.DynamoDB();
-var s3 = new AWS.S3();
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // Custom modules
 var facebookApiInterface = require("./facebookApiInterface");
 
+var dataStagingInterface = require("./dataStagingInterface");
+
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    console.log(event);
-
-    fetchNodes();
+    dataStagingInterface.getOrganiserData(queryFacebookApi); // main logical chain gets kicked off asynchronously from here
 
     var response = {
         isBase64Encoded: false,
         statusCode: 200,
         body: "OK"
     };
-
-    console.log("returning the following response: ", JSON.stringify(response));
     callback(null, response);
 };
-
-function fetchNodes() { // scan the entire event organiser table (won't take long, in the current scope the data size is tiny), then use that data to call the GraphAPI to get the updated data
-    dynamodb.scan({
-        TableName: EVENT_ORGANISER_TABLE_NAME,
-        Limit: 50
-    }, function (err, data) {
-        var item;
-        var nodes = {};
-        if (err) {
-            console.log("error reading DynamoDB: ", err);
-        } else {
-            for (var prop in data.Items) {
-                item = data.Items[prop];
-
-                nodes[item.NodeId.N] = { // TODO: hardcoding all these S and Ns are a bit silly, sort that out later?
-                    Id: item.NodeId.N,
-                    Name: item.Name.S,
-                    Type: item.NodeType.S
-                };
-            }
-
-            console.log(JSON.stringify(nodes));
-
-            queryFacebookApi(nodes);
-        }
-    });
-}
 
 function queryFacebookApi(organisers) {
     var batchRequestContent = [];
@@ -136,8 +96,16 @@ function queryFacebookApi(organisers) {
 
             console.log(responses);
 
-            var eventsMap = formatEventData(responses, organisers);
-            updateS3Data(eventsMap, organisers);
+            var payload = formatEventData(responses, organisers);
+            if (payload) {
+                dataStagingInterface.updateEventData(payload, function (err, data) {
+                    if (err) {
+                        console.log("S3 interface error: ", err);
+                    } else {
+                        console.log("putObject response metadata:", data);
+                    }
+                });
+            }
         });
     });
     req.on("error", (err) => {
@@ -186,51 +154,21 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
                 } else {
                     console.log("Additional metadata in response: ", entries[prop]);
                 }
-
-
             }
         }
     });
 
-    return eventsMap;
-}
-
-function updateS3Data(events, organisers) {
-    if (!events) {
-        console.log("Invalid S3 events payload: ", events);
+    if (!eventsMap) {
+        console.log("events map was empty");
         return;
     }
 
-    var payload = {
-        events: cleanupPayloadToS3(events),
-        organisers: organisers
-    };
-
-    payload = JSON.stringify(payload);
-
-    s3.putObject({
-        Bucket: S3_BUCKET_NAME,
-        Key: S3_EVENT_DATA_OBJECT_KEY,
-        Body: payload
-    }, function (err, data) {
-        if (err) {
-            console.log("S3 interface error: ", err);
-        } else {
-            console.log("putObject response metadata:", data);
-        }
-    });
-}
-
-// Converts the payload map into an array of events sorted in ascending chronological order, then stringifies the result in preparation for saving to S3
-function cleanupPayloadToS3(payload) {
-    // var cleanedPayload = Object.values(payload); // NB Object.values isn't available until Node 7.0
-    var cleanedPayload = Object.keys(payload).map((key) => {
-        return payload[key];
+    // Convert the map into an array of events sorted in ascending chronological order
+    var eventsArr = Object.keys(eventsMap).map((key) => {
+        return eventsMap[key];
     });
 
-    console.log("cleaned payload content: ", cleanedPayload);
-
-    cleanedPayload.sort(function (left, right) {
+    eventsArr.sort(function (left, right) {
         var leftDate = new Date(left.start_time);
         var rightDate = new Date(right.start_time);
 
@@ -241,5 +179,12 @@ function cleanupPayloadToS3(payload) {
         }
     });
 
-    return cleanedPayload;
+    var payload = {
+        events: eventsArr,
+        organisers: organisers
+    }
+
+    payload = JSON.stringify(payload); // important: need to stringify the body prior to saving
+
+    return payload;
 }
