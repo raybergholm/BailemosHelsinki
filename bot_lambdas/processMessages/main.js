@@ -2,7 +2,6 @@
 
 //---------------------------------------------------------------------------//
 // Built-in modules
-var https = require("https");
 var moment = require("moment");
 //---------------------------------------------------------------------------//
 
@@ -184,8 +183,6 @@ const KEYWORD_REGEXES = { // TODO: worry about localisation later. This could en
 };
 
 exports.handler = (event, context, callback) => {
-    console.log(event);
-
     if (!facebookRequestVerifier.verifySignature(event.headers['X-Hub-Signature'])) {
         console.log("X-Hub_Signature did not match the expected value");
         // return;  TODO: allow it to pass for now, debug it later
@@ -269,6 +266,8 @@ function handleReceivedMessage(receivedMessage) {
     // var messageId = messageData.mid;
     var messageText = messageData.text;
     var messageAttachments = messageData.attachments;
+
+    // botty.read(messageText, messageAttachments); // TODO: let botty kick off the rest
 
     if (messageText) {
         if (!findSpecialTexts(messageText)) {
@@ -544,7 +543,7 @@ function postFilteredEvents(filteredEvents, dateTimeRange) {
     
     facebookMessageInterface.sendMessage({
         text: bottyText
-    })
+    });
 
     if (filteredEvents.length > 0) {
         facebookMessageInterface.sendTemplatedMessage(elements);
