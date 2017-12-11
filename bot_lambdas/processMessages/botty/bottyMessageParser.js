@@ -69,9 +69,13 @@ module.exports = {
     },
 
     deepScan: function (text) {
-        var result = {
-            dateRange: checkForTemporalCues(text)
-        };
+        var result = {};
+
+        var dateRange = checkForTemporalCues(text);
+        if (dateRange) {
+            result.dateRange = dateRange;
+            result.matched = true;
+        }
 
         var interests = checkForInterests(text);
         if (interests) {
@@ -109,10 +113,17 @@ module.exports = {
             }
         }
         return eventsMap;
+    },
+
+    getDefaultDateRange: () => {
+        return {
+            from: moment().startOf("day"),
+            to: moment().add(7, "days").endOf("day")
+        };
     }
 };
 
-function checkForTemporalCues(text) {   // this one is more special because we can only have one date range
+function checkForTemporalCues(text) { // this one is more special because we can only have one date range
     var dateRange = {
         from: null,
         to: null
@@ -122,9 +133,9 @@ function checkForTemporalCues(text) {   // this one is more special because we c
     var offset;
 
     // Semantic ranges don't directly reference numbers, so we have to convert it from language actual dates
-    for(var prop in KEYWORDS.Temporal.SemanticRanges){
-        if(KEYWORDS.Temporal.SemanticRanges[prop]){
-            switch(KEYWORDS.Temporal.SemanticRanges[prop]){
+    for (var prop in KEYWORDS.Temporal.SemanticRanges) {
+        if (KEYWORDS.Temporal.SemanticRanges[prop]) {
+            switch (KEYWORDS.Temporal.SemanticRanges[prop]) {
                 case "Today":
                     dateRange.from = moment().startOf("day");
                     dateRange.to = moment().endOf("day");
@@ -164,6 +175,7 @@ function checkForTemporalCues(text) {   // this one is more special because we c
                     dateRange.to = moment().endOf("month");
                     break;
             }
+            console.log("dateRange inside parser:", dateRange);
             return dateRange;
         }
     }
@@ -171,42 +183,40 @@ function checkForTemporalCues(text) {   // this one is more special because we c
     // FIXME: datelike is behaving strangely and can't quite catch dd.mm, and dd.mm.yyyy becomes dd.mm.yy
 
     results = KEYWORDS.Temporal.Precise.OnExactDate(text);
-    if(results){
+    if (results) {
         results = KEYWORDS.Temporal.DateLike.exec(results[0]);
-        if(results){
+        if (results) {
             dateRange.from = moment(results[0]).startOf("day");
             dateRange.from.year(dateRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
-            
+
             dateRange.to = dateRange.from.clone();
             dateRange.to.endOf("day");
 
+            console.log("dateRange inside parser:", dateRange);
             return dateRange;
         }
     }
 
     results = KEYWORDS.Temporal.Precise.ExactDateRange(text);
-    if(results){
+    if (results) {
         results = KEYWORDS.Temporal.DateLike.exec(results[0]);
-        if(results){
+        if (results) {
             dateRange.from = moment(results[0]).startOf("day");
             dateRange.from.year(dateRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
-            
+
             dateRange.to = moment(results[1]).endOf("day");
             dateRange.to.year(dateRange.from.year());
-            if(dateRange.to.month() < dateRange.from.month()){
+            if (dateRange.to.month() < dateRange.from.month()) {
                 dateRange.to.add(1, "year");
             }
 
+            console.log("dateRange inside parser:", dateRange);
             return dateRange;
         }
     }
 
-    // default
-    dateRange.from = moment().startOf("day");
-    dateRange.to = moment().add(7, "days").endOf("day");
-    return dateRange;
+    return null;
 }
-
 
 function checkForEventTypes(text) {
     var eventTypes = [];

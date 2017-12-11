@@ -146,12 +146,15 @@ function quickScan(text) {
 
 function deepScan(text) {
     analysisResults = parser.deepScan(text);
+    console.log("deepScan:", analysisResults);
     return analysisResults.matched;
 }
 
 function eventDataCallback(stagedData) {
     var organisers = stagedData.organisers;
     var eventMap = {};
+
+    console.log(analysisResults);
 
     console.log("before filtering: " + stagedData.events.length + " events");
 
