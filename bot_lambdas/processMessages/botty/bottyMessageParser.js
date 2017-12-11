@@ -71,15 +71,16 @@ module.exports = {
     deepScan: function (text) {
         var result = {};
 
-        var dateRange = checkForTemporalCues(text);
-        if (dateRange) {
-            result.dateRange = dateRange;
+        var dateTimeRange = checkForTemporalCues(text);
+        if (dateTimeRange) {
+            result.dateTimeRange = dateTimeRange;
             result.matched = true;
         }
 
         var interests = checkForInterests(text);
         if (interests) {
             result.interests = interests;
+            result.optionals = true;
             result.matched = true;
         }
         return result;
@@ -88,15 +89,17 @@ module.exports = {
     filterEvents: function (eventsMap, keywords) {
         var i;
         var matchedKeyword;
-        if (keywords.interests.length > 0 || keywords.locations > 0) {
+        if (keywords.optionals) {
             for (var prop in eventsMap) {
                 matchedKeyword = false;
 
                 // Lazy matching: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
-                for (i = 0; i < keywords.interests.length; i++) {
-                    if (KEYWORDS.Interests[keywords.interests[i]].test(eventsMap[prop].description)) {
-                        matchedKeyword = true;
-                        break;
+                if(keywords.interests){
+                    for (i = 0; i < keywords.interests.length; i++) {
+                        if (KEYWORDS.Interests[keywords.interests[i]].test(eventsMap[prop].description)) {
+                            matchedKeyword = true;
+                            break;
+                        }
                     }
                 }
 
@@ -131,6 +134,11 @@ function checkForTemporalCues(text) { // this one is more special because we can
 
     var results;
     var offset;
+
+    console.log("base moment:", moment());
+    console.log("base moment:", moment().startOf("day"));
+    console.log("base moment:", moment().endOf("day"));
+    console.log("base moment:", moment().toDate());
 
     // Semantic ranges don't directly reference numbers, so we have to convert it from language actual dates
     for (var prop in KEYWORDS.Temporal.SemanticRanges) {
