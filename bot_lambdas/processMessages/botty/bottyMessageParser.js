@@ -76,6 +76,7 @@ module.exports = {
         var interests = checkForInterests(text);
         if (interests) {
             result.interests = interests;
+            result.matched = true;
         }
         return result;
     },
