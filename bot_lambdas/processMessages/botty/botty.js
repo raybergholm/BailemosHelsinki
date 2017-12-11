@@ -1,3 +1,5 @@
+"use strict";
+
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
 var parser = require("./bottyMessageParser");

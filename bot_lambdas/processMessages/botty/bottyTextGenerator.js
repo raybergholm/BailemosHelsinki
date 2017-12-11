@@ -1,3 +1,5 @@
+"use strict";
+
 const BOT_TEXTS = { // probably should be fetched from S3
     Greetings: [
         "Hi!",

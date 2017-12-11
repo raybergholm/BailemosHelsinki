@@ -1,3 +1,5 @@
+"use strict";
+
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
 module.exports = {
