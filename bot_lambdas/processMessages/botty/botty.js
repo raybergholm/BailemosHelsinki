@@ -43,7 +43,6 @@ module.exports = {
         result = quickScan(text);
 
         if (result) {
-            // TODO: send reply to user. don't continue, no further backend calls required. Note that reply may be an array
             if (result instanceof Array) {
                 for (var i = 0; i < result.length; i++) {
                     facebookMessageInterface.sendMessage({
@@ -158,8 +157,6 @@ function eventDataCallback(stagedData) {
 
     // Filter by datetime: this is the only mandatory filter so build the whitelist from everything within the time range
     stagedData.events.forEach((eventData) => {
-        // TODO: filter by datetime range. Mandatory filter, can't pass everything to the end-user all at once anyway
-
         if (eventData.start_time.getTime() > analysisResults.dateTimeRange.from.getTime() && eventData.end_time.getTime() < analysisResults.dateTimeRange.to.getTime()) {
             eventMap[eventData.id] = eventData;
         }

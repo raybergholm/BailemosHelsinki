@@ -95,7 +95,7 @@ function handleReceivedMessage(receivedMessage) {
     var messageAttachments = messageData.attachments;
 
     botty.setConversationTarget(senderId);
-    botty.readMessage(messageText, messageAttachments); // TODO: let botty kick off the rest
+    botty.readMessage(messageText, messageAttachments);
 }
 
 function handleDeliveryReceipt(message) {
