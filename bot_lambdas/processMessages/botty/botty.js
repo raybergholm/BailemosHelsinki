@@ -2,6 +2,9 @@
 
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
+var facebookApiInterface = require("../facebook/facebookApiInterface");
+var facebookMessageInterface = require("../facebook/facebookMessageInterface");
+
 var parser = require("./bottyMessageParser");
 var textGenerator = require("./bottyTextGenerator");
 var memory = require("./bottyMemoryInterface");
@@ -18,6 +21,10 @@ const FAST_ACTIONS = {  // if the bot replies with these, no call is required to
 };
 
 module.exports = {
+    setConversationTarget: (targetId) =>{
+        facebookMessageInterface.setTargetId(targetId);
+    },
+
     replyToQuickAction: function(){
 
     },
@@ -31,6 +38,9 @@ module.exports = {
 
             return;
         }
+        
+        // this will require a deepScan and may take longer. Send typing indicator
+        facebookMessageInterface.sendTypingIndicator(true);
     },
 
     reply: () => {
