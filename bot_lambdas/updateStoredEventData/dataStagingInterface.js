@@ -8,12 +8,12 @@ AWS.config.update({
     region: "eu-central-1"
 });
 
-var dynamodb = new AWS.dynamoDB();
+var dynamoDB = new AWS.DynamoDB();
 var s3 = new AWS.S3();
 
 module.exports = {
     getOrganiserData: (callback) => {
-        dynamodb.scan({
+        dynamoDB.scan({
             TableName: EVENT_ORGANISER_TABLE_NAME,
             Limit: 50
         }, function (err, data) {
