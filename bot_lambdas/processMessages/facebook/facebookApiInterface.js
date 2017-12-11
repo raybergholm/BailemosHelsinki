@@ -1,3 +1,5 @@
+"use strict";
+
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 module.exports = {

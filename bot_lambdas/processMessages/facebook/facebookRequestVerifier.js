@@ -1,3 +1,5 @@
+"use strict";
+
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 
 var crypto = require("crypto");
