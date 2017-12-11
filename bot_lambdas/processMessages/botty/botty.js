@@ -84,7 +84,7 @@ module.exports = {
 };
 
 function scanForFastActions(text){
-    var result = parser.scanForFastActions(text);
+    var result = parser.quickScan(text);
     var reply = null;
     if(result){
         switch(result){
