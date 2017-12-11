@@ -58,6 +58,10 @@ module.exports = {
             return;
         }
 
+        if (attachments) {
+            // TODO: what do we want to do with attachments?
+        }
+
         // this will require a deepScan and may take longer. Send typing indicator
         facebookMessageInterface.sendTypingIndicator(typingIndicatorSent);
         typingIndicatorSent = true;
