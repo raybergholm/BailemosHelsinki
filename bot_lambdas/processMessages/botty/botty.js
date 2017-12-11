@@ -1,6 +1,8 @@
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
+var parser = require("./bottyMessageParser");
 var textGenerator = require("./bottyTextGenerator");
+var memory = require("./bottyMemoryInterface");
 
 module.exports = {
     greet: () => {
