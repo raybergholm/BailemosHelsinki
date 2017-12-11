@@ -34,12 +34,13 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "I guess that didn't quite work as intended",
         "Yeah, I have some problems sometimes :("
     ],
-
     Disclaimer: [
         "This bot is currently under construction, so don't worry if things break.", "I don't really understand full sentences yet, just so you know :(", "If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages!", "Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
     ],
-    HelpInfo: [
-        "Currently I can detect some keywords related to the dance scene in Helsinki based on things like time, event types and interests. You can freely combine terms to narrow down your search", "e.g. try something like \"any salsa parties this weekend?\" and I can pick up \"salsa\", \"party\" and \"this weekend\" and check what's out there.", "Or you could just ask \"what's happening next Friday?\" if you just want to know what's happening then", "Or you could just try \"Surprise me\" :)"
+    HelpRequest: [
+        "Currently I can detect some keywords related to the dance scene in Helsinki based on things like time, event types and interests. You can freely combine terms to narrow down your search", "e.g. try something like \"any salsa parties this weekend?\" and I can pick up \"salsa\", \"party\" and \"this weekend\" and check what's out there.", 
+        "Or you could just ask \"what's happening next Friday?\" if you just want to know what's happening then", 
+        "Or you could just try \"Surprise me\" :)"
     ],
     NoResults: [
         "I didn't find any events for the period {from} to {to}"
