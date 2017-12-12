@@ -10,7 +10,6 @@ var textGenerator = require("./bottyTextGenerator");
 var memory = require("./bottyMemoryInterface");
 
 // Facebook Graph API interface
-var facebookApiInterface = require("../facebook/facebookApiInterface");
 var facebookMessageInterface = require("../facebook/facebookMessageInterface");
 
 // Persistent storage interface 
