@@ -6,7 +6,33 @@ var facebookApiInterface = require("./facebookApiInterface");
 var facebookMessageFactory = require("./facebookMessageFactory");
 
 
-var _messageBuffer = new MessageBuffer();
+var _messageBuffer = {
+    _queuedMessages: [],
+    enqueue: function (message) {
+        this._queuedMessages.push(message);
+    },
+    flush: function () {
+        var content;
+        if (this._queuedMessages.length === 1) {
+            content = JSON.stringify(this._queuedMessages[0]);
+        } else {
+            var batchRequestContent = [];
+            for (var i = 0; i < this._queuedMessages.length; i++) {
+                batchRequestContent.push({
+                    relative_url: encodeURIComponent("/me/messages/"),
+                    method: "POST",
+                    body: encodeURIComponent(JSON.stringify(this._queuedMessages[i])) // FIXME: This is hella broken, body needs a different format entirely?
+                });
+            }
+
+            content = "batch=" + JSON.stringify(batchRequestContent);
+        }
+
+        this._messages = [];
+
+        return content;
+    }
+};
 
 var _targetId;
 
@@ -109,32 +135,4 @@ function postDeliveryCallback(str) {
     console.log("callback end, got " + str);
 
     module.exports.sendTypingIndicator(false);
-}
-
-function MessageBuffer() {
-    this._queuedMessages = [];
-    this.enqueue = function (message) {
-        this._queuedMessages.push(message);
-    };
-    this.flush = function () {
-        var content;
-        if (this._queuedMessages.length === 1) {
-            content = JSON.stringify(this._queuedMessages[0]);
-        } else {
-            var batchRequestContent = [];
-            for (var i = 0; i < this._queuedMessages.length; i++) {
-                batchRequestContent.push({
-                    relative_url: encodeURIComponent("/me/messages/"),
-                    method: "POST",
-                    body: encodeURIComponent(JSON.stringify(this._queuedMessages[i])) // FIXME: This is hella broken, body needs a different format entirely?
-                });
-            }
-
-            content = "batch=" + JSON.stringify(batchRequestContent);
-        }
-
-        this._messages = [];
-
-        return content;
-    };
 }
