@@ -246,9 +246,9 @@ function replyWithFilteredEvents(filteredEvents) {
     if (filteredEvents.length === 0) {
         baseString = textGenerator.getText("NoResults");
     } else if (filteredEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
-        baseString = textGenerator.getText("NormalResults");
-    } else {
         baseString = textGenerator.getText("OverflowResults");
+    } else {
+        baseString = textGenerator.getText("NormalResults");
     }
 
     var messageText = textGenerator.formatText(baseString, {
