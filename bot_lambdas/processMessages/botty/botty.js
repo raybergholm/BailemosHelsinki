@@ -207,7 +207,7 @@ function replyWithFilteredEvents(filteredEvents) {
                     }
                 }
 
-                let confidence = Math.round((highestWeight / totalWeights) * 100);
+                let confidence = Math.round((highestWeight.value / totalWeights) * 100);
 
                 subtitleString += textGenerator.formatText(textGenerator.getText("EventType"), {
                     type: highestWeight.type,
