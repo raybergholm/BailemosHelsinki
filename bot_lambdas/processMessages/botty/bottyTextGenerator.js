@@ -14,7 +14,12 @@ const BOT_TEXTS = { // probably should be fetched from S3
     ReplyToThanks: [
         "You're welcome! :)",
         "No problems! :)",
+        "Just doing my job :)",
         "Glad to be of service!"
+    ],
+    Embarressed: [
+        "Why, thank you!",
+        "Aww, thanks"
     ],
     Uncertain: [
         "I have no idea what you mean :(",

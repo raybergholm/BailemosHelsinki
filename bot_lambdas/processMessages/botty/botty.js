@@ -22,6 +22,7 @@ const FAST_ACTIONS = { // if the bot replies with these, no call is required to 
     Greetings: "Greetings",
     Thank: "Thank",
     ReplyToThanks: "ReplyToThanks",
+    Embarressed: "Embarressed",
     Apologise: "Apologise",
     HelpRequest: "HelpRequest",
     Disclaimer: "Disclaimer"
@@ -101,6 +102,10 @@ module.exports = {
         return textGenerator.getText("Apologise");
     },
 
+    beEmbarressed: () => {
+        return textGenerator.getText("Embarressed");
+    },
+
     beUncertain: () => {
         return textGenerator.getText("Uncertain");
     },
@@ -133,6 +138,9 @@ function quickScan(text) {
                 break;
             case FAST_ACTIONS.ReplyToThanks:
                 reply = module.exports.replyToThanks();
+                break;
+            case FAST_ACTIONS.Embarressed:
+                reply = module.exports.beEmbarressed();
                 break;
             case FAST_ACTIONS.Apologise:
                 reply = module.exports.apologise();
