@@ -4,7 +4,7 @@ const moment = require("../node_modules/moment");
 
 //---------------------------------------------------------------------------//
 
-const QUICK_ACTION_KEYWORDS = {
+const QUICK_MESSAGE_KEYWORDS = {
     Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
     Info: /\b(?:info|disclaimer)\b/i,
     HelpRequest: /\b(?:help)(?:\b|[!?])|\bhelp [me|please]\b/i,
@@ -14,7 +14,7 @@ const QUICK_ACTION_KEYWORDS = {
     Apologise: /\b(?:wtf|you're drunk|wrong|big nope)\b/i
 };
 
-const KEYWORDS = { // TODO: worry about localisation later. This could end up requiring a major rewrite of these regexes since \b considers stuff like åäö as word breaks
+const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end up requiring a major rewrite of these regexes since \b considers stuff like åäö as word breaks
     Special: {
         SurpriseMe: /\bsurprise me\b/i
     },
@@ -65,8 +65,8 @@ const KEYWORDS = { // TODO: worry about localisation later. This could end up re
 
 module.exports = {
     quickScan: function (text) {
-        for (let prop in QUICK_ACTION_KEYWORDS) {
-            if (QUICK_ACTION_KEYWORDS[prop].test(text)) {
+        for (let prop in QUICK_MESSAGE_KEYWORDS) {
+            if (QUICK_MESSAGE_KEYWORDS[prop].test(text)) {
                 return prop;
             }
         }
@@ -103,7 +103,7 @@ module.exports = {
                 // Lazy matching: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
                 if (keywords.interests) {
                     for (let i = 0; i < keywords.interests.length; i++) {
-                        if (KEYWORDS.Interests[keywords.interests[i]].test(eventsMap[prop].description)) {
+                        if (MAIN_KEYWORDS.Interests[keywords.interests[i]].test(eventsMap[prop].description)) {
                             matchedKeyword = true;
                             break;
                         }
@@ -142,8 +142,8 @@ function checkForTemporalCues(text) { // this one is more special because we can
     let offset;
 
     // Semantic ranges don't directly reference numbers, so we have to convert it from language actual dates
-    for (let prop in KEYWORDS.Temporal.SemanticRanges) {
-        if (KEYWORDS.Temporal.SemanticRanges[prop].test(text)) {
+    for (let prop in MAIN_KEYWORDS.Temporal.SemanticRanges) {
+        if (MAIN_KEYWORDS.Temporal.SemanticRanges[prop].test(text)) {
             switch (prop) {
                 case "Today":
                     dateTimeRange.from = moment().startOf("day");
@@ -192,9 +192,9 @@ function checkForTemporalCues(text) { // this one is more special because we can
 
     let results;
 
-    results = KEYWORDS.Temporal.Precise.OnExactDate.exec(text);
+    results = MAIN_KEYWORDS.Temporal.Precise.OnExactDate.exec(text);
     if (results) {
-        results = KEYWORDS.Temporal.DateLike.exec(results[0]);
+        results = MAIN_KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
             if (results.length < 1 || !moment(results[0]).isValid()) {
                 console.log("Attempted to use an invalid date: ", results);
@@ -210,14 +210,14 @@ function checkForTemporalCues(text) { // this one is more special because we can
         }
     }
 
-    results = KEYWORDS.Temporal.Precise.ExactDateRange.exec(text);
+    results = MAIN_KEYWORDS.Temporal.Precise.ExactDateRange.exec(text);
     if (results) {
-        results = KEYWORDS.Temporal.DateLike.exec(results[0]);
+        results = MAIN_KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
             if (results.length < 2 || !moment(results[0]).isValid() || !moment(results[1]).isValid()) {
                 console.log("Attempted to use invalid date(s): ", results);
                 return null;
-            };
+            }
 
             dateTimeRange.from = moment(results[0]).startOf("day");
             dateTimeRange.from.year(dateTimeRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
@@ -238,8 +238,8 @@ function checkForTemporalCues(text) { // this one is more special because we can
 function checkForEventTypes(text) {
     let eventTypes = [];
 
-    for (let prop in KEYWORDS.Types) {
-        if (KEYWORDS.Types[prop].test(text)) {
+    for (let prop in MAIN_KEYWORDS.Types) {
+        if (MAIN_KEYWORDS.Types[prop].test(text)) {
             eventTypes.push(prop);
         }
     }
@@ -250,8 +250,8 @@ function checkForEventTypes(text) {
 function checkForInterests(text) {
     let interests = [];
 
-    for (let prop in KEYWORDS.Interests) {
-        if (KEYWORDS.Interests[prop].test(text)) {
+    for (let prop in MAIN_KEYWORDS.Interests) {
+        if (MAIN_KEYWORDS.Interests[prop].test(text)) {
             interests.push(prop);
         }
     }
