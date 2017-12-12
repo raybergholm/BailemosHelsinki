@@ -199,19 +199,18 @@ function replyWithFilteredEvents(filteredEvents) {
                     type: "",
                     value: 0
                 };
-                for(let prop in eventData.probabilities){
+                for (let prop in eventData.probabilities) {
                     totalWeights += eventData.probabilities[prop];
-                    if(eventData.probabilities[prop] > highestWeight.value){
+                    if (eventData.probabilities[prop] > highestWeight.value) {
                         highestWeight.type = prop;
                         highestWeight.value = eventData.probabilities[prop];
                     }
                 }
 
                 let confidence;
-                
-                if(totalWeights > 0){
-                    confidence =  Math.round((highestWeight.value / totalWeights) * 100);
-                }else{
+                if (totalWeights > 0) {
+                    confidence = Math.round((highestWeight.value / totalWeights) * 100);
+                } else {
                     highestWeight.type = "Unsure";
                     confidence = 0;
                 }
