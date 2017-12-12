@@ -4,7 +4,7 @@ const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
 module.exports = {
     createMessage: function (targetId, text, attachment) {
-        var message = createMessageBase(targetId);
+        let message = createMessageBase(targetId);
 
         if (text) {
             message.message.text = text;
@@ -29,7 +29,7 @@ module.exports = {
     },
 
     createGenericMessageTemplate: function (targetId, text, elements) {
-        var messageTemplate = createTemplateBase();
+        let messageTemplate = createTemplateBase();
         messageTemplate.payload = {
             template_type: "generic",
             elements: elements

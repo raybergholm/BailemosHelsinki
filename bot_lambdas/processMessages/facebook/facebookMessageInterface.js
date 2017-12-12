@@ -1,22 +1,21 @@
 "use strict";
 
-var https = require("https");
+let https = require("https");
 
-var facebookApiInterface = require("./facebookApiInterface");
-var facebookMessageFactory = require("./facebookMessageFactory");
+let facebookApiInterface = require("./facebookApiInterface");
+let facebookMessageFactory = require("./facebookMessageFactory");
 
-
-var _messageBuffer = {
+let _messageBuffer = {
     _queuedMessages: [],
     enqueue: function (message) {
         this._queuedMessages.push(message);
     },
     flush: function () {
-        var content;
+        let content;
         if (this._queuedMessages.length === 1) {
             content = JSON.stringify(this._queuedMessages[0]);
         } else {
-            var batchRequestContent = [];
+            let batchRequestContent = [];
             for (var i = 0; i < this._queuedMessages.length; i++) {
                 batchRequestContent.push({
                     relative_url: encodeURIComponent("/me/messages/"),
@@ -34,7 +33,7 @@ var _messageBuffer = {
     }
 };
 
-var _targetId;
+let _targetId;
 
 module.exports = {
     setTargetId: function (targetId) {
@@ -42,20 +41,20 @@ module.exports = {
     },
 
     sendTypingIndicator: function (mode) {
-        var typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(_targetId, mode ? "typing_on" : "typing_off");
+        let typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(_targetId, mode ? "typing_on" : "typing_off");
         // this.sendMessageToFacebook(typingIndicatorMessage); // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
     },
 
     sendMessage: function (params) {
-        var message = facebookMessageFactory.createMessage(_targetId, params.text, params.attachment);
+        let message = facebookMessageFactory.createMessage(_targetId, params.text, params.attachment);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         sendMessageToFacebook(message);
     },
 
     sendTemplatedMessage: function (inputElements) {
-        var elements = [];
-        for (var i = 0; i < inputElements.length; i++) {
+        let elements = [];
+        for (let i = 0; i < inputElements.length; i++) {
             elements.push(facebookMessageFactory.createTemplateElement(
                 inputElements[i].title,
                 inputElements[i].subtitle,
@@ -63,43 +62,32 @@ module.exports = {
                 inputElements[i].actionUrl
             ));
         }
-        var message = facebookMessageFactory.createGenericMessageTemplate(_targetId, null, elements);
+        let message = facebookMessageFactory.createGenericMessageTemplate(_targetId, null, elements);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         sendMessageToFacebook(message);
-    },
-
-    sendAsync: function () {
-        var payload;
-        if (_messageBuffer.length === 0) {
-            payload = _messageBuffer.flush();
-            this.sendMessageToFacebook(payload);
-        } else {
-            payload = _messageBuffer.flush();
-            this.sendBatchedMessage(payload);
-        }
     }
 };
 
 function sendMessageToFacebook(payload) {
     console.log("sending this message payload to FB:", payload);
 
-    var body = JSON.stringify(payload);
-    var options = facebookApiInterface.createSendMessageOptions();
+    let body = JSON.stringify(payload);
+    let options = facebookApiInterface.createSendMessageOptions();
 
-    var callback = function (response) {
-        var str = "";
-        response.on("data", function (chunk) {
+    let callback = function (response) {
+        let str = "";
+        response.on("data", (chunk) => {
             str += chunk;
         });
-        response.on("end", function () {
+        response.on("end", () => {
             postDeliveryCallback(str);
         });
     };
 
-    var req = https.request(options, callback);
-    req.on("error", function (e) {
-        console.log("problem with request: " + e);
+    let req = https.request(options, callback);
+    req.on("error", function (err) {
+        console.log("problem with request: " + err);
     });
 
     req.write(body);
@@ -109,22 +97,22 @@ function sendMessageToFacebook(payload) {
 function sendBatchedMessage(payload) {
     console.log("sending this message payload to FB:", payload);
 
-    var body = payload;
-    var options = facebookApiInterface.createGraphApiOptions();
+    let body = payload;
+    let options = facebookApiInterface.createGraphApiOptions();
 
-    var callback = function (response) {
-        var str = "";
-        response.on("data", function (chunk) {
+    let callback = function (response) {
+        let str = "";
+        response.on("data", (chunk) => {
             str += chunk;
         });
-        response.on("end", function () {
+        response.on("end", () => {
             postDeliveryCallback(str);
         });
     };
 
-    var req = https.request(options, callback);
-    req.on("error", function (e) {
-        console.log("problem with request: " + e);
+    let req = https.request(options, callback);
+    req.on("error", function (err) {
+        console.log("problem with request: " + err);
     });
 
     req.write(body);
