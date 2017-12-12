@@ -121,12 +121,11 @@ function deepScan(text) {
 }
 
 function eventDataCallback(stagedData) {
-    let organisers = stagedData.organisers;
     let eventMap = {};
 
     console.log(analysisResults);
 
-    console.log("before filtering: " + stagedData.events.length + " events");
+    console.log("before filtering: " + stagedData.length + " events");
 
     if (!analysisResults.dateTimeRange || !analysisResults.dateTimeRange.from || !analysisResults.dateTimeRange.to) {
         console.log("major error in date/time range, they were null. Emergency fallback to default date range");
@@ -134,7 +133,7 @@ function eventDataCallback(stagedData) {
     }
 
     // Filter by datetime: this is the only mandatory filter so build the whitelist from everything within the time range
-    stagedData.events.forEach((eventData) => {
+    stagedData.forEach((eventData) => {
         if (eventData.start_time.getTime() > analysisResults.dateTimeRange.from.valueOf() && eventData.end_time.getTime() < analysisResults.dateTimeRange.to.valueOf()) {
             eventMap[eventData.id] = eventData;
         }

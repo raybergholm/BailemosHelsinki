@@ -24,14 +24,14 @@ module.exports = {
                 let stagedData = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
 
                 // Convert all date strings to date objects (all date/time calculations require it, and JSON.stringify will convert back to string correctly)
-                for (let i = 0; i < stagedData.events.length; i++) {
-                    stagedData.events[i].start_time = new Date(stagedData.events[i].start_time);
-                    stagedData.events[i].end_time = new Date(stagedData.events[i].start_time);
+                for (let i = 0; i < stagedData.length; i++) {
+                    stagedData[i].start_time = new Date(stagedData[i].start_time);
+                    stagedData[i].end_time = new Date(stagedData[i].start_time);
 
-                    if (stagedData.events[i].event_times) {
-                        for (let j = 0; j < stagedData.events[i].event_times.length; j++) {
-                            stagedData.events[i].event_times[j].start_time = new Date(stagedData.events[i].event_times[j].start_time);
-                            stagedData.events[i].event_times[j].end_time = new Date(stagedData.events[i].event_times[j].end_time);
+                    if (stagedData[i].event_times) {
+                        for (let j = 0; j < stagedData[i].event_times.length; j++) {
+                            stagedData[i].event_times[j].start_time = new Date(stagedData[i].event_times[j].start_time);
+                            stagedData[i].event_times[j].end_time = new Date(stagedData[i].event_times[j].end_time);
                         }
                     }
                 }
