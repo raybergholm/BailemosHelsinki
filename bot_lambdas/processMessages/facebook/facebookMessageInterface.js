@@ -42,8 +42,8 @@ module.exports = {
     },
 
     sendTypingIndicator: function (mode) {
-        var typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(mode ? "typing_on" : "typing_off");
-        // this.sendMessage(typingIndicatorMessage); // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
+        var typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(_targetId, mode ? "typing_on" : "typing_off");
+        // this.sendMessageToFacebook(typingIndicatorMessage); // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
     },
 
     sendMessage: function (params) {

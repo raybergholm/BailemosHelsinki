@@ -15,11 +15,11 @@ module.exports = {
         return message;
     },
 
-    createSenderActionMessage: function (action) {
+    createSenderActionMessage: function (targetId, action) {
         return {
             messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
             recipient: {
-                id: this._targetId
+                id: targetId
             },
             sender: {
                 id: FACEBOOK_PAGE_ID
