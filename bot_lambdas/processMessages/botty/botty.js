@@ -159,6 +159,11 @@ function eventDataCallback(stagedData) {
 
     console.log("before filtering: " + stagedData.events.length + " events");
 
+    if (!analysisResults.dateTimeRange || !analysisResults.dateTimeRange.from || !analysisResults.dateTimeRange.to) {
+        console.log("major error in date/time range, they were null");
+        analysisResults.dateTimeRange = parser.getDefaultDateRange();
+    }
+
     // Filter by datetime: this is the only mandatory filter so build the whitelist from everything within the time range
     stagedData.events.forEach((eventData) => {
         if (eventData.start_time.getTime() > analysisResults.dateTimeRange.from.valueOf() && eventData.end_time.getTime() < analysisResults.dateTimeRange.to.valueOf()) {
