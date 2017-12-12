@@ -1,9 +1,7 @@
 "use strict";
 
-
 // Built-in modules
 const https = require("https");
-
 
 // Facebook Graph API interfacing modules
 const facebookApiInterface = require("./facebookApiInterface");
