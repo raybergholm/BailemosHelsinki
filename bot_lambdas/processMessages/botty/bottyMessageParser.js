@@ -6,7 +6,7 @@ const QUICK_ACTION_KEYWORDS = {
     Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
     Info: /\b(?:info|disclaimer)\b/i,
     HelpRequest: /\b(?:help)(?:\b|[!?])|\bhelp [me|please]\b/i,
-    Oops: /\b(?:wtf|you're drunk|wrong)\b/i
+    Apologise: /\b(?:wtf|you're drunk|wrong|big nope)\b/i
 };
 
 const KEYWORDS = { // TODO: worry about localisation later. This could end up requiring a major rewrite of these regexes since \b considers stuff like åäö as word breaks
