@@ -1,16 +1,15 @@
 "use strict";
 
-//---------------------------------------------------------------------------//
+
 // Built-in modules
-let https = require("https");
+const https = require("https");
 
-//---------------------------------------------------------------------------//
 
-//---------------------------------------------------------------------------//
-// Custom modules
-let facebookApiInterface = require("./facebookApiInterface");
+// Facebook Graph API interfacing modules
+const facebookApiInterface = require("./facebookApiInterface");
 
-let dataStagingInterface = require("./dataStagingInterface");
+// AWS data staging interfacing modules
+const dataStagingInterface = require("./dataStagingInterface");
 
 //---------------------------------------------------------------------------//
 
