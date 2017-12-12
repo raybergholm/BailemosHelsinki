@@ -3,14 +3,14 @@
 var https = require("https");
 
 var facebookApiInterface = require("./facebookApiInterface");
-var facebookMessageHelper = require("./facebookMessageHelper");
+var facebookMessageFactory = require("./facebookMessageFactory");
 
 
 var _messageBuffer = new MessageBuffer();
 
 module.exports = {
     sendMessage: function (params) {
-        var message = facebookMessageHelper.createMessage(params.text, params.attachment);
+        var message = facebookMessageFactory.createMessage(params.text, params.attachment);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         this.sendMessageToFacebook(message);
@@ -19,25 +19,25 @@ module.exports = {
     sendTemplatedMessage: function (inputElements) {
         var elements = [];
         for (var i = 0; i < inputElements.length; i++) {
-            elements.push(facebookMessageHelper.createTemplateElement(
+            elements.push(facebookMessageFactory.createTemplateElement(
                 inputElements[i].title,
                 inputElements[i].subtitle,
                 inputElements[i].imageUrl,
                 inputElements[i].actionUrl
             ));
         }
-        var message = facebookMessageHelper.createGenericMessageTemplate(elements);
+        var message = facebookMessageFactory.createGenericMessageTemplate(elements);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         this.sendMessageToFacebook(message);
     },
 
     setTargetId: function (targetId) {
-        facebookMessageHelper.setTargetId(targetId);
+        facebookMessageFactory.setTargetId(targetId);
     },
 
     sendTypingIndicator: function (mode) {
-        var typingIndicatorMessage = facebookMessageHelper.createSenderActionMessage(mode ? "typing_on" : "typing_off");
+        var typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(mode ? "typing_on" : "typing_off");
         // this.sendMessage(typingIndicatorMessage); // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
     },
 
