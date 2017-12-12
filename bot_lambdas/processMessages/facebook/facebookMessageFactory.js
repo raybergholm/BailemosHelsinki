@@ -30,7 +30,7 @@ module.exports = {
 
     createGenericMessageTemplate: function (targetId, text, elements) {
         var messageTemplate = createTemplateBase();
-        messageTemplate.attachment.payload = {
+        messageTemplate.payload = {
             template_type: "generic",
             elements: elements
         };
