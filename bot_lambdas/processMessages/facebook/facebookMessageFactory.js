@@ -3,35 +3,14 @@
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
 module.exports = {
-    _targetId: null,
+    createMessage: function (targetId, text, attachment) {
+        var message = createMessageBase(targetId);
 
-    setTargetId: function (targetId) {
-        this._targetId = targetId;
-    },
-
-    createMessage: function (text, attachment) {
-        return this.createMessageWithPayload({
-            text: text,
-            attachment: attachment
-        });
-    },
-
-    createMessageWithPayload: function (payload) {
-        var message = {
-            messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
-            recipient: {
-                id: this._targetId
-            },
-            sender: {
-                id: FACEBOOK_PAGE_ID
-            },
-            message: {}
-        };
-        if(payload.text){
-            message.message.text = payload.text;
+        if (text) {
+            message.message.text = text;
         }
-        if(payload.attachment){
-            message.message.attachment = payload.attachment;
+        if (attachment) {
+            message.message.attachment = attachment;
         }
         return message;
     },
@@ -49,22 +28,14 @@ module.exports = {
         };
     },
 
-    createBaseTemplate: function () {
-        return {
-            attachment: {
-                type: "template",
-                payload: null
-            }
-        };
-    },
-
-    createGenericMessageTemplate: function (elements) {
-        var messageTemplate = this.createBaseTemplate();
+    createGenericMessageTemplate: function (targetId, text, elements) {
+        var messageTemplate = createTemplateBase();
         messageTemplate.attachment.payload = {
             template_type: "generic",
             elements: elements
         };
-        return this.createMessageWithPayload(messageTemplate);
+
+        return this.createMessage(targetId, text, messageTemplate);
     },
 
     createTemplateElement: function (title, subtitle, imageUrl, defaultActionUrl) {
@@ -79,3 +50,23 @@ module.exports = {
         };
     }
 };
+
+function createMessageBase(targetId) {
+    return {
+        messaging_type: "RESPONSE", // NOTE: Messenger API v2.2 compliance: this field is mandatory from 07.05.2018 onwards
+        recipient: {
+            id: targetId
+        },
+        sender: {
+            id: FACEBOOK_PAGE_ID
+        },
+        message: {}
+    };
+}
+
+function createTemplateBase() {
+    return {
+        type: "template",
+        payload: null
+    };
+}

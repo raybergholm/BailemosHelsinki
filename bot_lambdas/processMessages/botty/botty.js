@@ -26,6 +26,8 @@ const FAST_ACTIONS = { // if the bot replies with these, no call is required to 
 
 var typingIndicatorSent = false;
 
+var targetId;
+
 var analysisResults;
 
 module.exports = {

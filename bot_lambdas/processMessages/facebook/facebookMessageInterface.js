@@ -8,12 +8,23 @@ var facebookMessageFactory = require("./facebookMessageFactory");
 
 var _messageBuffer = new MessageBuffer();
 
+var _targetId;
+
 module.exports = {
+    setTargetId: function (targetId) {
+        _targetId = targetId;
+    },
+
+    sendTypingIndicator: function (mode) {
+        var typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(mode ? "typing_on" : "typing_off");
+        // this.sendMessage(typingIndicatorMessage); // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
+    },
+
     sendMessage: function (params) {
-        var message = facebookMessageFactory.createMessage(params.text, params.attachment);
+        var message = facebookMessageFactory.createMessage(_targetId, params.text, params.attachment);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
-        this.sendMessageToFacebook(message);
+        sendMessageToFacebook(message);
     },
 
     sendTemplatedMessage: function (inputElements) {
@@ -26,19 +37,10 @@ module.exports = {
                 inputElements[i].actionUrl
             ));
         }
-        var message = facebookMessageFactory.createGenericMessageTemplate(elements);
+        var message = facebookMessageFactory.createGenericMessageTemplate(_targetId, null, elements);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
-        this.sendMessageToFacebook(message);
-    },
-
-    setTargetId: function (targetId) {
-        facebookMessageFactory.setTargetId(targetId);
-    },
-
-    sendTypingIndicator: function (mode) {
-        var typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(mode ? "typing_on" : "typing_off");
-        // this.sendMessage(typingIndicatorMessage); // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
+        sendMessageToFacebook(message);
     },
 
     sendAsync: function () {
@@ -50,57 +52,57 @@ module.exports = {
             payload = _messageBuffer.flush();
             this.sendBatchedMessage(payload);
         }
-    },
-
-    sendMessageToFacebook: function (payload) {
-        console.log("sending this message payload to FB:", payload);
-
-        var body = JSON.stringify(payload);
-        var options = facebookApiInterface.createSendMessageOptions();
-
-        var callback = function (response) {
-            var str = "";
-            response.on("data", function (chunk) {
-                str += chunk;
-            });
-            response.on("end", function () {
-                postDeliveryCallback(str);
-            });
-        };
-
-        var req = https.request(options, callback);
-        req.on("error", function (e) {
-            console.log("problem with request: " + e);
-        });
-
-        req.write(body);
-        req.end();
-    },
-
-    sendBatchedMessage: function (payload) {
-        console.log("sending this message payload to FB:", payload);
-
-        var body = payload;
-        var options = facebookApiInterface.createGraphApiOptions();
-
-        var callback = function (response) {
-            var str = "";
-            response.on("data", function (chunk) {
-                str += chunk;
-            });
-            response.on("end", function () {
-                postDeliveryCallback(str);
-            });
-        };
-
-        var req = https.request(options, callback);
-        req.on("error", function (e) {
-            console.log("problem with request: " + e);
-        });
-
-        req.write(body);
-        req.end();
     }
+};
+
+function sendMessageToFacebook(payload) {
+    console.log("sending this message payload to FB:", payload);
+
+    var body = JSON.stringify(payload);
+    var options = facebookApiInterface.createSendMessageOptions();
+
+    var callback = function (response) {
+        var str = "";
+        response.on("data", function (chunk) {
+            str += chunk;
+        });
+        response.on("end", function () {
+            postDeliveryCallback(str);
+        });
+    };
+
+    var req = https.request(options, callback);
+    req.on("error", function (e) {
+        console.log("problem with request: " + e);
+    });
+
+    req.write(body);
+    req.end();
+}
+
+function sendBatchedMessage(payload) {
+    console.log("sending this message payload to FB:", payload);
+
+    var body = payload;
+    var options = facebookApiInterface.createGraphApiOptions();
+
+    var callback = function (response) {
+        var str = "";
+        response.on("data", function (chunk) {
+            str += chunk;
+        });
+        response.on("end", function () {
+            postDeliveryCallback(str);
+        });
+    };
+
+    var req = https.request(options, callback);
+    req.on("error", function (e) {
+        console.log("problem with request: " + e);
+    });
+
+    req.write(body);
+    req.end();
 }
 
 function postDeliveryCallback(str) {
@@ -134,5 +136,5 @@ function MessageBuffer() {
         this._messages = [];
 
         return content;
-    }
+    };
 }
