@@ -186,7 +186,7 @@ function checkForTemporalCues(text) { // this one is more special because we can
 
     // FIXME: datelike is behaving strangely and can't quite catch dd.mm, and dd.mm.yyyy becomes dd.mm.yy
 
-    results = KEYWORDS.Temporal.Precise.OnExactDate(text);
+    results = KEYWORDS.Temporal.Precise.OnExactDate.exec(text);
     if (results) {
         results = KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
@@ -200,7 +200,7 @@ function checkForTemporalCues(text) { // this one is more special because we can
         }
     }
 
-    results = KEYWORDS.Temporal.Precise.ExactDateRange(text);
+    results = KEYWORDS.Temporal.Precise.ExactDateRange.exec(text);
     if (results) {
         results = KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
