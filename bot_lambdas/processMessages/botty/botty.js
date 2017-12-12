@@ -207,7 +207,14 @@ function replyWithFilteredEvents(filteredEvents) {
                     }
                 }
 
-                let confidence = totalWeights > 0 ? Math.round((highestWeight.value / totalWeights) * 100) : 0;                
+                let confidence;
+                
+                if(totalWeights > 0){
+                    confidence =  Math.round((highestWeight.value / totalWeights) * 100);
+                }else{
+                    highestWeight.type = "Unsure";
+                    confidence = 0;
+                }
 
                 subtitleString += textGenerator.formatText(textGenerator.getText("EventType"), {
                     type: highestWeight.type,
