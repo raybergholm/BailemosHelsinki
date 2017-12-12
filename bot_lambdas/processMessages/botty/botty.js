@@ -187,11 +187,11 @@ function replyWithFilteredEvents(filteredEvents) {
                 console.log("Error trying to write the location: ", err.message);
             }
 
-            if (eventData.attending_count) {
-                subtitleString += textGenerator.formatText(textGenerator.getText("Attending"), {
-                    count: eventData.attending_count
-                });
-            }
+            // if (eventData.attending_count) {
+            //     subtitleString += textGenerator.formatText(textGenerator.getText("Attending"), {
+            //         count: eventData.attending_count
+            //     });
+            // }
 
             if (eventData.probabilities) {
                 let totalWeights = 0;

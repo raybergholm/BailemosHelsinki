@@ -93,10 +93,10 @@ function calculateProbabilities(eventData) {
     // over a week? a) yay, an organiser set it up right, b) almost 100% it's a long-term course
 
     let probabilities = {
-        party: weights.Party * 10,
-        workshop: weights.Workshop * 10 + weights.Party + weights.Course,
-        course: weights.Course * 10 + weights.CourseTerminology * 100,
-        festival: weights.Festival * 20 + weights.Party + weights.Workshop
+        Party: weights.Party * 10,
+        Workshop: weights.Workshop * 10 + weights.Party + weights.Course,
+        Course: weights.Course * 10 + weights.CourseTerminology * 100,
+        Festival: weights.Festival * 20 + weights.Party + weights.Workshop
     };
 
     return probabilities;
