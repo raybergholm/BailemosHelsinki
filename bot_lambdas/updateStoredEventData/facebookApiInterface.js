@@ -2,10 +2,10 @@ const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 module.exports = {
     buildQueryUrl: (basePath, params, escapePath) => {
-        var path = basePath;
+        let path = basePath;
         if (params) {
-            var paramsArr = [];
-            for (var prop in params) {
+            let paramsArr = [];
+            for (let prop in params) {
                 paramsArr.push(prop + "=" + (params[prop] instanceof Array ? params[prop].join(',') : params[prop]));
             }
             path += '?' + paramsArr.join('&');

@@ -2,22 +2,22 @@
 
 //---------------------------------------------------------------------------//
 // Built-in modules
-var https = require("https");
+let https = require("https");
 
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // Custom modules
-var facebookApiInterface = require("./facebookApiInterface");
+let facebookApiInterface = require("./facebookApiInterface");
 
-var dataStagingInterface = require("./dataStagingInterface");
+let dataStagingInterface = require("./dataStagingInterface");
 
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
     dataStagingInterface.getOrganiserData(queryFacebookApi); // main logical chain gets kicked off asynchronously from here
 
-    var response = {
+    let response = {
         isBase64Encoded: false,
         statusCode: 200,
         body: "OK"
@@ -26,13 +26,10 @@ exports.handler = (event, context, callback) => {
 };
 
 function queryFacebookApi(organisers) {
-    var batchRequestContent = [];
-
-    var pageIds = [];
-    var groupIds = [];
-    var userIds = [];
-
-    for (var prop in organisers) {
+    let pageIds = [],
+        groupIds = [],
+        userIds = [];
+    for (let prop in organisers) {
         switch (organisers[prop].Type) {
             case "page":
                 // scrape this page's events
@@ -50,6 +47,8 @@ function queryFacebookApi(organisers) {
                 console.log("Unexpected node type: ", organisers[prop].Type);
         }
     }
+
+    let batchRequestContent = [];
 
     batchRequestContent.push({
         relative_url: facebookApiInterface.buildQueryUrl("/events/", {
@@ -77,26 +76,22 @@ function queryFacebookApi(organisers) {
         method: "GET"
     });
 
+    let options = facebookApiInterface.createGraphApiOptions();
 
-    var body = "batch=" + JSON.stringify(batchRequestContent);
-
-    // console.log("write to body: ", body);
-    var options = facebookApiInterface.createGraphApiOptions();
-
-    var req = https.request(options, (response) => {
+    let req = https.request(options, (response) => {
         console.log(response);
 
-        var str = "";
+        let str = "";
         response.on("data", (chunk) => {
             str += chunk;
         });
 
         response.on("end", () => {
-            var responses = JSON.parse(str);
+            let responses = JSON.parse(str);
 
             console.log(responses);
 
-            var payload = formatEventData(responses, organisers);
+            let payload = formatEventData(responses, organisers);
             if (payload) {
                 dataStagingInterface.updateEventData(payload);
             }
@@ -106,12 +101,12 @@ function queryFacebookApi(organisers) {
         console.log("problem with request: " + err);
     });
 
-    req.write(body);
+    req.write("batch=" + JSON.stringify(batchRequestContent));
     req.end();
 }
 
 function formatEventData(responses, organisers) { // it's a bit dirty that they're in different arrays, but at least they match 1-to-1
-    var eventsMap = {}; // NOTE: this is an object and not an array since this being used as a KVP data container, we want to enforce unique keys
+    let eventsMap = {}; // NOTE: this is an object and not an array since this being used as a KVP data container, we want to enforce unique keys
 
     responses.forEach((response) => {
         console.log(response.body);
@@ -119,9 +114,9 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
         if (response.error) {
             console.log("Response errored: ", response.error.message);
         } else {
-            var events;
-            var entries = JSON.parse(response.body);
-            for (var prop in entries) {
+            let events;
+            let entries = JSON.parse(response.body);
+            for (let prop in entries) {
 
                 console.log(entries[prop]);
 
@@ -134,7 +129,7 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
                             eventData.organiser = organisers[prop].Id;
                         }
                         if (eventData.event_times) {
-                            var firstUpcomingEvent = eventData.event_times.find((element) => {
+                            let firstUpcomingEvent = eventData.event_times.find((element) => {
                                 return (new Date(element.start_time)).getTime() > Date.now();
                             });
 
@@ -158,13 +153,13 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
     }
 
     // Convert the map into an array of events sorted in ascending chronological order
-    var eventsArr = Object.keys(eventsMap).map((key) => {
+    let eventsArr = Object.keys(eventsMap).map((key) => {
         return eventsMap[key];
     });
 
     eventsArr.sort(function (left, right) {
-        var leftDate = new Date(left.start_time);
-        var rightDate = new Date(right.start_time);
+        let leftDate = new Date(left.start_time);
+        let rightDate = new Date(right.start_time);
 
         if (!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()) {
             return 0;
@@ -173,10 +168,10 @@ function formatEventData(responses, organisers) { // it's a bit dirty that they'
         }
     });
 
-    var payload = {
+    let payload = {
         events: eventsArr,
         organisers: organisers
-    }
+    };
 
     payload = JSON.stringify(payload); // important: need to stringify the body prior to saving
 
