@@ -60,7 +60,7 @@ module.exports = {
             return "Major error, botty bugged out";
         }
 
-        var reply;
+        let reply;
         if(BOT_TEXTS[category].length === 1){
             reply = BOT_TEXTS[category][0];
         }else {
@@ -84,11 +84,11 @@ module.exports = {
                 return replacements[match.substring(1, match.length - 1)] || match;
             });
         } else if (replacements instanceof Object) {
-            var regex, prop, tempString;
+            let regex, tempString;
 
             tempString = str;
 
-            for (prop in replacements) {
+            for (let prop in replacements) {
                 // eslint-disable-next-line no-useless-escape
                 regex = new RegExp("\\{" + prop + "\}", "g");
                 tempString = tempString.replace(regex, replacements[prop]);

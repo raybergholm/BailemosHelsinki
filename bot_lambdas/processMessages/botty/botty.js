@@ -2,18 +2,19 @@
 
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
-var moment = require("../node_modules/moment");
+// Libraries
+let moment = require("../node_modules/moment");
 
 // Botty internal modules
-var parser = require("./bottyMessageParser");
-var textGenerator = require("./bottyTextGenerator");
-var memory = require("./bottyMemoryInterface");
+let parser = require("./bottyMessageParser");
+let textGenerator = require("./bottyTextGenerator");
+let memory = require("./bottyMemoryInterface");
 
 // Facebook Graph API interface
-var facebookMessageInterface = require("../facebook/facebookMessageInterface");
+let facebookMessageInterface = require("../facebook/facebookMessageInterface");
 
 // Persistent storage interface 
-var dataStagingInterface = require("../dataStagingInterface");
+let dataStagingInterface = require("../dataStagingInterface");
 
 const FAST_ACTIONS = { // if the bot replies with these, no call is required to DDB/S3
     Greetings: "Greetings",
@@ -24,11 +25,11 @@ const FAST_ACTIONS = { // if the bot replies with these, no call is required to 
     Disclaimer: "Disclaimer"
 };
 
-var typingIndicatorSent = false;
+let typingIndicatorSent = false;
 
-var targetId;
+let targetId;
 
-var analysisResults;
+let analysisResults;
 
 module.exports = {
     setConversationTarget: (targetId) => {
@@ -40,12 +41,12 @@ module.exports = {
     },
 
     readMessage: function (text, attachments) { // main method: read input text and/or attachments, then reply with something 
-        var result;
+        let result;
         result = quickScan(text);
 
         if (result) {
             if (result instanceof Array) {
-                for (var i = 0; i < result.length; i++) {
+                for (let i = 0; i < result.length; i++) {
                     facebookMessageInterface.sendMessage({
                         text: result[i]
                     });
@@ -118,8 +119,8 @@ function endConversation() {
 }
 
 function quickScan(text) {
-    var result = parser.quickScan(text);
-    var reply = null;
+    let result = parser.quickScan(text);
+    let reply = null;
     if (result) {
         switch (result) {
             case FAST_ACTIONS.Greetings:
@@ -152,8 +153,8 @@ function deepScan(text) {
 }
 
 function eventDataCallback(stagedData) {
-    var organisers = stagedData.organisers;
-    var eventMap = {};
+    let organisers = stagedData.organisers;
+    let eventMap = {};
 
     console.log(analysisResults);
 
@@ -179,7 +180,7 @@ function eventDataCallback(stagedData) {
     console.log("after all filtering: " + Object.keys(eventMap).length + " events");
 
     // Convert back to an array
-    var filteredEvents = Object.keys(eventMap).map((id) => {
+    let filteredEvents = Object.keys(eventMap).map((id) => {
         return eventMap[id];
     });
 
@@ -196,12 +197,12 @@ function eventDataCallback(stagedData) {
 }
 
 function replyWithFilteredEvents(filteredEvents) {
-    var elements = [];
+    let elements = [];
 
     if (filteredEvents.length > 0) {
         filteredEvents.forEach((eventData) => {
-            var subtitleString = "";
-            var coverImageUrl = null;
+            let subtitleString = "";
+            let coverImageUrl = null;
 
             subtitleString += moment(eventData.start_time).format("DD.MM.YYYY HH:mm");
 
@@ -233,7 +234,7 @@ function replyWithFilteredEvents(filteredEvents) {
         });
     }
 
-    var baseString;
+    let baseString;
     if (filteredEvents.length === 0) {
         baseString = textGenerator.getText("NoResults");
     } else if (filteredEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
@@ -242,7 +243,7 @@ function replyWithFilteredEvents(filteredEvents) {
         baseString = textGenerator.getText("NormalResults");
     }
 
-    var messageText = textGenerator.formatText(baseString, {
+    let messageText = textGenerator.formatText(baseString, {
         amount: filteredEvents.length,
         from: moment(analysisResults.dateTimeRange.from).format("DD.MM"),
         to: moment(analysisResults.dateTimeRange.to).format("DD.MM")

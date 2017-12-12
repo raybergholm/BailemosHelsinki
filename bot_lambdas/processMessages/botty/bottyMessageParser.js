@@ -1,6 +1,6 @@
 "use strict";
 
-var moment = require("../node_modules/moment");
+let moment = require("../node_modules/moment");
 
 const QUICK_ACTION_KEYWORDS = {
     Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
@@ -60,7 +60,7 @@ const KEYWORDS = { // TODO: worry about localisation later. This could end up re
 
 module.exports = {
     quickScan: function (text) {
-        for (var prop in QUICK_ACTION_KEYWORDS) {
+        for (let prop in QUICK_ACTION_KEYWORDS) {
             if (QUICK_ACTION_KEYWORDS[prop].test(text)) {
                 return prop;
             }
@@ -69,9 +69,9 @@ module.exports = {
     },
 
     deepScan: function (text) {
-        var result = {};
+        let result = {};
 
-        var dateTimeRange = checkForTemporalCues(text);
+        let dateTimeRange = checkForTemporalCues(text);
         if (dateTimeRange) {
             result.dateTimeRange = dateTimeRange;
             result.matched = true;
@@ -79,25 +79,25 @@ module.exports = {
             dateTimeRange = this.getDefaultDateRange();
         }
 
-        var interests = checkForInterests(text);
+        let interests = checkForInterests(text);
         if (interests) {
             result.interests = interests;
             result.optionals = true;
             result.matched = true;
         }
+
         return result;
     },
 
     filterEvents: function (eventsMap, keywords) {
-        var i;
-        var matchedKeyword;
+        let matchedKeyword;
         if (keywords.optionals) {
-            for (var prop in eventsMap) {
+            for (let prop in eventsMap) {
                 matchedKeyword = false;
 
                 // Lazy matching: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
                 if (keywords.interests) {
-                    for (i = 0; i < keywords.interests.length; i++) {
+                    for (let i = 0; i < keywords.interests.length; i++) {
                         if (KEYWORDS.Interests[keywords.interests[i]].test(eventsMap[prop].description)) {
                             matchedKeyword = true;
                             break;
@@ -105,7 +105,7 @@ module.exports = {
                     }
                 }
 
-                // for (i = 0; i < keywords.locations.length; i++) {
+                // for (let i = 0; i < keywords.locations.length; i++) {
                 //     if (KEYWORDS.Locations[keywords.locations[i]].test(eventsMap[prop].description)) {
                 //         matchedKeyword = true;
                 //         break;
@@ -129,16 +129,15 @@ module.exports = {
 };
 
 function checkForTemporalCues(text) { // this one is more special because we can only have one date range
-    var dateTimeRange = {
+    let dateTimeRange = {
         from: null,
         to: null
     };
 
-    var results;
-    var offset;
+    let offset;
 
     // Semantic ranges don't directly reference numbers, so we have to convert it from language actual dates
-    for (var prop in KEYWORDS.Temporal.SemanticRanges) {
+    for (let prop in KEYWORDS.Temporal.SemanticRanges) {
         if (KEYWORDS.Temporal.SemanticRanges[prop].test(text)) {
             switch (prop) {
                 case "Today":
@@ -186,6 +185,8 @@ function checkForTemporalCues(text) { // this one is more special because we can
         }
     }
 
+    let results;
+
     results = KEYWORDS.Temporal.Precise.OnExactDate.exec(text);
     if (results) {
         results = KEYWORDS.Temporal.DateLike.exec(results[0]);
@@ -230,21 +231,21 @@ function checkForTemporalCues(text) { // this one is more special because we can
 }
 
 function checkForEventTypes(text) {
-    var eventTypes = [];
+    let eventTypes = [];
 
-    for (var prop in KEYWORDS.Types) {
+    for (let prop in KEYWORDS.Types) {
         if (KEYWORDS.Types[prop].test(text)) {
             eventTypes.push(prop);
         }
     }
 
-    return eventTypes;
+    return eventTypes.length > 0 ? eventTypes : null;
 }
 
 function checkForInterests(text) {
-    var interests = [];
+    let interests = [];
 
-    for (var prop in KEYWORDS.Interests) {
+    for (let prop in KEYWORDS.Interests) {
         if (KEYWORDS.Interests[prop].test(text)) {
             interests.push(prop);
         }
