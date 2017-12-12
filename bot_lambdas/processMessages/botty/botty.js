@@ -158,21 +158,6 @@ function eventDataCallback(stagedData) {
 
     console.log("before filtering: " + stagedData.events.length + " events");
 
-    // HACK: useless workarounds while trying to figure out why moment is always null
-    if(!analysisResults.dateTimeRange.from || !analysisResults.dateTimeRange.from) {
-        analysisResults.dateTimeRange = parser.getDefaultDateRange();
-        console.log("and now?", analysisResults.dateTimeRange);
-    }
-
-    if(!analysisResults.dateTimeRange.from){
-        analysisResults.dateTimeRange.from = new Date();
-    }
-    if(!analysisResults.dateTimeRange.to){
-        analysisResults.dateTimeRange.to = new Date();
-        analysisResults.dateTimeRange.to.setDate(analysisResults.dateTimeRange.to.getDate() + 7);
-    }
-
-
     // Filter by datetime: this is the only mandatory filter so build the whitelist from everything within the time range
     stagedData.events.forEach((eventData) => {
         if (eventData.start_time.getTime() > analysisResults.dateTimeRange.from.valueOf() && eventData.end_time.getTime() < analysisResults.dateTimeRange.to.valueOf()) {
@@ -261,11 +246,13 @@ function replyWithFilteredEvents(filteredEvents) {
         text: messageText
     });
 
-    if (elements.length > 10) {
-        while (elements.length > 10) {
-            elements.pop();
+    if (elements.length > 0) {
+        if (elements.length > 10) {
+            while (elements.length > 10) {
+                elements.pop();
+            }
         }
-    }
 
-    facebookMessageInterface.sendTemplatedMessage(elements);
+        facebookMessageInterface.sendTemplatedMessage(elements);
+    }
 }

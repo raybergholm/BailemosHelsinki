@@ -127,7 +127,7 @@ module.exports = {
 };
 
 function checkForTemporalCues(text) { // this one is more special because we can only have one date range
-    var dateRange = {
+    var dateTimeRange = {
         from: null,
         to: null
     };
@@ -135,56 +135,52 @@ function checkForTemporalCues(text) { // this one is more special because we can
     var results;
     var offset;
 
-    console.log("base moment:", moment());
-    console.log("base moment:", moment().startOf("day"));
-    console.log("base moment:", moment().endOf("day"));
-    console.log("base moment:", moment().toDate());
-
     // Semantic ranges don't directly reference numbers, so we have to convert it from language actual dates
     for (var prop in KEYWORDS.Temporal.SemanticRanges) {
-        if (KEYWORDS.Temporal.SemanticRanges[prop]) {
-            switch (KEYWORDS.Temporal.SemanticRanges[prop]) {
+        if (KEYWORDS.Temporal.SemanticRanges[prop].test(text)) {
+            switch (prop) {
                 case "Today":
-                    dateRange.from = moment().startOf("day");
-                    dateRange.to = moment().endOf("day");
+                    dateTimeRange.from = moment().startOf("day");
+                    dateTimeRange.to = moment().endOf("day");
                     break;
                 case "Tomorrow":
-                    dateRange.from = moment().add(1, "day").startOf("day");
-                    dateRange.to = moment().add(1, "day").endOf("day");
+                    dateTimeRange.from = moment().add(1, "day").startOf("day");
+                    dateTimeRange.to = moment().add(1, "day").endOf("day");
                     break;
                 case "ThisWeek":
-                    dateRange.from = moment().startOf("days");
-                    dateRange.to = moment().endOf("isoWeek");
+                    dateTimeRange.from = moment().startOf("day");
+                    dateTimeRange.to = moment().endOf("isoWeek");
                     break;
-                case "ThisWeekend":
+                case "ThisWeekend": // Friday to Sunday (parties are traditionally mostly on Friday & Saturday so Friday evening counts as weekend too)
                     offset = 5 - moment().isoWeekday();
-                    dateRange.from = moment().add(offset, "days").startOf("day");
-                    dateRange.to = moment().endOf("isoWeek");
+                    dateTimeRange.from = moment().add(offset, "days").startOf("day");
+                    dateTimeRange.to = moment().endOf("isoWeek");
                     break;
                 case "NextSeven":
-                    dateRange.from = moment().startOf("day");
-                    dateRange.to = moment().add(7, "days").endOf("day");
+                    dateTimeRange.from = moment().startOf("day");
+                    dateTimeRange.to = moment().add(7, "days").endOf("day");
                     break;
                 case "NextWeek":
-                    dateRange.from = moment().add(7, "days").startOf("isoWeek");
-                    dateRange.to = moment().add(7, "days").endOf("isoWeek");
+                    dateTimeRange.from = moment().add(7, "days").startOf("isoWeek");
+                    dateTimeRange.to = moment().add(7, "days").endOf("isoWeek");
                     break;
                 case "NextWeekend":
                     offset = 5 - moment().isoWeekday();
-                    dateRange.from = moment().add(7 + offset, "days").startOf("day");
-                    dateRange.to = moment().add(7, "days").endOf("isoWeek");
+                    dateTimeRange.from = moment().add(7 + offset, "days").startOf("day");
+                    dateTimeRange.to = moment().add(7, "days").endOf("isoWeek");
                     break;
                 case "ThisMonth":
-                    dateRange.from = moment().startOf("day");
-                    dateRange.to = moment().endOf("month");
+                    dateTimeRange.from = moment().startOf("day");
+                    dateTimeRange.to = moment().endOf("month");
                     break;
                 case "NextMonth":
-                    dateRange.from = moment().add(1, "month").startOf("month");
-                    dateRange.to = moment().endOf("month");
+                    dateTimeRange.from = moment().add(1, "month").startOf("month");
+                    dateTimeRange.to = moment().add(1, "month").endOf("month");
                     break;
+                default:
+                    console.log("it matched but didn't match?", prop);
             }
-            console.log("dateRange inside parser:", dateRange);
-            return dateRange;
+            return dateTimeRange;
         }
     }
 
@@ -194,14 +190,13 @@ function checkForTemporalCues(text) { // this one is more special because we can
     if (results) {
         results = KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
-            dateRange.from = moment(results[0]).startOf("day");
-            dateRange.from.year(dateRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
+            dateTimeRange.from = moment(results[0]).startOf("day");
+            dateTimeRange.from.year(dateTimeRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
 
-            dateRange.to = dateRange.from.clone();
-            dateRange.to.endOf("day");
+            dateTimeRange.to = dateTimeRange.from.clone();
+            dateTimeRange.to.endOf("day");
 
-            console.log("dateRange inside parser:", dateRange);
-            return dateRange;
+            return dateTimeRange;
         }
     }
 
@@ -209,17 +204,16 @@ function checkForTemporalCues(text) { // this one is more special because we can
     if (results) {
         results = KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
-            dateRange.from = moment(results[0]).startOf("day");
-            dateRange.from.year(dateRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
+            dateTimeRange.from = moment(results[0]).startOf("day");
+            dateTimeRange.from.year(dateTimeRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
 
-            dateRange.to = moment(results[1]).endOf("day");
-            dateRange.to.year(dateRange.from.year());
-            if (dateRange.to.month() < dateRange.from.month()) {
-                dateRange.to.add(1, "year");
+            dateTimeRange.to = moment(results[1]).endOf("day");
+            dateTimeRange.to.year(dateTimeRange.from.year());
+            if (dateTimeRange.to.month() < dateTimeRange.from.month()) {
+                dateTimeRange.to.add(1, "year");
             }
 
-            console.log("dateRange inside parser:", dateRange);
-            return dateRange;
+            return dateTimeRange;
         }
     }
 
