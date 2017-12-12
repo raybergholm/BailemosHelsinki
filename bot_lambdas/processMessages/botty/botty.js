@@ -160,7 +160,7 @@ function eventDataCallback(stagedData) {
     console.log("before filtering: " + stagedData.events.length + " events");
 
     if (!analysisResults.dateTimeRange || !analysisResults.dateTimeRange.from || !analysisResults.dateTimeRange.to) {
-        console.log("major error in date/time range, they were null");
+        console.log("major error in date/time range, they were null. Emergency fallback to default date range");
         analysisResults.dateTimeRange = parser.getDefaultDateRange();
     }
 
