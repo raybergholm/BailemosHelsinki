@@ -9,6 +9,8 @@ const facebookApiInterface = require("./facebookApiInterface");
 // AWS data staging interfacing modules
 const dataStagingInterface = require("./dataStagingInterface");
 
+const eventSorter = require("./eventSorter");
+
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
@@ -88,7 +90,7 @@ function queryFacebookApi(organisers) {
 
             console.log(responses);
 
-            let payload = formatEventData(responses, organisers);
+            let payload = eventSorter.sort(responses, organisers);
             if (payload) {
                 dataStagingInterface.updateEventData(payload);
             }
@@ -100,77 +102,4 @@ function queryFacebookApi(organisers) {
 
     req.write("batch=" + JSON.stringify(batchRequestContent));
     req.end();
-}
-
-function formatEventData(responses, organisers) { // it's a bit dirty that they're in different arrays, but at least they match 1-to-1
-    let eventsMap = {}; // NOTE: this is an object and not an array since this being used as a KVP data container, we want to enforce unique keys
-
-    responses.forEach((response) => {
-        console.log(response.body);
-
-        if (response.error) {
-            console.log("Response errored: ", response.error.message);
-        } else {
-            let events;
-            let entries = JSON.parse(response.body);
-            for (let prop in entries) {
-
-                console.log(entries[prop]);
-
-                if (entries[prop].data) {
-                    events = entries[prop].data;
-                    events.forEach((eventData) => {
-                        if (organisers[prop]) {
-                            // Links this event to the associated organiser. Not using the node's owner field since it's not guaranteed
-                            // they match the whitelisted organisers, especially for the bigger events with multiple organisers
-                            eventData.organiser = organisers[prop].Id;
-                        }
-                        if (eventData.event_times) {
-                            let firstUpcomingEvent = eventData.event_times.find((element) => {
-                                return (new Date(element.start_time)).getTime() > Date.now();
-                            });
-
-                            eventData.id = firstUpcomingEvent.id;
-                            eventData.start_time = firstUpcomingEvent.start_time;
-                            eventData.end_time = firstUpcomingEvent.end_time;
-                        }
-
-                        eventsMap[eventData.id] = eventData;
-                    });
-                } else {
-                    console.log("Additional metadata in response: ", entries[prop]);
-                }
-            }
-        }
-    });
-
-    if (!eventsMap) {
-        console.log("events map was empty");
-        return;
-    }
-
-    // Convert the map into an array of events sorted in ascending chronological order
-    let eventsArr = Object.keys(eventsMap).map((key) => {
-        return eventsMap[key];
-    });
-
-    eventsArr.sort(function (left, right) {
-        let leftDate = new Date(left.start_time);
-        let rightDate = new Date(right.start_time);
-
-        if (!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()) {
-            return 0;
-        } else {
-            return leftDate.getTime() < rightDate.getTime() ? -1 : 1;
-        }
-    });
-
-    let payload = {
-        events: eventsArr,
-        organisers: organisers
-    };
-
-    payload = JSON.stringify(payload); // important: need to stringify the body prior to saving
-
-    return payload;
 }
