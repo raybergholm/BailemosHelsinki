@@ -76,7 +76,7 @@ module.exports = {
             result.dateTimeRange = dateTimeRange;
             result.matched = true;
         } else {
-            dateTimeRange = getDefaultDateRange();
+            dateTimeRange = this.getDefaultDateRange();
         }
 
         var interests = checkForInterests(text);
