@@ -176,12 +176,12 @@ function replyWithFilteredEvents(filteredEvents) {
             try {
                 if (eventData.place) {
                     subtitleString += "\n" + eventData.place.name;
-                    if (eventData.place.location) {
-                        subtitleString += textGenerator.formatText(textGenerator.getText("Address"), {
-                            street: eventData.place.location.street,
-                            city: eventData.place.location.city
-                        });
-                    }
+                    // if (eventData.place.location) {
+                    //     subtitleString += textGenerator.formatText(textGenerator.getText("Address"), {
+                    //         street: eventData.place.location.street,
+                    //         city: eventData.place.location.city
+                    //     });
+                    // }
                 }
             } catch (err) {
                 console.log("Error trying to write the location: ", err.message);
@@ -207,7 +207,7 @@ function replyWithFilteredEvents(filteredEvents) {
                     }
                 }
 
-                let confidence = Math.round((highestWeight.value / totalWeights) * 100);
+                let confidence = totalWeights > 0 ? Math.round((highestWeight.value / totalWeights) * 100) : 0;                
 
                 subtitleString += textGenerator.formatText(textGenerator.getText("EventType"), {
                     type: highestWeight.type,
