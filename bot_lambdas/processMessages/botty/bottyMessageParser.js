@@ -50,7 +50,7 @@ const KEYWORDS = { // TODO: worry about localisation later. This could end up re
             ExactDateRange: /\d{1,2}[./]\d{1,2}(?: ?)(?:-|to|until)(?: ?)\d{1,2}[./]\d{1,2}/i
         },
 
-        DateLike: /\d{1,2}[./]\d{1,2}(?:\d{2,4}?)/
+        DateLike: /\d{1,2}[./]\d{1,2}(?:(?:[./]\d{4})?)/
         // TimeLike: /\b(?:\d{1,2}[:]\d{2}|(?:klo) \d{1,2}\.\d{2})\b/,
         // FromMarker: /\b(?:from|starting|after)\b/i,
         // ToMarker: /\b(?:to|until|before)\b/i
@@ -75,6 +75,8 @@ module.exports = {
         if (dateTimeRange) {
             result.dateTimeRange = dateTimeRange;
             result.matched = true;
+        } else {
+            dateTimeRange = getDefaultDateRange();
         }
 
         var interests = checkForInterests(text);
@@ -94,7 +96,7 @@ module.exports = {
                 matchedKeyword = false;
 
                 // Lazy matching: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
-                if(keywords.interests){
+                if (keywords.interests) {
                     for (i = 0; i < keywords.interests.length; i++) {
                         if (KEYWORDS.Interests[keywords.interests[i]].test(eventsMap[prop].description)) {
                             matchedKeyword = true;
@@ -184,12 +186,14 @@ function checkForTemporalCues(text) { // this one is more special because we can
         }
     }
 
-    // FIXME: datelike is behaving strangely and can't quite catch dd.mm, and dd.mm.yyyy becomes dd.mm.yy
-
     results = KEYWORDS.Temporal.Precise.OnExactDate.exec(text);
     if (results) {
         results = KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
+            if (results.length < 1 || !moment(results[0]).isValid()) {
+                console.log("Attempted to use an invalid date: ", results);
+                return null;
+            }
             dateTimeRange.from = moment(results[0]).startOf("day");
             dateTimeRange.from.year(dateTimeRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
 
@@ -204,6 +208,11 @@ function checkForTemporalCues(text) { // this one is more special because we can
     if (results) {
         results = KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
+            if (results.length < 2 || !moment(results[0]).isValid() || !moment(results[1]).isValid()) {
+                console.log("Attempted to use invalid date(s): ", results);
+                return null;
+            };
+
             dateTimeRange.from = moment(results[0]).startOf("day");
             dateTimeRange.from.year(dateTimeRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
 
