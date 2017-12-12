@@ -1,20 +1,22 @@
 "use strict";
 
-const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
-
-// Libraries
-let moment = require("../node_modules/moment");
+// Date manipulation library
+const moment = require("../node_modules/moment");
 
 // Botty internal modules
-let parser = require("./bottyMessageParser");
-let textGenerator = require("./bottyTextGenerator");
-let memory = require("./bottyMemoryInterface");
+const parser = require("./bottyMessageParser");
+const textGenerator = require("./bottyTextGenerator");
+const memory = require("./bottyMemoryInterface");
 
 // Facebook Graph API interface
-let facebookMessageInterface = require("../facebook/facebookMessageInterface");
+const facebookMessageInterface = require("../facebook/facebookMessageInterface");
 
 // Persistent storage interface 
-let dataStagingInterface = require("../dataStagingInterface");
+const dataStagingInterface = require("../dataStagingInterface");
+
+//---------------------------------------------------------------------------//
+
+const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
 const FAST_ACTIONS = { // if the bot replies with these, no call is required to DDB/S3
     Greetings: "Greetings",

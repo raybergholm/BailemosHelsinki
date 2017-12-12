@@ -1,8 +1,10 @@
 "use strict";
 
-const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
+const crypto = require("crypto");
 
-let crypto = require("crypto");
+//---------------------------------------------------------------------------//
+
+const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 
 module.exports = {
     verifySignature: function (payload) {

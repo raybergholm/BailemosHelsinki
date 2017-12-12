@@ -1,9 +1,12 @@
 "use strict";
 
-let https = require("https");
+const https = require("https");
 
-let facebookApiInterface = require("./facebookApiInterface");
-let facebookMessageFactory = require("./facebookMessageFactory");
+// Facebook GraphAPI submodules
+const facebookApiInterface = require("./facebookApiInterface");
+const facebookMessageFactory = require("./facebookMessageFactory");
+
+//---------------------------------------------------------------------------//
 
 let _messageBuffer = {
     _queuedMessages: [],

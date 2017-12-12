@@ -1,16 +1,10 @@
 "use strict";
 
-//---------------------------------------------------------------------------//
-// Built-in modules
-let moment = require("moment");
-//---------------------------------------------------------------------------//
+// Used to handle incoming HTTP request verification
+const facebookRequestVerifier = require("./facebook/facebookRequestVerifier");
 
-//---------------------------------------------------------------------------//
-// Custom modules
-
-let facebookRequestVerifier = require("./facebook/facebookRequestVerifier");
-
-let botty = require("./botty/botty");
+// Main bot logic module
+const botty = require("./botty/botty");
 
 //---------------------------------------------------------------------------//
 

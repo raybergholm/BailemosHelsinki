@@ -1,6 +1,8 @@
 "use strict";
 
-let moment = require("../node_modules/moment");
+const moment = require("../node_modules/moment");
+
+//---------------------------------------------------------------------------//
 
 const QUICK_ACTION_KEYWORDS = {
     Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
