@@ -66,7 +66,17 @@ const BOT_TEXTS = { // probably should be fetched from S3
     ],
     OverflowResults: [
         "I got {amount} results for {from} to {to}, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
+    ],
+    Address: [
+        "\n{street}, {city}"
+    ],
+    Attending: [
+        "\n{count} people attending"
+    ],
+    EventType: [
+        "{type} - confidence: {confidence}%"
     ]
+
 };
 
 module.exports = {

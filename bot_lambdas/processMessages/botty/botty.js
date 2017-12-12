@@ -178,7 +178,10 @@ function replyWithFilteredEvents(filteredEvents) {
                 if (eventData.place) {
                     subtitleString += "\n" + eventData.place.name;
                     if (eventData.place.location) {
-                        subtitleString += "\n" + eventData.place.location.street + ", " + eventData.place.location.city;
+                        subtitleString += textGenerator.formatText(textGenerator.getText("Address"), {
+                            street: eventData.place.location.street,
+                            city: eventData.place.location.city
+                        });
                     }
                 }
             } catch (err) {
@@ -186,7 +189,31 @@ function replyWithFilteredEvents(filteredEvents) {
             }
 
             if (eventData.attending_count) {
-                subtitleString += "\n " + eventData.attending_count + " people attending";
+                subtitleString += textGenerator.formatText(textGenerator.getText("Attending"), {
+                    count: eventData.attending_count
+                });
+            }
+
+            if (eventData.probabilities) {
+                let totalWeights = 0;
+                let highestWeight = {
+                    type: "",
+                    value: 0
+                };
+                for(let prop in eventData.probabilities){
+                    totalWeights += eventData.probabilities[prop];
+                    if(eventData.probabilities[prop] > highestWeight.value){
+                        highestWeight.type = prop;
+                        highestWeight.value = eventData.probabilities[prop];
+                    }
+                }
+
+                let confidence = Math.round((highestWeight / totalWeights) * 100);
+
+                subtitleString += textGenerator.formatText(textGenerator.getText("EventType"), {
+                    type: highestWeight.type,
+                    confidence: confidence
+                });
             }
 
             if (eventData.cover && eventData.cover.source) {
