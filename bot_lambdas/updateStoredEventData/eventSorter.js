@@ -2,21 +2,22 @@
 
 const KEYWORDS = {
     // NB: This is it's own thing because it's often common to both courses and festivals, so if this turns up it's probably not a party, but by itself it can't tell the difference between course/festival
-    Workshop: /\b(?:workshop(s?)|työpaja(t?))\b/i,
-    Courses: /\b(?:course(s?)|kurssi(t?)|boot( ?)camp|leiri(t?))\b/i, // NOTE: don't include "teaching" or "opetus", it has a habit of appearing everywhere, pretty meaningless in this context
-    Festivals: /\b(?:festival(s?)|festivaali(t?))\b/i,
+    Workshop: /\b(?:workshop(?:s?)|työpaja(?:t?))\b/i,
+    Course: /\b(?:course(?:s?)|kurssi(t?)|boot(?: ?)camp|leiri(?:t?))\b/i, // NOTE: don't include "teaching" or "opetus", it has a habit of appearing everywhere, pretty meaningless in this context
+    Festival: /\b(?:festival(?:s?)|festivaali(?:t?))\b/i,
     // NB: annoyingly enough, a "party" might be found connected to any of the above! Usually the best hint that this isn't a workshop/course/festival is the event duration. Still, it can affect the confidence level of which category it should be in
-    Party: /\b(?:part(?:y|ies)|fiesta|show|bash|get( ?)together|juhla(t?))\b/i // actually, "fiesta" might be dangerous here since a spanish event may use it to mean a lot of things...
+    Party: /\b(?:part(?:y|ies)|fiesta|show|bash|get(?: ?)together|juhla(?:t?))\b/i // actually, "fiesta" might be dangerous here since a spanish event may use it to mean a lot of things...
+};
+
+const CATEGORIES = {
+    Events: "events",
+    Courses: "courses",
+    Festivals: "festivals"
 };
 
 module.exports = {
     sort: (responses, organisers) => {
-        let maps = {
-            events: {}, // general parties and anything which didn't fit the other categories
-            courses: {}, // courses and workshops
-            festivals: {}, // anything "festival-like", allow scraping of foreign events into here
-            organisers: organisers // putting this here as a lookup value  // TODO: do we even care? Might never need to show this info to the end user
-        };
+        let eventMap = {};
 
         responses.forEach((response) => {
             console.log(response.body);
@@ -48,25 +49,9 @@ module.exports = {
                                 eventData.end_time = firstUpcomingEvent.end_time;
                             }
 
-                            let probabilities = {
-                                events: 0,
-                                courses: 0,
-                                festivals: 0
-                            };
+                            eventData.probabilities = calculateProbabilities();
 
-                            let mostFittingCategory = "events";
-                            for (let prop in KEYWORDS) {
-                                let result = KEYWORDS[prop].exec(eventData.name);
-                                probabilities[prop] += result.length * 100; // if it shows up in the main title, there's a good chance that this is most relevant
-
-                                // I don't like how this will skew towards more verbose descriptions, maybe need to add weights to this. But a naive word count won't work well since I'll need to include all languages involved!
-                                result = KEYWORDS[prop].exec(eventData.description);    
-                                probabilities[prop] += result.length;
-                            }
-
-                            console.log("probabilities for " + eventData.name, probabilities);
-
-                            maps[mostFittingCategory][eventData.id] = eventData;
+                            eventMap[eventData.id] = eventData;
                         });
                     } else {
                         console.log("Additional metadata in response: ", entries[prop]);
@@ -75,16 +60,50 @@ module.exports = {
             }
         });
 
-        return formatForExport(maps);
+        return formatForExport(eventMap);
     }
 };
+
+function calculateProbabilities(eventData){
+    let probabilities = {
+        Workshop: 0,
+        Course: 0,
+        Festival: 0,
+        Party: 0        
+    };
+
+    for (let prop in KEYWORDS) {
+        let result = KEYWORDS[prop].exec(eventData.name);
+        if (result) {
+            probabilities[prop] += result.length * 100; // if it shows up in the main title, there's a good chance that this is most relevant
+        }
+
+        // I don't like how this will skew towards more verbose descriptions, maybe need to add weights to this. But a naive word count won't work well since I'll need to include all languages involved!
+        result = KEYWORDS[prop].exec(eventData.description);
+        if (result) {
+            probabilities[prop] += result.length;
+        }
+    }
+
+    // TODO: use locations to change probability weights
+    // Maxine is 100% chance of a party
+    // Pressa skews towards either festival or party, never courses
+
+    // TODO: use event duration to change probability weights: 
+    // 1 day? high chance of party or an intensive workshop
+    // 2 days? high chance of a workshop, much less likely to be a party. May be a festival too
+    // 3 days over FRI-SUN? really high chance of being a festival. Sometimes a workshop. May also include parties, they may be separate. Not a course
+    // over a week? a) yay, an organiser set it up right, b) almost 100% it's a long-term course
+
+    return probabilities;
+}
 
 function formatForExport(payload) {
     for (let prop in payload) {
         payload[prop] = convertMapToArray(payload[prop]);
     }
 
-    return payload;
+    return JSON.stringify(payload);
 }
 
 function convertMapToArray(inputMap) {
