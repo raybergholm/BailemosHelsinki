@@ -1,5 +1,6 @@
+# Ignore node stuff
 node_modules
 package.json
-.eslintrc
-.eslintignore
+
+# Ignore zip folders (for now, used to upload lambdas to AWS)
 *.zip

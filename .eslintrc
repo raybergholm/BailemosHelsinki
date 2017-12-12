@@ -1,0 +1,41 @@
+{
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": false,
+            "experimentalObjectRestSpread": true
+        }
+    },
+    "env": {
+        "browser": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+        // Off
+        "no-console": 0,
+
+        // Warnings
+        "dot-notation": "warn",
+        "eqeqeq": ["warn", "always"],
+        "no-lonely-if": "warn",
+        "no-unused-vars": "warn",
+
+        // Errors
+        "curly": ["error", "all"],
+        "for-direction": "error",
+        "no-array-constructor": "error",
+        "no-eq-null": "error",
+        "no-eval": "error",
+        "no-floating-decimal": "error",
+        "no-implied-eval": "error",
+        "no-new-object": "error",
+        "no-new-wrappers": "error",
+        "no-self-compare": "error",
+        "no-undef-init": "error",
+        "no-undefined": "error",
+        "no-unmodified-loop-condition": "error",
+        "semi": ["error", "always"]
+    }
+}
