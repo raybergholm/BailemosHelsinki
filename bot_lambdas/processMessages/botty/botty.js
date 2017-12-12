@@ -261,4 +261,6 @@ function replyWithFilteredEvents(filteredEvents) {
 
         facebookMessageInterface.sendTemplatedMessage(elements);
     }
+
+    endConversation();
 }
