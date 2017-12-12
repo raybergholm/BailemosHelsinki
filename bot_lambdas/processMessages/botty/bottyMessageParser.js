@@ -42,7 +42,7 @@ const KEYWORDS = { // TODO: worry about localisation later. This could end up re
         SemanticRanges: {
             Today: /\b(?:today|tonight)(\??)\b/i,
             Tomorrow: /\btomorrow(\??)\b/i,
-            NextSeven: /\b(?:7|seven) days(\??)\b/i,
+            OneWeek: /\b(?:7|seven) days(\??)\b/i,
             ThisWeek: /\bthis week(\??)\b/i,
             ThisWeekend: /\b(?:the|this|upcoming) weekend(\??)\b/i,
             NextWeek: /\bnext week(\??)\b/i,
@@ -162,7 +162,7 @@ function checkForTemporalCues(text) { // this one is more special because we can
                     dateTimeRange.from = moment().add(offset, "days").startOf("day");
                     dateTimeRange.to = moment().endOf("isoWeek");
                     break;
-                case "NextSeven":
+                case "OneWeek":
                     dateTimeRange.from = moment().startOf("day");
                     dateTimeRange.to = moment().add(7, "days").endOf("day");
                     break;

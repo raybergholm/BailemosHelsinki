@@ -18,19 +18,7 @@ const dataStagingInterface = require("../dataStagingInterface");
 
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
-const FAST_ACTIONS = { // if the bot replies with these, no call is required to DDB/S3
-    Greetings: "Greetings",
-    Thank: "Thank",
-    ReplyToThanks: "ReplyToThanks",
-    Embarressed: "Embarressed",
-    Apologise: "Apologise",
-    HelpRequest: "HelpRequest",
-    Disclaimer: "Disclaimer"
-};
-
 let typingIndicatorSent = false;
-
-let targetId;
 
 let analysisResults;
 
@@ -82,10 +70,6 @@ module.exports = {
         dataStagingInterface.getEventData(eventDataCallback);
     },
 
-    reply: () => {
-
-    },
-
     greet: () => {
         return textGenerator.getText("Greetings");
     },
@@ -127,33 +111,7 @@ function endConversation() {
 
 function quickScan(text) {
     let result = parser.quickScan(text);
-    let reply = null;
-    if (result) {
-        switch (result) {
-            case FAST_ACTIONS.Greetings:
-                reply = module.exports.greet();
-                break;
-            case FAST_ACTIONS.Thank:
-                reply = module.exports.thank();
-                break;
-            case FAST_ACTIONS.ReplyToThanks:
-                reply = module.exports.replyToThanks();
-                break;
-            case FAST_ACTIONS.Embarressed:
-                reply = module.exports.beEmbarressed();
-                break;
-            case FAST_ACTIONS.Apologise:
-                reply = module.exports.apologise();
-                break;
-            case FAST_ACTIONS.HelpRequest:
-                reply = module.exports.giveUserHelp();
-                break;
-            case FAST_ACTIONS.Disclaimer:
-                reply = module.exports.giveDisclaimer();
-                break;
-        }
-    }
-    return reply;
+    return result ? textGenerator.getText(result) : null;
 }
 
 function deepScan(text) {
