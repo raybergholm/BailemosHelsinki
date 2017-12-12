@@ -8,25 +8,31 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "Hello! :)"
     ],
     Thank: [
+        "Thank you",
         "Thank you :)",
         "Thanks!"
     ],
     ReplyToThanks: [
+        "You're welcome!",
         "You're welcome! :)",
+        "No problems!",
         "No problems! :)",
+        "Just doing my job",
         "Just doing my job :)",
-        "Glad to be of service!"
+        "Glad to be of service!",
+        "Glad to be of service! :)"
     ],
     Embarressed: [
-        "Why, thank you!",
-        "Aww, thanks"
+        "Why, thank you! ^_^",
+        "Aww, thanks ^_^"
     ],
     Uncertain: [
         "I have no idea what you mean :(",
         "This bot is not quite advanced enough to understand that. Yet.",
         "Uh, try to say that again in a different way?",
         "Well this is embarassing, I didn't understand :/",
-        "Uh, my owner didn't anticipate whatever you said"
+        "Uh, my owner didn't anticipate whatever you said",
+        "Umm... :/"
     ],
     Affirmative: [
         "Ok, on it!",
@@ -35,9 +41,11 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "Sure thing!"
     ],
     Apologise: [
+        "Sorry!",
+        "Oops, sorry!",
         "Whoops, did I get it wrong?",
         "I guess that didn't quite work as intended",
-        "Yeah, I have some problems sometimes :("
+        "Yeah, I have some weird quirks sometimes :("
     ],
     Disclaimer: [
         "This bot is currently under construction, so don't worry if things break.", "I don't really understand full sentences yet, just so you know :(", "If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages!", "Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
@@ -48,9 +56,12 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "Or you could just try \"Surprise me\" :)"
     ],
     NoResults: [
-        "I didn't find any events for the period {from} to {to}"
+        "Hmm, it seems like there's nothing available from {from} to {to}, at least with that criteria",
+        "I didn't find anything for the period {from} to {to}"
     ],
     NormalResults: [
+        "Let's see... We have {amount} things happening from {from} to {to}:",
+        "On it! There's {amount} results for {from} to {to}:",
         "Alright! I got {amount} results for {from} to {to}:"
     ],
     OverflowResults: [
