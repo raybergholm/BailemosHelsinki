@@ -38,14 +38,14 @@ function guessEventType(eventData) {
         Party: 0
     };
 
-    for (let prop in KEYWORDS) {
-        let result = KEYWORDS[prop].exec(eventData.name);
+    for (let prop in KEYWORDS.Type) {
+        let result = KEYWORDS.Type[prop].exec(eventData.name);
         if (result) {
             weights[prop] += result.length * 100; // if it shows up in the main title, there's a good chance that this is most relevant
         }
 
         // I don't like how this will skew towards more verbose descriptions, maybe need to add weights to this. But a naive word count won't work well since I'll need to include all languages involved!
-        result = KEYWORDS[prop].exec(eventData.description);
+        result = KEYWORDS.Type[prop].exec(eventData.description);
         if (result) {
             weights[prop] += result.length;
         }
@@ -78,7 +78,7 @@ function guessEventType(eventData) {
         totalWeights += probabilities[prop];
         if (probabilities[prop] > highestWeight.value) {
             highestWeight.type = prop;
-            highestWeight.value = eventData.probabilities[prop];
+            highestWeight.value = probabilities[prop];
         }
     }
 
