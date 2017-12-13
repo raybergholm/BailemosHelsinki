@@ -10,11 +10,11 @@ const KEYWORDS = {
     Type: {
         // NB: This is it's own thing because it's often common to both courses and festivals, so if this turns up it's probably not a party, but by itself it can't tell the difference between course/festival
         Workshop: /\b(?:workshop(?:s?)|työpaja(?:t?))\b/i,
-        Course: /\b(?:course(?:s?)|(?:tiivis?)kurssi(t?)|boot(?: ?)camp|leiri(?:t?))\b/i, // NOTE: don't include "teaching" or "opetus", it has a habit of appearing everywhere, pretty meaningless in this context
+        Course: /\b(?:course(?:s?)|(?:tiivis?)kurssi(t?)|lesson(?:s?)|boot(?: ?)camp|leiri(?:t?))\b/i, // NOTE: don't include "teaching" or "opetus", it has a habit of appearing everywhere, pretty meaningless in this context
         CourseTerminology: /\b(?:novice(?:s?)|alkeet|beginner(?:s?)|improver(?:s?)|advanced|ladie(?:'?)s styling)\b/i, // these words are nearly always massive indicators that this is a course and nothing else 
         Festival: /\b(?:festival(?:s?)|festivaali(?:t?))\b/i,
         // NB: annoyingly enough, a "party" might be found connected to any of the above! Usually the best hint that this isn't a workshop/course/festival is the event duration. Still, it can affect the confidence level of which category it should be in
-        Party: /\b(?:part(?:y|ies)|fiesta|show|bash|get(?: ?)together|juhla(?:t?))\b/i // actually, "fiesta" might be dangerous here since a spanish event may use it to mean a lot of things...
+        Party: /\b(?:part(?:y|ies)|fiesta|show|bash|get(?: ?)together(?:s?)|juhla(?:t?))\b/i // actually, "fiesta" might be dangerous here since a spanish event may use it to mean a lot of things...
     }
 };
 

@@ -19,9 +19,10 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
         SurpriseMe: /\bsurprise me\b/i
     },
     Types: {
-        Course: /\b(?:course(s?))\b/i,
-        Workshop: /\b(?:workshop(s?))\b/i,
-        Party: /\bpart(?:y|ies)\b/i
+        Course: /\b(?:course(?:s?)|(?:tiivis?)kurssi(t?)|lesson(?:s?)|boot(?: ?)camp|leiri(?:t?))\b/i,
+        Workshop: /\b(?:workshop(?:s?)|työpaja(?:t?))\b/i,
+        Party: /\b(?:part(?:y|ies)|fiesta|show|bash|get(?: ?)together(?:s?)|juhla(?:t?))\b/i,
+        Festival: /\b(?:festival(?:s?)|festivaali(?:t?))\b/i,
     },
     Interests: {
         Salsa: /\bsalsa\b/i,
