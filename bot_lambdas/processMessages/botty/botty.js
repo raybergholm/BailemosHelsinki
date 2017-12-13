@@ -186,10 +186,10 @@ function replyWithFilteredEvents(filteredEvents) {
             } catch (err) {
                 console.log("Error trying to write the location: ", err.message);
             }
-            
+
             if (eventData._bh && eventData._bh.type) {
                 subtitleString += textGenerator.formatText(textGenerator.getText("EventType"), {
-                    type: eventData._bh.type.type,
+                    type: eventData._bh.type.name,
                     confidence: eventData._bh.type.confidence
                 });
             } else if (eventData.attending_count) {
