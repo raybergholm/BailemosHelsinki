@@ -47,7 +47,7 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "I guess that didn't quite work as intended",
         "Yeah, I have some weird quirks sometimes :("
     ],
-    Disclaimer: [
+    Info: [
         "This bot is currently under construction, so don't worry if things break. If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages!", "Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
     ],
     HelpRequest: [
