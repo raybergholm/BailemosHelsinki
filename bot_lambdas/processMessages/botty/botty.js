@@ -89,7 +89,7 @@ function deepScan(text) {
 }
 
 function eventDataCallback(stagedData) {
-    let eventMap = {};
+    // let eventMap = {};
 
     console.log(analysisResults);
 
@@ -101,42 +101,66 @@ function eventDataCallback(stagedData) {
     }
 
     // Filter by datetime: this is the only mandatory filter so build the whitelist from everything within the time range
-    stagedData.forEach((eventData) => {
-        if (eventData.start_time.getTime() > analysisResults.dateTimeRange.from.valueOf() && eventData.end_time.getTime() < analysisResults.dateTimeRange.to.valueOf()) {
-            eventMap[eventData.id] = eventData;
-        }
-    });
-
-    console.log("after temporal filtering: " + Object.keys(eventMap).length + " events");
+    // stagedData.forEach((eventData) => {
+    //     if (eventData.start_time.getTime() > analysisResults.dateTimeRange.from.valueOf() && eventData.end_time.getTime() < analysisResults.dateTimeRange.to.valueOf()) {
+    //         eventMap[eventData.id] = eventData;
+    //     }
+    // });
 
     // Start throwing out things which don't fit the rest of the keywords
-    eventMap = parser.filterEvents(eventMap, analysisResults);
+    let filteredEvents = filterEvents(stagedData, analysisResults);
 
-    console.log("after all filtering: " + Object.keys(eventMap).length + " events");
-
-    // Convert back to an array
-    let filteredEvents = Object.keys(eventMap).map((id) => {
-        return eventMap[id];
-    });
-
-    // Sort array by ascending time
-    filteredEvents.sort((left, right) => {
-        if (!left.start_time.getTime() === right.start_time.getTime()) {
-            return 0;
-        } else {
-            return left.start_time.getTime() < right.start_time.getTime() ? -1 : 1;
-        }
-    });
+    console.log("after all filtering: " + filteredEvents.length + " events");
 
     replyWithFilteredEvents(filteredEvents);
+
+
+
+
+    // eventMap = parser.filterEvents(eventMap, analysisResults);
+
+
+    // // Convert back to an array
+    // let filteredEvents = Object.keys(eventMap).map((id) => {
+    //     return eventMap[id];
+    // });
+
+    // // Sort array by ascending time
+    // filteredEvents.sort((left, right) => {
+    //     if (!left.start_time.getTime() === right.start_time.getTime()) {
+    //         return 0;
+    //     } else {
+    //         return left.start_time.getTime() < right.start_time.getTime() ? -1 : 1;
+    //     }
+    // });
+
+    // replyWithFilteredEvents(filteredEvents);
 }
 
-function filterEvents(events) {
-    for(let i = 0; i < events.length; i++){
-        if(moment(events[i].start_time) < analysisResults.from){ // TODO: check how moment 
+function filterEvents(events, analysisResults) {
+    let filteredEvents = [];
+    for (let i = 0; i < events.length; i++) {
+        // Filter by date & time: the array is already sorted in date order so we can just use one standard loop
+        if (moment(events[i].start_time) < analysisResults.from) { // TODO: check how moment 
+            continue; // too early, keep going
+        } else if (moment(events[i].start_time) > analysisResults.to) {
+            break; // everything after this is outside the date range, we can discard the rest
+        }
 
+        if (events[i]._bh && analysisResults.optionals) {
+            if (analysisResults.interests) {
+                for (let j = 0; j < analysisResults.interests.length; j++) {
+                    if (events[i]._bh.interests.indexOf(analysisResults.interests[j]) !== -1) {
+                        filteredEvents.push(events[i]);
+                        break;
+                    }
+                }
+            }
+        } else {
+            filteredEvents.push(events[i]);
         }
     }
+    return filteredEvents;
 }
 
 function replyWithFilteredEvents(filteredEvents) {
