@@ -49,7 +49,9 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
             NextWeek: /\bnext week(\??)\b/i,
             NextWeekend: /\bnext weekend(\??)\b/i,
             ThisMonth: /\b(?:this|upcoming) month(\??)\b/i,
-            NextMonth: /\bnext month(\??)\b/i
+            NextMonth: /\bnext month(\??)\b/i,
+            ThisYear: /\this year(\??)\b/i,
+            NextYear: /\bnext year(\??)\b/i
         },
         Precise: {
             OnExactDate: /\b(?:on) \d{1,2}[./]\d{1,2}/i,
@@ -159,6 +161,14 @@ function checkForTemporalCues(text) { // this one is more special because we can
                 case "NextMonth":
                     dateTimeRange.from = moment().add(1, "month").startOf("month");
                     dateTimeRange.to = moment().add(1, "month").endOf("month");
+                    break;
+                case "ThisYear":
+                    dateTimeRange.from = moment().startOf("day");
+                    dateTimeRange.to = moment().endOf("year");
+                    break;
+                case "NextYear":
+                    dateTimeRange.from = moment().add(1, "year").startOf("year");
+                    dateTimeRange.to = moment().add(1, "year").endOf("year");
                     break;
                 default:
                     console.log("it matched but didn't match?", prop);
