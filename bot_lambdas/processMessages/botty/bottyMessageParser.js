@@ -50,7 +50,7 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
             NextWeekend: /\bnext weekend(\??)\b/i,
             ThisMonth: /\b(?:this|upcoming) month(\??)\b/i,
             NextMonth: /\bnext month(\??)\b/i,
-            ThisYear: /\this year(\??)\b/i,
+            ThisYear: /\bthis year(\??)\b/i,
             NextYear: /\bnext year(\??)\b/i
         },
         Precise: {
