@@ -68,38 +68,6 @@ module.exports = {
         }
 
         dataStagingInterface.getEventData(eventDataCallback);
-    },
-
-    greet: () => {
-        return textGenerator.getText("Greetings");
-    },
-
-    thank: () => {
-        return textGenerator.getText("Thank");
-    },
-
-    replyToThanks: () => {
-        return textGenerator.getText("ReplyToThanks");
-    },
-
-    apologise: () => {
-        return textGenerator.getText("Apologise");
-    },
-
-    beEmbarressed: () => {
-        return textGenerator.getText("Embarressed");
-    },
-
-    beUncertain: () => {
-        return textGenerator.getText("Uncertain");
-    },
-
-    giveUserHelp: () => {
-        return textGenerator.getAllText("HelpRequest");
-    },
-
-    giveDisclaimer: () => {
-        return textGenerator.getAllText("Disclaimer");
     }
 };
 
