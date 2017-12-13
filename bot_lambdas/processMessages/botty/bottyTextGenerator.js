@@ -48,12 +48,10 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "Yeah, I have some weird quirks sometimes :("
     ],
     Disclaimer: [
-        "This bot is currently under construction, so don't worry if things break.", "I don't really understand full sentences yet, just so you know :(", "If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages!", "Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
+        "This bot is currently under construction, so don't worry if things break. If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages!", "Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
     ],
     HelpRequest: [
-        "Currently I can detect some keywords related to the dance scene in Helsinki based on things like time, event types and interests. You can freely combine terms to narrow down your search", "e.g. try something like \"any salsa parties this weekend?\" and I can pick up \"salsa\", \"party\" and \"this weekend\" and check what's out there.", 
-        "Or you could just ask \"what's happening next Friday?\" if you just want to know what's happening then", 
-        "Or you could just try \"Surprise me\" :)"
+        "I can detect some keywords related to the dance scene in Helsinki based on things like time, event types and interests. You can freely combine terms to narrow down your search", "e.g. try something like \"any salsa parties this weekend?\" and I can pick up \"salsa\", \"party\" and \"this weekend\" and check what's out there. Currently I work based on first figuring out a time range (please use just one), after that I try to check if there's anything more restrictive, like anything related to \"salsa\" or \"bachata\"", 
     ],
     NoResults: [
         "Hmm, it seems like there's nothing available from {from} to {to}, at least with that criteria",
@@ -61,8 +59,8 @@ const BOT_TEXTS = { // probably should be fetched from S3
     ],
     NormalResults: [
         "Let's see... We have {amount} things happening from {from} to {to}:",
-        "On it! There's {amount} results for {from} to {to}:",
-        "Alright! I got {amount} results for {from} to {to}:"
+        "Ok! There's {amount} results for {from} to {to}:",
+        "Alright, I found {amount} results for {from} to {to}:"
     ],
     OverflowResults: [
         "I got {amount} results for {from} to {to}, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
