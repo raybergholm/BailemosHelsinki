@@ -91,7 +91,7 @@ function guessEventType(eventData) {
     }
 
     return {
-        type: highestWeight.type,
+        name: highestWeight.type,
         confidence: confidence
     };
 }
