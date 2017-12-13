@@ -91,7 +91,7 @@ function queryFacebookApi(organisers) {
 
             console.log(responses);
 
-            let payload = parseResponses(response);
+            let payload = parseResponses(responses);
             if (payload) {
                 dataStagingInterface.updateEventData(payload);
             }
