@@ -94,38 +94,6 @@ module.exports = {
         return result;
     },
 
-    // FIXME: doesn't belong here, dump when refactored
-    filterEvents: function (eventsMap, keywords) {
-        let matchedKeyword;
-        if (keywords.optionals) {
-            for (let prop in eventsMap) {
-                matchedKeyword = false;
-
-                // Lazy matching: OK it if any keyword matches (TODO: for handling complex cases, may need an entire class for doing the logical connections)
-                if (keywords.interests) {
-                    for (let i = 0; i < keywords.interests.length; i++) {
-                        if (MAIN_KEYWORDS.Interests[keywords.interests[i]].test(eventsMap[prop].description)) {
-                            matchedKeyword = true;
-                            break;
-                        }
-                    }
-                }
-
-                // for (let i = 0; i < keywords.locations.length; i++) {
-                //     if (KEYWORDS.Locations[keywords.locations[i]].test(eventsMap[prop].description)) {
-                //         matchedKeyword = true;
-                //         break;
-                //     }
-                // }
-
-                if (!matchedKeyword) {
-                    delete eventsMap[prop];
-                }
-            }
-        }
-        return eventsMap;
-    },
-
     getDefaultDateRange: () => {
         return {
             from: moment().startOf("day"),

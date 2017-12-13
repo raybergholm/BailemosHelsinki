@@ -89,23 +89,15 @@ function deepScan(text) {
 }
 
 function eventDataCallback(stagedData) {
-    // let eventMap = {};
-
     console.log(analysisResults);
 
-    console.log("before filtering: " + stagedData.length + " events");
 
     if (!analysisResults.dateTimeRange || !analysisResults.dateTimeRange.from || !analysisResults.dateTimeRange.to) {
         console.log("major error in date/time range, they were null. Emergency fallback to default date range");
         analysisResults.dateTimeRange = parser.getDefaultDateRange();
     }
 
-    // Filter by datetime: this is the only mandatory filter so build the whitelist from everything within the time range
-    // stagedData.forEach((eventData) => {
-    //     if (eventData.start_time.getTime() > analysisResults.dateTimeRange.from.valueOf() && eventData.end_time.getTime() < analysisResults.dateTimeRange.to.valueOf()) {
-    //         eventMap[eventData.id] = eventData;
-    //     }
-    // });
+    console.log("before filtering: " + stagedData.length + " events");
 
     // Start throwing out things which don't fit the rest of the keywords
     let filteredEvents = filterEvents(stagedData, analysisResults);
@@ -113,44 +105,27 @@ function eventDataCallback(stagedData) {
     console.log("after all filtering: " + filteredEvents.length + " events");
 
     replyWithFilteredEvents(filteredEvents);
-
-
-
-
-    // eventMap = parser.filterEvents(eventMap, analysisResults);
-
-
-    // // Convert back to an array
-    // let filteredEvents = Object.keys(eventMap).map((id) => {
-    //     return eventMap[id];
-    // });
-
-    // // Sort array by ascending time
-    // filteredEvents.sort((left, right) => {
-    //     if (!left.start_time.getTime() === right.start_time.getTime()) {
-    //         return 0;
-    //     } else {
-    //         return left.start_time.getTime() < right.start_time.getTime() ? -1 : 1;
-    //     }
-    // });
-
-    // replyWithFilteredEvents(filteredEvents);
 }
 
 function filterEvents(events, analysisResults) {
     let filteredEvents = [];
     for (let i = 0; i < events.length; i++) {
         // Filter by date & time: the array is already sorted in date order so we can just use one standard loop
-        if (moment(events[i].start_time) < analysisResults.from) { // TODO: check how moment 
+        let startTime = moment(events[i].start_time);
+
+        console.log(startTime);
+        if (startTime < analysisResults.dateTimeRange.from) { // TODO: check how moment 
+            console.log("continue");
             continue; // too early, keep going
-        } else if (moment(events[i].start_time) > analysisResults.to) {
+        } else if (startTime > analysisResults.dateTimeRange.to) {
+            console.log("break");
             break; // everything after this is outside the date range, we can discard the rest
         }
 
         if (events[i]._bh && analysisResults.optionals) {
             if (analysisResults.interests) {
                 for (let j = 0; j < analysisResults.interests.length; j++) {
-                    if (events[i]._bh.interests.indexOf(analysisResults.interests[j]) !== -1) {
+                    if (events[i]._bh.interestTags.indexOf(analysisResults.interests[j]) !== -1) {
                         filteredEvents.push(events[i]);
                         break;
                     }
