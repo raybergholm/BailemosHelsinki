@@ -147,7 +147,7 @@ function replyWithFilteredEvents(filteredEvents) {
             let subtitleString = "";
             let coverImageUrl = null;
 
-            subtitleString += moment(eventData.start_time).format("DD.MM.YYYY HH:mm");
+            subtitleString += moment(eventData.start_time).format("Do MMMM HH:mm");
 
             try {
                 if (eventData.place) {
