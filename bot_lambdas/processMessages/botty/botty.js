@@ -131,6 +131,12 @@ function filterEvents(events, analysisResults) {
                     }
                 }
             }
+            if (analysisResults.eventTypes) {
+                if (analysisResults.eventTypes.indexOf(events[i]._bh.type.name) !== -1) {
+                    filteredEvents.push(events[i]);
+                    break;
+                }
+            }
         } else {
             filteredEvents.push(events[i]);
         }

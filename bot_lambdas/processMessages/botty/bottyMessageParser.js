@@ -92,6 +92,13 @@ module.exports = {
             result.matched = true;
         }
 
+        let eventTypes = checkForEventTypes(text);
+        if (eventTypes) {
+            result.eventTypes = eventTypes;
+            result.optionals = true;
+            result.matched = true;
+        }
+
         return result;
     },
 
