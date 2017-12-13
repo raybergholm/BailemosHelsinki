@@ -1,10 +1,14 @@
 "use strict";
 
 exports.handler = (event, context, callback) => {
+    let payload = {
+        message: "Not Implemented"
+    };
+
     let response = {
         isBase64Encoded: false,
         statusCode: 501,
-        body: "Not implemented"
+        body: JSON.stringify(payload)
     };
 
     console.log("returning the following response: ", JSON.stringify(response));
