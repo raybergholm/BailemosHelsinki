@@ -48,10 +48,10 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "Yeah, I have some weird quirks sometimes :("
     ],
     Info: [
-        "This bot is currently under construction, so don't worry if things break. If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages!", "Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
+        "This bot is currently under construction, so don't worry if things break. If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages! Just tell him the exact text you wrote, what you meant by it and what sort of answer you were expecting. Every bit of help counts!"
     ],
     HelpRequest: [
-        "I can detect some keywords related to the dance scene in Helsinki based on things like time, event types and interests. You can freely combine terms to narrow down your search", "e.g. try something like \"any salsa parties this weekend?\" and I can pick up \"salsa\", \"party\" and \"this weekend\" and check what's out there. Currently I work based on first figuring out a time range (please use just one), after that I try to check if there's anything more restrictive, like anything related to \"salsa\" or \"bachata\"", 
+        "I can detect some keywords related to the dance scene in Helsinki based on things like time, event types and interests. You can freely combine terms to narrow down your search e.g. try something like \"any salsa parties this weekend?\" and I can pick up \"salsa\", \"party\" and \"this weekend\" and check what's out there. Currently I work based on first figuring out a time range (please use just one), after that I try to check if there's anything more restrictive, like anything related to \"salsa\" or \"bachata\"",
     ],
     NoResults: [
         "Hmm, it seems like there's nothing available from {from} to {to}, at least with that criteria",
@@ -78,16 +78,16 @@ const BOT_TEXTS = { // probably should be fetched from S3
 };
 
 module.exports = {
-    getText: function(category) {
+    getText: function (category) {
         if (!BOT_TEXTS[category]) {
             console.log("tried to get an nonexistent bot text category");
             return "Major error, botty bugged out";
         }
 
         let reply;
-        if(BOT_TEXTS[category].length === 1){
+        if (BOT_TEXTS[category].length === 1) {
             reply = BOT_TEXTS[category][0];
-        }else {
+        } else {
             reply = BOT_TEXTS[category][Math.floor(Math.random() * BOT_TEXTS[category].length)];
         }
         return reply;
