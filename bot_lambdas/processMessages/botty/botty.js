@@ -186,38 +186,15 @@ function replyWithFilteredEvents(filteredEvents) {
             } catch (err) {
                 console.log("Error trying to write the location: ", err.message);
             }
-
-            // if (eventData.attending_count) {
-            //     subtitleString += textGenerator.formatText(textGenerator.getText("Attending"), {
-            //         count: eventData.attending_count
-            //     });
-            // }
-
-            if (eventData.probabilities) {
-                let totalWeights = 0;
-                let highestWeight = {
-                    type: "",
-                    value: 0
-                };
-                for (let prop in eventData.probabilities) {
-                    totalWeights += eventData.probabilities[prop];
-                    if (eventData.probabilities[prop] > highestWeight.value) {
-                        highestWeight.type = prop;
-                        highestWeight.value = eventData.probabilities[prop];
-                    }
-                }
-
-                let confidence;
-                if (totalWeights > 0) {
-                    confidence = Math.round((highestWeight.value / totalWeights) * 100);
-                } else {
-                    highestWeight.type = "Unsure";
-                    confidence = 0;
-                }
-
+            
+            if (eventData._bh && eventData._bh.type) {
                 subtitleString += textGenerator.formatText(textGenerator.getText("EventType"), {
-                    type: highestWeight.type,
-                    confidence: confidence
+                    type: eventData._bh.type.type,
+                    confidence: eventData._bh.type.confidence
+                });
+            } else if (eventData.attending_count) {
+                subtitleString += textGenerator.formatText(textGenerator.getText("Attending"), {
+                    count: eventData.attending_count
                 });
             }
 
