@@ -94,6 +94,7 @@ module.exports = {
         return result;
     },
 
+    // FIXME: doesn't belong here, dump when refactored
     filterEvents: function (eventsMap, keywords) {
         let matchedKeyword;
         if (keywords.optionals) {
