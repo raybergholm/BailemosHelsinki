@@ -74,7 +74,7 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "\n{count} people attending"
     ],
     EventType: [
-        "\n{type} - {confidence}%"
+        "\n{type} - {confidence}% confidence"
     ]
 
 };
