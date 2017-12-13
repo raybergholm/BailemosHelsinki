@@ -131,6 +131,14 @@ function eventDataCallback(stagedData) {
     replyWithFilteredEvents(filteredEvents);
 }
 
+function filterEvents(events) {
+    for(let i = 0; i < events.length; i++){
+        if(moment(events[i].start_time) < analysisResults.from){ // TODO: check how moment 
+
+        }
+    }
+}
+
 function replyWithFilteredEvents(filteredEvents) {
     let elements = [];
 
