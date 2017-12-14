@@ -126,13 +126,13 @@ function parseResponses(responses) {
                 if (body[prop].data) {
                     let entries = body[prop].data;
                     entries.forEach((entry) => {
-                        if (entry.message) {
-                            // This is a feed message
+                        if (entry.type && entry.link) {
+                            // This is a feed message with a link
 
                             if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
                                 linkedEvents.push(entry.link);
                             }
-                        } else if (entry.description) {
+                        } else if (entry.name && entry.description && entry.start_time && entry.end_time) {
                             // This is an event
                             if (entry.event_times) {
                                 let firstUpcomingEvent = entry.event_times.find((element) => {
@@ -148,7 +148,7 @@ function parseResponses(responses) {
 
                             eventMap[entry.id] = entry;
                         } else {
-                            console.log("Unknown entry received: ", entry);
+                            console.log("Unknown and/or discarded entry received: ", entry);
                         }
                     });
                 } else {
