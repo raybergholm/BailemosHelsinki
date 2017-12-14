@@ -36,7 +36,7 @@ module.exports = {
                     }
                 }
 
-                console.log(stagedData);
+                // console.log(stagedData);
 
                 if (callback) {
                     callback(stagedData);

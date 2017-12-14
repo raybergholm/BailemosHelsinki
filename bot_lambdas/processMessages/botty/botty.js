@@ -89,20 +89,19 @@ function deepScan(text) {
 }
 
 function eventDataCallback(stagedData) {
-    console.log(analysisResults);
-
+    // console.log(analysisResults);
 
     if (!analysisResults.dateTimeRange || !analysisResults.dateTimeRange.from || !analysisResults.dateTimeRange.to) {
         console.log("major error in date/time range, they were null. Emergency fallback to default date range");
         analysisResults.dateTimeRange = parser.getDefaultDateRange();
     }
 
-    console.log("before filtering: " + stagedData.length + " events");
+    // console.log("before filtering: " + stagedData.length + " events");
 
     // Start throwing out things which don't fit the rest of the keywords
     let filteredEvents = filterEvents(stagedData, analysisResults);
 
-    console.log("after all filtering: " + filteredEvents.length + " events");
+    // console.log("after all filtering: " + filteredEvents.length + " events");
 
     replyWithFilteredEvents(filteredEvents);
 }
@@ -113,12 +112,9 @@ function filterEvents(events, analysisResults) {
         // Filter by date & time: the array is already sorted in date order so we can just use one standard loop
         let startTime = moment(events[i].start_time);
 
-        console.log(startTime);
         if (startTime < analysisResults.dateTimeRange.from) { // TODO: check how moment 
-            console.log("continue");
             continue; // too early, keep going
         } else if (startTime > analysisResults.dateTimeRange.to) {
-            console.log("break");
             break; // everything after this is outside the date range, we can discard the rest
         }
 
