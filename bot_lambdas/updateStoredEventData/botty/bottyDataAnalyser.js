@@ -19,7 +19,7 @@ const KEYWORDS = {
 };
 
 module.exports = {
-    analyse: (eventData) => {
+    analyseEvent: (eventData) => {
         let result = {};
 
         result.type = guessEventType(eventData);
@@ -62,8 +62,8 @@ function guessEventType(eventData) {
     // over a week? a) yay, an organiser set it up right, b) almost 100% it's a long-term course
 
     let probabilities = {
-        Party: weights.Party * 10,
-        Workshop: weights.Workshop * 10 + weights.Party + weights.Course,
+        Party: weights.Party * 15,
+        Workshop: weights.Workshop * 30 + weights.Party + weights.Course,
         Course: weights.Course * 10 + weights.CourseTerminology * 100,
         Festival: weights.Festival * 20 + weights.Party + weights.Workshop
     };

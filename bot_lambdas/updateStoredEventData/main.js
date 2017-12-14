@@ -10,7 +10,7 @@ const facebookApiInterface = require("./facebookApiInterface");
 const dataStagingInterface = require("./dataStagingInterface");
 
 // For event data analysis
-const bottyEventAnalyser = require("./botty/bottyEventAnalyser");
+const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 
 //---------------------------------------------------------------------------//
 
@@ -59,13 +59,14 @@ function queryFacebookApi(organisers) {
         }, true),
         method: "GET"
     });
-    // batchRequestContent.push({   // TODO: reinstate this when I have a decent feed scraping algorithm
-    //     relative_url: facebookApiInterface.buildQueryUrl("/feed/", {
-    //         debug: "all",
-    //         ids: groupIds
-    //     }, true),
-    //     method: "GET"
-    // });
+    batchRequestContent.push({
+        relative_url: facebookApiInterface.buildQueryUrl("/feed/", {
+            debug: "all",
+            ids: groupIds,
+            fields: ["type", "link", "message", "story"]
+        }, true),
+        method: "GET"
+    });
     batchRequestContent.push({
         relative_url: facebookApiInterface.buildQueryUrl("/events/", {
             debug: "all",
@@ -105,8 +106,11 @@ function queryFacebookApi(organisers) {
     req.end();
 }
 
-function parseResponses(responses){
+function parseResponses(responses) {
     let eventMap = {};
+    let linkedEvents = [];
+
+    let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/events\/\d+\/$/i;
 
     responses.forEach((response) => {
         console.log(response.body);
@@ -114,28 +118,38 @@ function parseResponses(responses){
         if (response.error) {
             console.log("Response errored: ", response.error.message);
         } else {
-            let events;
-            let entries = JSON.parse(response.body);
-            for (let prop in entries) {
+            let body = JSON.parse(response.body);
 
-                console.log(entries[prop]);
+            for (let prop in body) {
+                console.log(body[prop]);
 
-                if (entries[prop].data) {
-                    events = entries[prop].data;
-                    events.forEach((eventData) => {
-                        if (eventData.event_times) {
-                            let firstUpcomingEvent = eventData.event_times.find((element) => {
-                                return (new Date(element.start_time)).getTime() > Date.now();
-                            });
+                if (body[prop].data) {
+                    let entries = body[prop].data;
+                    entries.forEach((entry) => {
+                        if (entry.message) {
+                            // This is a feed message
 
-                            eventData.id = firstUpcomingEvent.id;
-                            eventData.start_time = firstUpcomingEvent.start_time;
-                            eventData.end_time = firstUpcomingEvent.end_time;
+                            if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
+                                linkedEvents.push(entry.link);
+                            }
+                        } else if (entry.description) {
+                            // This is an event
+                            if (entry.event_times) {
+                                let firstUpcomingEvent = entry.event_times.find((element) => {
+                                    return (new Date(element.start_time)).getTime() > Date.now();
+                                });
+
+                                entry.id = firstUpcomingEvent.id;
+                                entry.start_time = firstUpcomingEvent.start_time;
+                                entry.end_time = firstUpcomingEvent.end_time;
+                            }
+
+                            entry._bh = bottyDataAnalyser.analyseEvent(entry);
+
+                            eventMap[entry.id] = entry;
+                        } else {
+                            console.log("Unknown entry received: ", entry);
                         }
-                        
-                        eventData._bh = bottyEventAnalyser.analyse(eventData);
-
-                        eventMap[eventData.id] = eventData;
                     });
                 } else {
                     console.log("Additional metadata in response: ", entries[prop]);
@@ -144,7 +158,15 @@ function parseResponses(responses){
         }
     });
 
+    if (linkedEvents.length > 0) {
+        queryAdditionalEvents(linkedEvents, eventMap);
+    }
+
     return formatForExport(eventMap);
+}
+
+function queryAdditionalEvents(linkedEvents, eventMap) {
+    console.log(linkedEvents);
 }
 
 function formatForExport(eventMap) {
