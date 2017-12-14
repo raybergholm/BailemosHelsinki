@@ -123,12 +123,17 @@ function filterEvents(events, analysisResults) {
             if (analysisResults.interests) {
                 for (let j = 0; j < analysisResults.interests.length; j++) {
                     if (events[i]._bh.interestTags.indexOf(analysisResults.interests[j]) !== -1) {
-                        filteredEvents.push(events[i]);
+                        if (analysisResults.eventTypes) {
+                            if(analysisResults.eventTypes.indexOf(events[i]._bh.type.name) !== -1) {
+                                filteredEvents.push(events[i]);
+                            }
+                        } else {
+                            filteredEvents.push(events[i]);
+                        }
                         break;
                     }
                 }
-            }
-            if (analysisResults.eventTypes) {
+            } else if (analysisResults.eventTypes) {
                 if (analysisResults.eventTypes.indexOf(events[i]._bh.type.name) !== -1) {
                     filteredEvents.push(events[i]);
                 }
