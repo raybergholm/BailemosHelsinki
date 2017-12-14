@@ -160,14 +160,13 @@ function parseResponses(responses) {
     });
 
     if (linkedEvents.length > 0) {
+        // Need to wait for secondary event query
         queryAdditionalEvents(linkedEvents, eventMap);
     } else {
-        // let payload = formatForExport(eventMap);
-        // dataStagingInterface.updateEventData(payload);   // TODO: reenable once the secondary query works
+        // No additional queries, save right away
+        let payload = formatForExport(eventMap);
+        dataStagingInterface.updateEventData(payload);
     }
-
-    let payload = formatForExport(eventMap); // TODO: remove oonce the secondary query works
-    dataStagingInterface.updateEventData(payload);
 }
 
 function queryAdditionalEvents(linkedEvents, eventMap) {
@@ -219,8 +218,8 @@ function queryAdditionalEvents(linkedEvents, eventMap) {
                 eventMap[evt.id] = evt;
             });
 
-            // let payload = formatForExport(eventMap);     // TODO: reenable when secondary query works
-            // dataStagingInterface.updateEventData(payload);
+            let payload = formatForExport(eventMap);     
+            dataStagingInterface.updateEventData(payload);
         });
     });
 }
@@ -228,12 +227,14 @@ function queryAdditionalEvents(linkedEvents, eventMap) {
 function parseSecondaryEventResponses(responses) {
     let events = [];
     responses.forEach((response) => {
-        console.log(response.body);
-
         if (response.error) {
             console.log("Response errored: ", response.error.message);
         } else {
-            let body = JSON.parse(response.body);
+            let evt = JSON.parse(response.body);
+            console.log(evt);
+
+            evt._bh = bottyDataAnalyser.analyseEvent(evt);
+            events.push(evt);
         }
     });
 
