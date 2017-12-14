@@ -47,3 +47,4 @@ Currently on hold, originally was used as an alternate entry point for debugging
 ## TODOs:
 
 * handleFacebookWebhookUpdate is meant to handle when a subscribed page/user/etc updates, and it would be superior to static batch updates. But, check if this requires the page/user to give permission to this bot, if so we're no longer passively collecting data, but we'd have to actively approach the other event organisers for consent!
+* date parsing is currently extremely wrong: moment always defaulting to MM/DD/YYYY which will never be a use case while we're only in Europe. __FIX THIS, IT'S EXTREMELY UNINTUITIVE FOR END USERS IN EUROPE.__
