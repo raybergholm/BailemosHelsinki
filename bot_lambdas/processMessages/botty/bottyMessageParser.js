@@ -8,7 +8,7 @@ const QUICK_MESSAGE_KEYWORDS = {
     Greetings: /\b(?:hi|hello|yo|ohai|moi|hei|hej)(?:\b|[!?])/i,
     Info: /\b(?:info|disclaimer)\b/i,
     HelpRequest: /\b(?:help)(?:\b|[!?])|\bhelp [me|please]\b/i,
-    Thank: /\b(?:you're a big help|nice one|that help(?:s|ed)|good (?:job|work))(!?)\b/i,
+    Thank: /\b(?:you're a big help|nice (?::\)|:D|one)|that help(?:s|ed)|good (?:job|work))(!?)\b/i,
     ReplyToThanks: /\b(?:thank(s?)|thank you|tack|tacktack|kiitos)(!?)\b/i,
     Embarressed: /\b(?:good bot)(!?)\b/i,
     Apologise: /\b(?:wtf|you're drunk|wrong|big nope)\b/i
