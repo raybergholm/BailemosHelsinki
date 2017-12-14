@@ -28,6 +28,11 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "Sleep tight!",
         "Sleep tight! :)",
     ],
+    OpenQuestion: [
+        "Sure, go ahead!",
+        "I'm all ears.",
+        "Sure thing, fire away!"
+    ],
     Thank: [
         "Thank you",
         "Thank you :)",
