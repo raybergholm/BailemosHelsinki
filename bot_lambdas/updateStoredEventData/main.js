@@ -152,7 +152,7 @@ function parseResponses(responses) {
                         }
                     });
                 } else {
-                    console.log("Additional metadata in response: ", entries[prop]);
+                    console.log("Additional metadata in response: ", body[prop]);
                 }
             }
         }
