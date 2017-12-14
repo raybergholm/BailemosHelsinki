@@ -5,7 +5,28 @@ const BOT_TEXTS = { // probably should be fetched from S3
         "Hi!",
         "Hello!",
         "Hi! :)",
-        "Hello! :)"
+        "Hello! :)",
+        "Hi! How can I help?",
+        "Hey there!",
+        "Hey there! How can I help?"
+    ],
+    GoodMorning: [
+        "Good morning!",
+        "Good morning! :)",
+        "Morning!",
+        "Morning! :)"
+    ],
+    GoodDay: [
+        "Good day to you too :)"
+    ],
+    GoodEvening: [
+        "Evening!"
+    ],
+    GoodNight: [
+        "Good night!",
+        "Good night! :)",
+        "Sleep tight!",
+        "Sleep tight! :)",
     ],
     Thank: [
         "Thank you",
