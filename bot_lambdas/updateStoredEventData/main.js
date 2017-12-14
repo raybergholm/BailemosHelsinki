@@ -95,9 +95,9 @@ function queryOrganiserEvents(organisers) {
     });
 }
 
-function sendBatchRequestToFacebook(body, callback){
+function sendBatchRequestToFacebook(body, callback) {
     let options = facebookApiInterface.createGraphApiOptions();
-    
+
     let req = https.request(options, callback);
     req.on("error", (err) => {
         console.log("problem with request: " + err);
@@ -175,14 +175,14 @@ function queryAdditionalEvents(linkedEvents, eventMap) {
     console.log(linkedEvents);
 
     let eventIds = [];
-    linkedEvents.forEach((link) => {    // extract the event ID from the URL, then check if it's already in the eventMap: if it is, just skip it, we already have the event data
+    linkedEvents.forEach((link) => { // extract the event ID from the URL, then check if it's already in the eventMap: if it is, just skip it, we already have the event data
         let id = eventIdRegex.exec(link)[0];
-        if(!eventMap[id]){
+        if (!eventMap[id]) {
             eventIds.push(id);
         }
     });
 
-    eventIds = [...new Set(eventIds)];  // unique values only 
+    eventIds = [...new Set(eventIds)]; // unique values only 
 
     let batchRequestContent = [];
     eventIds.map((eventId) => {
@@ -195,7 +195,7 @@ function queryAdditionalEvents(linkedEvents, eventMap) {
             method: "GET"
         });
     });
-    
+
 
     console.log(eventIds);
 
@@ -213,12 +213,12 @@ function queryAdditionalEvents(linkedEvents, eventMap) {
             console.log(responses);
 
             let events = parseSecondaryEventResponses(responses);
-            
-            events.map((evt) => {   // add new events to eventMap (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+
+            events.map((evt) => { // add new events to eventMap (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
                 eventMap[evt.id] = evt;
             });
 
-            let payload = formatForExport(eventMap);     
+            let payload = formatForExport(eventMap);
             dataStagingInterface.updateEventData(payload);
         });
     });
