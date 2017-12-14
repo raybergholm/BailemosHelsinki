@@ -2,7 +2,7 @@
 
 // Date manipulation library
 const moment = require("../node_modules/moment");
-moment.locale("en-UK");
+moment.locale("en-GB");
 
 // Botty internal modules
 const parser = require("./bottyMessageParser");

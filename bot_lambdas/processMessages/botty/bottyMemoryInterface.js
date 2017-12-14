@@ -1,7 +1,7 @@
 "use strict";
 
 const moment = require("moment");
-moment.locale("en-UK");
+moment.locale("en-GB");
 
 const AWS = require("aws-sdk");
 AWS.config.update({
