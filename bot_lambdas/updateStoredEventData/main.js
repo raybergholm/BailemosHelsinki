@@ -15,7 +15,7 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    dataStagingInterface.getOrganiserData(queryFacebookApi); // main logical chain gets kicked off asynchronously from here
+    dataStagingInterface.getOrganiserData(queryOrganiserEvents); // main logical chain gets kicked off asynchronously from here
 
     let response = {
         isBase64Encoded: false,
@@ -25,7 +25,7 @@ exports.handler = (event, context, callback) => {
     callback(null, response);
 };
 
-function queryFacebookApi(organisers) {
+function queryOrganiserEvents(organisers) {
     let pageIds = [],
         groupIds = [],
         userIds = [];
@@ -77,9 +77,7 @@ function queryFacebookApi(organisers) {
         method: "GET"
     });
 
-    let options = facebookApiInterface.createGraphApiOptions();
-
-    let req = https.request(options, (response) => {
+    sendBatchRequestToFacebook(batchRequestContent, (response) => {
         console.log(response);
 
         let str = "";
@@ -92,17 +90,20 @@ function queryFacebookApi(organisers) {
 
             console.log(responses);
 
-            let payload = parseResponses(responses);
-            if (payload) {
-                dataStagingInterface.updateEventData(payload);
-            }
+            parseResponses(responses); // TODO: good place refactor into a promise
         });
     });
+}
+
+function sendBatchRequestToFacebook(body, callback){
+    let options = facebookApiInterface.createGraphApiOptions();
+    
+    let req = https.request(options, callback);
     req.on("error", (err) => {
         console.log("problem with request: " + err);
     });
 
-    req.write("batch=" + JSON.stringify(batchRequestContent));
+    req.write("batch=" + JSON.stringify(body));
     req.end();
 }
 
@@ -160,13 +161,83 @@ function parseResponses(responses) {
 
     if (linkedEvents.length > 0) {
         queryAdditionalEvents(linkedEvents, eventMap);
+    } else {
+        // let payload = formatForExport(eventMap);
+        // dataStagingInterface.updateEventData(payload);   // TODO: reenable once the secondary query works
     }
 
-    return formatForExport(eventMap);
+    let payload = formatForExport(eventMap); // TODO: remove oonce the secondary query works
+    dataStagingInterface.updateEventData(payload);
 }
 
 function queryAdditionalEvents(linkedEvents, eventMap) {
+    let eventIdRegex = /\d+/i;
+
     console.log(linkedEvents);
+
+    let eventIds = [];
+    linkedEvents.forEach((link) => {    // extract the event ID from the URL, then check if it's already in the eventMap: if it is, just skip it, we already have the event data
+        let id = eventIdRegex.exec(link)[0];
+        if(!eventMap[id]){
+            eventIds.push(id);
+        }
+    });
+
+    eventIds = [...new Set(eventIds)];  // unique values only 
+
+    let batchRequestContent = [];
+    eventIds.map((eventId) => {
+        batchRequestContent.push({
+            relative_url: facebookApiInterface.buildQueryUrl(eventId + "/", {
+                debug: "all",
+                time_filter: "upcoming",
+                fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
+            }, true),
+            method: "GET"
+        });
+    });
+    
+
+    console.log(eventIds);
+
+    sendBatchRequestToFacebook(batchRequestContent, (response) => {
+        console.log(response);
+
+        let str = "";
+        response.on("data", (chunk) => {
+            str += chunk;
+        });
+
+        response.on("end", () => {
+            let responses = JSON.parse(str);
+
+            console.log(responses);
+
+            let events = parseSecondaryEventResponses(responses);
+            
+            events.map((evt) => {   // add new events to eventMap (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+                eventMap[evt.id] = evt;
+            });
+
+            // let payload = formatForExport(eventMap);     // TODO: reenable when secondary query works
+            // dataStagingInterface.updateEventData(payload);
+        });
+    });
+}
+
+function parseSecondaryEventResponses(responses) {
+    let events = [];
+    responses.forEach((response) => {
+        console.log(response.body);
+
+        if (response.error) {
+            console.log("Response errored: ", response.error.message);
+        } else {
+            let body = JSON.parse(response.body);
+        }
+    });
+
+    return events;
 }
 
 function formatForExport(eventMap) {
