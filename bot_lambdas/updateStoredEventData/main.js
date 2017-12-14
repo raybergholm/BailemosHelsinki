@@ -148,7 +148,7 @@ function parseResponses(responses) {
 
                             eventMap[entry.id] = entry;
                         } else {
-                            console.log("Unknown and/or discarded entry received: ", entry);
+                            // console.log("Unknown and/or discarded entry received: ", entry); // Don't care about these right now, they're just clogging up the logs
                         }
                     });
                 } else {
