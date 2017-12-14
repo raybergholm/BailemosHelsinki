@@ -184,11 +184,11 @@ function checkForTemporalCues(text) { // this one is more special because we can
     if (results) {
         results = MAIN_KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
-            if (results.length < 1 || !moment(results[0]).isValid()) {
+            if (results.length < 1 || !moment(results[0], "DD.MM.YYYY").isValid()) {
                 console.log("Attempted to use an invalid date: ", results);
                 return null;
             }
-            dateTimeRange.from = moment(results[0]).startOf("day");
+            dateTimeRange.from = moment(results[0], "DD.MM.YYYY").startOf("day");
             dateTimeRange.from.year(dateTimeRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
 
             dateTimeRange.to = dateTimeRange.from.clone();
@@ -202,15 +202,15 @@ function checkForTemporalCues(text) { // this one is more special because we can
     if (results) {
         results = MAIN_KEYWORDS.Temporal.DateLike.exec(results[0]);
         if (results) {
-            if (results.length < 2 || !moment(results[0]).isValid() || !moment(results[1]).isValid()) {
+            if (results.length < 2 || !moment(results[0], "DD.MM.YYYY").isValid() || !moment(results[1]).isValid()) {
                 console.log("Attempted to use invalid date(s): ", results);
                 return null;
             }
 
-            dateTimeRange.from = moment(results[0]).startOf("day");
+            dateTimeRange.from = moment(results[0], "DD.MM.YYYY").startOf("day");
             dateTimeRange.from.year(dateTimeRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
 
-            dateTimeRange.to = moment(results[1]).endOf("day");
+            dateTimeRange.to = moment(results[1], "DD.MM.YYYY").endOf("day");
             dateTimeRange.to.year(dateTimeRange.from.year());
             if (dateTimeRange.to.month() < dateTimeRange.from.month()) {
                 dateTimeRange.to.add(1, "year");
