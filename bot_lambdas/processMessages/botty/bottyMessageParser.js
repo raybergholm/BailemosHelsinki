@@ -1,6 +1,7 @@
 "use strict";
 
 const moment = require("../node_modules/moment");
+moment.locale("en-UK");
 
 //---------------------------------------------------------------------------//
 
