@@ -79,6 +79,12 @@ const BOT_TEXTS = { // probably should be fetched from S3
     HelpRequest: [
         "I can detect some keywords related to the dance scene in Helsinki based on things like time, event types and interests. You can freely combine terms to narrow down your search e.g. try something like \"any salsa parties this weekend?\" and I can pick up \"salsa\", \"party\" and \"this weekend\" and check what's out there. Currently I work based on first figuring out a time range (please use just one), after that I try to check if there's anything more restrictive, like anything related to \"salsa\" or \"bachata\"",
     ],
+    MarketingPolicy: [
+        "We don't directly market to you or anyone. We hate spam too, so we know how it feels."
+    ],
+    PrivacyPolicy: [
+        "This application does not store any private or personally identifiable data. Your Facebook ID, related info and conversation history with this page is never stored on the bot's servers. In the event of bot errors, your message text may appear in the error logs, however this data is kept anonymous and your Facebook details are never linked with it."
+    ],
     NoResults: [
         "Hmm, it seems like there's nothing available from {from} to {to}, at least with that criteria",
         "I didn't find anything for the period {from} to {to}"
