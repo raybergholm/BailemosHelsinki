@@ -39,23 +39,27 @@ let _messageBuffer = {
 let _targetId;
 
 module.exports = {
-    setTargetId: function (targetId) {
+    setTargetId: (targetId) => {
         _targetId = targetId;
     },
 
-    sendTypingIndicator: function (mode) {
+    sendTypingIndicator: (mode) => {
         let typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(_targetId, mode ? "typing_on" : "typing_off");
         // this.sendMessageToFacebook(typingIndicatorMessage); // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
     },
 
-    sendMessage: function (params) {
+    sendMessage: (params) => {
         let message = facebookMessageFactory.createMessage(_targetId, params.text, params.attachment);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         sendMessageToFacebook(message);
     },
 
-    sendTemplatedMessage: function (inputElements) {
+    sendQuickActionMessage: () => {
+        let message = facebookMessageFactory.createQuickActionMessage(_targetId, something);
+    },
+
+    sendTemplatedMessage: (inputElements) => {
         let elements = [];
         for (let i = 0; i < inputElements.length; i++) {
             elements.push(facebookMessageFactory.createTemplateElement(
