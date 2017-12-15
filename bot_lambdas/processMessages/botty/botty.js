@@ -19,6 +19,15 @@ const dataStagingInterface = require("../dataStagingInterface");
 
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
+const QUICK_REPLY_PAYLOADS = {
+    Intro: "Intro",
+    HowTo1: "HowTo1",
+    HowTo2: "HowTo2",
+    Manual1: "Manual1",
+    Manual2: "Manual2",
+    Disclaimer: "Disclaimer"
+};
+
 let typingIndicatorSent = false;
 
 let analysisResults;
@@ -28,8 +37,45 @@ module.exports = {
         facebookMessageInterface.setTargetId(targetId);
     },
 
-    replyToQuickAction: function () {
-
+    replyToQuickReply: function (quickReplyPayload) {
+        switch (quickReplyPayload) {
+            case QUICK_REPLY_PAYLOADS.Intro:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("Intro"), [{
+                        content_type: "text",
+                        title: "Quickstart: how do I query stuff?",
+                        payload: QUICK_REPLY_PAYLOADS.HowTo1
+                    },
+                    {
+                        content_type: "text",
+                        title: "Detailed guide: for those who want more info",
+                        payload: QUICK_REPLY_PAYLOADS.Manual1
+                    },
+                ]);
+                break;
+            case QUICK_REPLY_PAYLOADS.HowTo1:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("HowTo1"), [{
+                    content_type: "text",
+                    title: "More...",
+                    payload: QUICK_REPLY_PAYLOADS.HowTo2
+                }]);
+                break;
+            case QUICK_REPLY_PAYLOADS.HowTo2:
+                facebookMessageInterface.sendMessage(textGenerator.getText("HowTo2"));
+                break;
+            case QUICK_REPLY_PAYLOADS.Manual1:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("Manual1"), [{
+                    content_type: "text",
+                    title: "Next...",
+                    payload: QUICK_REPLY_PAYLOADS.Manual2
+                }]);
+                break;
+            case QUICK_REPLY_PAYLOADS.Manual2:
+                facebookMessageInterface.sendMessage(textGenerator.getText("Manual2"));
+                break;
+            case QUICK_REPLY_PAYLOADS.Disclaimer:
+                facebookMessageInterface.sendMessage(textGenerator.getText("Disclaimer"));
+                break;
+        }
     },
 
     readMessage: function (text, attachments) { // main method: read input text and/or attachments, then reply with something 
@@ -42,8 +88,15 @@ module.exports = {
                     facebookMessageInterface.sendMessage(result[i]);
                 }
             } else {
-                facebookMessageInterface.sendMessage(result);
+                switch (result) {
+                    case "HelpRequest":
+                        sendHelpQuickReply();
+                        break;
+                    default:
+                        facebookMessageInterface.sendMessage(result);
+                }
             }
+
             return;
         }
 
@@ -98,7 +151,7 @@ function eventDataCallback(stagedData) {
 
     // console.log("after all filtering: " + filteredEvents.length + " events");
 
-    replyWithFilteredEvents(filteredEvents);
+    replyWithEvents(filteredEvents);
 }
 
 function filterEvents(events, analysisResults) {
@@ -118,7 +171,7 @@ function filterEvents(events, analysisResults) {
                 for (let j = 0; j < analysisResults.interests.length; j++) {
                     if (events[i]._bh.interestTags.indexOf(analysisResults.interests[j]) !== -1) {
                         if (analysisResults.eventTypes) {
-                            if(analysisResults.eventTypes.indexOf(events[i]._bh.type.name) !== -1) {
+                            if (analysisResults.eventTypes.indexOf(events[i]._bh.type.name) !== -1) {
                                 filteredEvents.push(events[i]);
                             }
                         } else {
@@ -139,7 +192,35 @@ function filterEvents(events, analysisResults) {
     return filteredEvents;
 }
 
-function replyWithFilteredEvents(filteredEvents) {
+function sendHelpQuickReply() {
+    let text = textGenerator.getText("HelpQuickReplyHeader");
+
+    let quickReplies = [{
+            content_type: "text",
+            title: "Intro: what is this?",
+            payload: QUICK_REPLY_PAYLOADS.Intro
+        },
+        {
+            content_type: "text",
+            title: "Quickstart: how do I query stuff?",
+            payload: QUICK_REPLY_PAYLOADS.HowTo1
+        },
+        {
+            content_type: "text",
+            title: "Detailed guide: for those who want more info",
+            payload: QUICK_REPLY_PAYLOADS.Manual1
+        },
+        {
+            content_type: "text",
+            title: "Disclaimer",
+            payload: QUICK_REPLY_PAYLOADS.Disclaimer
+        }
+    ];
+
+    facebookMessageInterface.sendQuickReplyMessage(text, quickReplies);
+}
+
+function replyWithEvents(filteredEvents) {
     let elements = [];
 
     if (filteredEvents.length > 0) {
