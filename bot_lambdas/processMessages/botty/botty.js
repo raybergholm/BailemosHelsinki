@@ -202,9 +202,9 @@ function replyWithFilteredEvents(filteredEvents) {
         to: moment(analysisResults.dateTimeRange.to).format("DD.MM")
     });
 
-    // facebookMessageInterface.sendMessage({
-    //     text: messageText
-    // });
+    facebookMessageInterface.sendMessage({
+        text: messageText
+    });
 
     if (elements.length > 0) {
         if (elements.length > 10) {
@@ -213,9 +213,7 @@ function replyWithFilteredEvents(filteredEvents) {
             }
         }
 
-        facebookMessageInterface.sendGenericTemplateMessage(messageText, elements);
-    }else {
-        facebookMessageInterface.sendMessage(messageText);
+        facebookMessageInterface.sendGenericTemplateMessage(elements);
     }
 
     endConversation();

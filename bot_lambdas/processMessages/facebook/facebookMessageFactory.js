@@ -28,7 +28,7 @@ module.exports = {
         };
     },
 
-    createGenericMessageTemplate: function (targetId, text, elements) {
+    createGenericMessageTemplate: function (targetId, elements) {
         let messageTemplate;
 
         if (elements && elements.length > 0) {
@@ -41,7 +41,7 @@ module.exports = {
             };
         }
 
-        return createMessage(targetId, text, messageTemplate);
+        return module.exports.createMessage(targetId, null, messageTemplate);   // A template is just a message with an attachment and no text, so we can reuse the other function
     },
 
     createQuickReplyMessage: function (targetId, text, quickReplies) {
