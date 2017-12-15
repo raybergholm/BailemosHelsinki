@@ -213,7 +213,7 @@ function replyWithFilteredEvents(filteredEvents) {
             }
         }
 
-        facebookMessageInterface.sendTemplatedMessage(messageText, elements);
+        facebookMessageInterface.sendGenericTemplateMessage(messageText, elements);
     }else {
         facebookMessageInterface.sendMessage(messageText);
     }

@@ -62,7 +62,7 @@ module.exports = {
         sendMessageToFacebook(message);
     },
 
-    sendTemplatedMessage: (text, elements) => {
+    sendGenericTemplateMessage: (text, elements) => {
         let message = facebookMessageFactory.createGenericMessageTemplate(_targetId, text, elements);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
