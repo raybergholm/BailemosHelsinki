@@ -147,7 +147,7 @@ function replyWithFilteredEvents(filteredEvents) {
             let subtitleString = "";
             let coverImageUrl = null;
 
-            subtitleString += moment(eventData.start_time).format("Do MMMM HH:mm");
+            subtitleString += moment(eventData.start_time).format("Do MMM HH:mm");
 
             try {
                 if (eventData.place) {
@@ -198,8 +198,8 @@ function replyWithFilteredEvents(filteredEvents) {
 
     let messageText = textGenerator.formatText(baseString, {
         amount: filteredEvents.length,
-        from: moment(analysisResults.dateTimeRange.from).format("DD.MM"),
-        to: moment(analysisResults.dateTimeRange.to).format("DD.MM")
+        from: moment(analysisResults.dateTimeRange.from).format("Do MMM"),
+        to: moment(analysisResults.dateTimeRange.to).format("Do MMM")
     });
 
     facebookMessageInterface.sendMessage(messageText);
