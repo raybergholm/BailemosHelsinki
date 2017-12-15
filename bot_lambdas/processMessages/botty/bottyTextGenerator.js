@@ -1,6 +1,6 @@
 "use strict";
 
-const BOT_TEXTS = { // probably should be fetched from S3
+const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I want to localise this
     Greetings: [
         "Hi!",
         "Hello!",

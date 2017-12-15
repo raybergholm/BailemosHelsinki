@@ -21,7 +21,7 @@ module.exports = {
             if (err) {
                 console.log("S3 interface error: ", err);
             } else {
-                let data = JSON.parse(s3Object.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
+                let data = JSON.parse(s3Object.Body.toString()); // NOTE: this is casting binary >>> string >>> JSON. It's not redundant weirdness.
 
                 // console.log(data);
 
