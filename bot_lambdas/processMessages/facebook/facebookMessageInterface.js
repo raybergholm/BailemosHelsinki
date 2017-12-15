@@ -48,28 +48,22 @@ module.exports = {
         // this.sendMessageToFacebook(typingIndicatorMessage); // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
     },
 
-    sendMessage: (params) => {
-        let message = facebookMessageFactory.createMessage(_targetId, params.text, params.attachment);
+    sendMessage: (text, attachment) => {
+        let message = facebookMessageFactory.createMessage(_targetId, text, attachment);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         sendMessageToFacebook(message);
     },
 
-    sendQuickActionMessage: () => {
-        let message = facebookMessageFactory.createQuickActionMessage(_targetId, something);
+    sendQuickReplyMessage: (text, quickReplies) => {
+        let message = facebookMessageFactory.createQuickReplyMessage(_targetId, text, quickReplies);
+
+        // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
+        sendMessageToFacebook(message);
     },
 
-    sendTemplatedMessage: (inputElements) => {
-        let elements = [];
-        for (let i = 0; i < inputElements.length; i++) {
-            elements.push(facebookMessageFactory.createTemplateElement(
-                inputElements[i].title,
-                inputElements[i].subtitle,
-                inputElements[i].imageUrl,
-                inputElements[i].actionUrl
-            ));
-        }
-        let message = facebookMessageFactory.createGenericMessageTemplate(_targetId, null, elements);
+    sendTemplatedMessage: (text, elements) => {
+        let message = facebookMessageFactory.createGenericMessageTemplate(_targetId, text, elements);
 
         // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         sendMessageToFacebook(message);

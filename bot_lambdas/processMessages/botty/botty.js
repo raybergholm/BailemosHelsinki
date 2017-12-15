@@ -39,14 +39,10 @@ module.exports = {
         if (result) {
             if (result instanceof Array) {
                 for (let i = 0; i < result.length; i++) {
-                    facebookMessageInterface.sendMessage({
-                        text: result[i]
-                    });
+                    facebookMessageInterface.sendMessage(result[i]);
                 }
             } else {
-                facebookMessageInterface.sendMessage({
-                    text: result
-                });
+                facebookMessageInterface.sendMessage(result);
             }
             return;
         }
@@ -61,9 +57,7 @@ module.exports = {
 
         result = deepScan(text);
         if (!result) {
-            facebookMessageInterface.sendMessage({
-                text: textGenerator.getText("Uncertain")
-            });
+            facebookMessageInterface.sendMessage(textGenerator.getText("Uncertain"));
             endConversation();
             return;
         }
@@ -208,9 +202,9 @@ function replyWithFilteredEvents(filteredEvents) {
         to: moment(analysisResults.dateTimeRange.to).format("DD.MM")
     });
 
-    facebookMessageInterface.sendMessage({
-        text: messageText
-    });
+    // facebookMessageInterface.sendMessage({
+    //     text: messageText
+    // });
 
     if (elements.length > 0) {
         if (elements.length > 10) {
@@ -219,7 +213,9 @@ function replyWithFilteredEvents(filteredEvents) {
             }
         }
 
-        facebookMessageInterface.sendTemplatedMessage(elements);
+        facebookMessageInterface.sendTemplatedMessage(messageText, elements);
+    }else {
+        facebookMessageInterface.sendMessage(messageText);
     }
 
     endConversation();

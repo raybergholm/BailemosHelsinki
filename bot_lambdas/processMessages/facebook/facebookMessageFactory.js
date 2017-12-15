@@ -29,26 +29,36 @@ module.exports = {
     },
 
     createGenericMessageTemplate: function (targetId, text, elements) {
-        let messageTemplate = createTemplateBase();
-        messageTemplate.payload = {
-            template_type: "generic",
-            elements: elements
-        };
+        let messageTemplate;
 
-        return this.createMessage(targetId, text, messageTemplate);
+        if (elements && elements.length > 0) {
+            messageTemplate = createTemplateBase();
+            messageTemplate.payload = {
+                template_type: "generic",
+                elements: elements.map((item) => {
+                    return createTemplateElement(item.title, item.subtitle, item.imageUrl, item.actionUrl)
+                })
+            };
+        }
+
+        return createMessage(targetId, text, messageTemplate);
     },
 
-    createTemplateElement: function (title, subtitle, imageUrl, defaultActionUrl) {
-        return {
-            title: title,
-            subtitle: subtitle,
-            image_url: imageUrl,
-            default_action: {
-                type: "web_url",
-                url: defaultActionUrl
-            }
-        };
-    }
+    createQuickReplyMessage: function (targetId, text, quickReplies) {
+        let message = createMessageBase(targetId);
+
+        if (text) {
+            message.message.text = text;
+        }
+
+        if (quickReplies) {
+            message.quick_replies = quickReplies.map((item) => {
+                return item.type === "text" ? createTextQuickReply(item.text, item.payload, item.imageUrl) : createLocationQuickReply();
+            });
+        }
+
+        return message;
+    },
 };
 
 function createMessageBase(targetId) {
@@ -69,4 +79,35 @@ function createTemplateBase() {
         type: "template",
         payload: null
     };
+}
+
+function createTemplateElement(title, subtitle, imageUrl, defaultActionUrl) {
+    return {
+        title: title,
+        subtitle: subtitle,
+        image_url: imageUrl,
+        default_action: {
+            type: "web_url",
+            url: defaultActionUrl
+        }
+    };
+}
+
+function createLocationQuickReply() {
+    return {
+        content_type: "location"
+    }
+}
+
+function createTextQuickReply(text, payload, imageUrl) {
+    let quickReply = {
+        text: text,
+        payload: payload
+    }
+
+    if (imageUrl) { // optional property 
+        quickReply.image_url = imageUrl;
+    }
+
+    return quickReply;
 }
