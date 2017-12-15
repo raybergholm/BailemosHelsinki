@@ -202,9 +202,7 @@ function replyWithFilteredEvents(filteredEvents) {
         to: moment(analysisResults.dateTimeRange.to).format("DD.MM")
     });
 
-    facebookMessageInterface.sendMessage({
-        text: messageText
-    });
+    facebookMessageInterface.sendMessage(messageText);
 
     if (elements.length > 0) {
         if (elements.length > 10) {
