@@ -240,7 +240,7 @@ function sendHelpQuickReply() {
     let quickReplies = [{
             type: "text",
             text: "Intro: what is this?",
-            payload: QUICK_REPLY_PAYLOADS.Intro
+            payload: QUICK_REPLY_PAYLOADS.Intro1
         },
         {
             type: "text",
