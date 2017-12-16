@@ -83,17 +83,19 @@ module.exports = {
         result = quickScan(text);
 
         if (result) {
-            if (result instanceof Array) {
-                for (let i = 0; i < result.length; i++) {
-                    facebookMessageInterface.sendMessage(result[i]);
-                }
-            } else {
-                switch (result) {
-                    case "HelpRequest":
+            if (result.type === "QUICK_REPLY") {
+                switch (result.text) {
+                    case "HELP":
                         sendHelpQuickReply();
                         break;
-                    default:
-                        facebookMessageInterface.sendMessage(result);
+                }
+            } else {
+                if (result.text instanceof Array) {
+                    for (let i = 0; i < result.length; i++) {
+                        facebookMessageInterface.sendMessage(result[i]);
+                    }
+                } else {
+                    facebookMessageInterface.sendMessage(result);
                 }
             }
 
@@ -126,8 +128,25 @@ function endConversation() {
 }
 
 function quickScan(text) {
-    let result = parser.quickScan(text);
-    return result ? textGenerator.getText(result) : null;
+    let parsedResult = parser.quickScan(text);
+    let result = null;
+    if (parsedResult) {
+        switch (parsedResult) {
+            case "HelpRequest":
+                result = {
+                    type: "QUICK_REPLY",
+                    text: "HELP"
+                }
+                break;
+            default:
+                result = {
+                    type: "NORMAL",
+                    text: textGenerator.getText(result);
+                }
+        }
+    }
+
+    return result;
 }
 
 function deepScan(text) {
