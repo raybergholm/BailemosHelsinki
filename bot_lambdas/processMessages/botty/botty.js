@@ -141,7 +141,7 @@ function quickScan(text) {
             default:
                 result = {
                     type: "NORMAL",
-                    text: textGenerator.getText(result)
+                    text: textGenerator.getText(parsedResult)
                 };
         }
     }
