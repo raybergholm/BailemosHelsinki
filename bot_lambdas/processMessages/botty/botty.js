@@ -20,11 +20,14 @@ const dataStagingInterface = require("../dataStagingInterface");
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
 const QUICK_REPLY_PAYLOADS = {
-    Intro: "Intro",
+    Intro: "Intro1",
+    Intro2: "Intro2",
     HowTo1: "HowTo1",
     HowTo2: "HowTo2",
     Manual1: "Manual1",
     Manual2: "Manual2",
+    Manual3: "Manual3",
+    Manual4: "Manual4",
     Disclaimer: "Disclaimer"
 };
 
@@ -39,8 +42,15 @@ module.exports = {
 
     replyToQuickReply: function (quickReplyPayload) {
         switch (quickReplyPayload) {
-            case QUICK_REPLY_PAYLOADS.Intro:
-                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("Intro"), [{
+            case QUICK_REPLY_PAYLOADS.Intro1:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Intro1), [{
+                    type: "text",
+                    text: "Next...",
+                    payload: QUICK_REPLY_PAYLOADS.Intro2
+                }]);
+                break;
+            case QUICK_REPLY_PAYLOADS.Intro2:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Intro2), [{
                         type: "text",
                         text: "Quickstart: how do I query stuff?",
                         payload: QUICK_REPLY_PAYLOADS.HowTo1
@@ -53,27 +63,40 @@ module.exports = {
                 ]);
                 break;
             case QUICK_REPLY_PAYLOADS.HowTo1:
-                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("HowTo1"), [{
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.HowTo1), [{
                     type: "text",
                     text: "More...",
                     payload: QUICK_REPLY_PAYLOADS.HowTo2
                 }]);
                 break;
             case QUICK_REPLY_PAYLOADS.HowTo2:
-                facebookMessageInterface.sendMessage(textGenerator.getText("HowTo2"));
+                facebookMessageInterface.sendMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.HowTo2));
                 break;
             case QUICK_REPLY_PAYLOADS.Manual1:
-                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("Manual1"), [{
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual1), [{
                     type: "text",
                     text: "Next...",
                     payload: QUICK_REPLY_PAYLOADS.Manual2
                 }]);
                 break;
             case QUICK_REPLY_PAYLOADS.Manual2:
-                facebookMessageInterface.sendMessage(textGenerator.getText("Manual2"));
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual2), [{
+                    type: "text",
+                    text: "Next...",
+                    payload: QUICK_REPLY_PAYLOADS.Manual3
+                }]);
+            case QUICK_REPLY_PAYLOADS.Manual3:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual3), [{
+                    type: "text",
+                    text: "Next...",
+                    payload: QUICK_REPLY_PAYLOADS.Manual4
+                }]);
+                break;
+            case QUICK_REPLY_PAYLOADS.Manual4:
+                facebookMessageInterface.sendMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual4));
                 break;
             case QUICK_REPLY_PAYLOADS.Disclaimer:
-                facebookMessageInterface.sendMessage(textGenerator.getText("Disclaimer"));
+                facebookMessageInterface.sendMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Disclaimer));
                 break;
         }
     },
