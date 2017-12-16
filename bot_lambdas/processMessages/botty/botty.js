@@ -41,12 +41,12 @@ module.exports = {
         switch (quickReplyPayload) {
             case QUICK_REPLY_PAYLOADS.Intro:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("Intro"), [{
-                        content_type: "text",
+                        type: "text",
                         title: "Quickstart: how do I query stuff?",
                         payload: QUICK_REPLY_PAYLOADS.HowTo1
                     },
                     {
-                        content_type: "text",
+                        type: "text",
                         title: "Detailed guide: for those who want more info",
                         payload: QUICK_REPLY_PAYLOADS.Manual1
                     },
@@ -54,7 +54,7 @@ module.exports = {
                 break;
             case QUICK_REPLY_PAYLOADS.HowTo1:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("HowTo1"), [{
-                    content_type: "text",
+                    type: "text",
                     title: "More...",
                     payload: QUICK_REPLY_PAYLOADS.HowTo2
                 }]);
@@ -64,7 +64,7 @@ module.exports = {
                 break;
             case QUICK_REPLY_PAYLOADS.Manual1:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("Manual1"), [{
-                    content_type: "text",
+                    type: "text",
                     title: "Next...",
                     payload: QUICK_REPLY_PAYLOADS.Manual2
                 }]);
@@ -215,22 +215,22 @@ function sendHelpQuickReply() {
     let text = textGenerator.getText("HelpQuickReplyHeader");
 
     let quickReplies = [{
-            content_type: "text",
+            type: "text",
             title: "Intro: what is this?",
             payload: QUICK_REPLY_PAYLOADS.Intro
         },
         {
-            content_type: "text",
+            type: "text",
             title: "Quickstart: how do I query stuff?",
             payload: QUICK_REPLY_PAYLOADS.HowTo1
         },
         {
-            content_type: "text",
+            type: "text",
             title: "Detailed guide: for those who want more info",
             payload: QUICK_REPLY_PAYLOADS.Manual1
         },
         {
-            content_type: "text",
+            type: "text",
             title: "Disclaimer",
             payload: QUICK_REPLY_PAYLOADS.Disclaimer
         }

@@ -69,7 +69,7 @@ module.exports = {
 
         if (quickReplies) {
             message.quick_replies = quickReplies.map((item) => {
-                return item.type === "text" ? createTextQuickReply(item.text, item.payload, item.imageUrl) : createLocationQuickReply();
+                return item.type === "location" ? createLocationQuickReply() : createTextQuickReply(item.text, item.payload, item.imageUrl);
             });
         }
 
