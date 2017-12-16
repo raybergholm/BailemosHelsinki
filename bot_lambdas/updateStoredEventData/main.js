@@ -233,7 +233,7 @@ function parseSecondaryEventResponses(responses) {
             let evt = JSON.parse(response.body);
             console.log(evt);
 
-            if((new Date(event.start_time)).getTime() > Date.now()){    // future events only
+            if((new Date(evt.start_time)).getTime() > Date.now()){    // future events only
                 evt._bh = bottyDataAnalyser.analyseEvent(evt);
                 events.push(evt);
             }
