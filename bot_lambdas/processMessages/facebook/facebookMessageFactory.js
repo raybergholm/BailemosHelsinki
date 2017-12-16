@@ -124,7 +124,7 @@ function createLocationQuickReply() {
 function createTextQuickReply(text, payload, imageUrl) {
     let quickReply = {
         content_type: "text",
-        text: text,
+        title: text,
         payload: payload
     };
 
