@@ -68,7 +68,7 @@ module.exports = {
         }
 
         if (quickReplies) {
-            message.quick_replies = quickReplies.map((item) => {
+            message.message.quick_replies = quickReplies.map((item) => {
                 return item.type === "location" ? createLocationQuickReply() : createTextQuickReply(item.text, item.payload, item.imageUrl);
             });
         }
