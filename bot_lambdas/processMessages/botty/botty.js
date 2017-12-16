@@ -20,7 +20,7 @@ const dataStagingInterface = require("../dataStagingInterface");
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
 const QUICK_REPLY_PAYLOADS = {
-    Intro: "Intro1",
+    Intro1: "Intro1",
     Intro2: "Intro2",
     HowTo1: "HowTo1",
     HowTo2: "HowTo2",
