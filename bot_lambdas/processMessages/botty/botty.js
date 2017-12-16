@@ -42,12 +42,12 @@ module.exports = {
             case QUICK_REPLY_PAYLOADS.Intro:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("Intro"), [{
                         type: "text",
-                        title: "Quickstart: how do I query stuff?",
+                        text: "Quickstart: how do I query stuff?",
                         payload: QUICK_REPLY_PAYLOADS.HowTo1
                     },
                     {
                         type: "text",
-                        title: "Detailed guide: for those who want more info",
+                        text: "Detailed guide: for those who want more info",
                         payload: QUICK_REPLY_PAYLOADS.Manual1
                     },
                 ]);
@@ -55,7 +55,7 @@ module.exports = {
             case QUICK_REPLY_PAYLOADS.HowTo1:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("HowTo1"), [{
                     type: "text",
-                    title: "More...",
+                    text: "More...",
                     payload: QUICK_REPLY_PAYLOADS.HowTo2
                 }]);
                 break;
@@ -65,7 +65,7 @@ module.exports = {
             case QUICK_REPLY_PAYLOADS.Manual1:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText("Manual1"), [{
                     type: "text",
-                    title: "Next...",
+                    text: "Next...",
                     payload: QUICK_REPLY_PAYLOADS.Manual2
                 }]);
                 break;
@@ -216,22 +216,22 @@ function sendHelpQuickReply() {
 
     let quickReplies = [{
             type: "text",
-            title: "Intro: what is this?",
+            text: "Intro: what is this?",
             payload: QUICK_REPLY_PAYLOADS.Intro
         },
         {
             type: "text",
-            title: "Quickstart: how do I query stuff?",
+            text: "Quickstart: how do I query stuff?",
             payload: QUICK_REPLY_PAYLOADS.HowTo1
         },
         {
             type: "text",
-            title: "Detailed guide: for those who want more info",
+            text: "Detailed guide: for those who want more info",
             payload: QUICK_REPLY_PAYLOADS.Manual1
         },
         {
             type: "text",
-            title: "Disclaimer",
+            text: "Disclaimer",
             payload: QUICK_REPLY_PAYLOADS.Disclaimer
         }
     ];
