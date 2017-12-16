@@ -92,10 +92,10 @@ module.exports = {
             } else {
                 if (result.text instanceof Array) {
                     for (let i = 0; i < result.length; i++) {
-                        facebookMessageInterface.sendMessage(result[i]);
+                        facebookMessageInterface.sendMessage(result[i].text);
                     }
                 } else {
-                    facebookMessageInterface.sendMessage(result);
+                    facebookMessageInterface.sendMessage(result.text);
                 }
             }
 
@@ -136,13 +136,13 @@ function quickScan(text) {
                 result = {
                     type: "QUICK_REPLY",
                     text: "HELP"
-                }
+                };
                 break;
             default:
                 result = {
                     type: "NORMAL",
                     text: textGenerator.getText(result)
-                }
+                };
         }
     }
 
