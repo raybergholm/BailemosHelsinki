@@ -73,7 +73,12 @@ function handleReceivedMessage(receivedMessage) {
     let messageAttachments = messageData.attachments;
 
     botty.setConversationTarget(senderId);
-    botty.readMessage(messageText, messageAttachments);
+
+    if (messageData.quick_reply) {
+        botty.replyToQuickReply(messageData.quick_reply.payload);
+    } else {
+        botty.readMessage(messageText, messageAttachments);
+    }
 }
 
 function handleDeliveryReceipt(message) {
