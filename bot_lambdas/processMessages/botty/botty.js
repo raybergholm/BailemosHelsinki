@@ -275,18 +275,18 @@ function sendQuickReplyHelp() {
 
     let quickReplies = [{
             type: "text",
-            text: "What is this page for?",
-            payload: QUICK_REPLY_PAYLOADS.Manual_Datetime
+            text: "Who are you?",
+            payload: QUICK_REPLY_PAYLOADS.HelpIntro
         },
         {
             type: "text",
             text: "Quickstart",
-            payload: QUICK_REPLY_PAYLOADS.Manual_EventTypes
+            payload: QUICK_REPLY_PAYLOADS.HowTo_Start
         },
         {
             type: "text",
             text: "Detailed guide",
-            payload: QUICK_REPLY_PAYLOADS.Manual_Interests
+            payload: QUICK_REPLY_PAYLOADS.Manual_Start
         }
     ];
 
