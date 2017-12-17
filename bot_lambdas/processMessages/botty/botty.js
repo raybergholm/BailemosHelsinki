@@ -58,7 +58,7 @@ module.exports = {
             case QUICK_REPLY_PAYLOADS.HowTo_Start:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.HowTo_Start), [{
                     type: "text",
-                    text: "How about some examples?",
+                    text: "Any examples?",
                     payload: QUICK_REPLY_PAYLOADS.HowTo_Examples
                 }]);
                 break;
