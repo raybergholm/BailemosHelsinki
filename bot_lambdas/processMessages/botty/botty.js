@@ -25,7 +25,7 @@ const QUICK_REPLY_PAYLOADS = {
     HowTo_Examples: "HowTo_Examples",
     Manual_Start: "Manual_Start",
     Manual_Datetime: "Manual_Datetime",
-    Manual_EventType: "Manual_EventType",
+    Manual_EventTypes: "Manual_EventTypes",
     Manual_Interests: "Manual_Interests",
     Manual_End: "Manual_End",
     Disclaimer: "Disclaimer"
@@ -72,7 +72,7 @@ module.exports = {
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual_Datetime), [{
                         type: "text",
                         text: "Event types?",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_EventType
+                        payload: QUICK_REPLY_PAYLOADS.Manual_EventTypes
                     },
                     {
                         type: "text",
@@ -113,7 +113,7 @@ module.exports = {
                     {
                         type: "text",
                         text: "Event types?",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_EventType
+                        payload: QUICK_REPLY_PAYLOADS.Manual_EventTypes
                     },
                     {
                         type: "text",
