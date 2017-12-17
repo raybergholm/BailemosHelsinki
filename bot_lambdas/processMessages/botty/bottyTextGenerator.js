@@ -77,40 +77,26 @@ const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I
         "Alright, here's some topics! Just click one of these buttons and I can tell you more."
     ],
     Intro1: [
-        `My name is Botty and I'm a chatbot! No humans required here (unless it's really necessary). I was originally developed by my owner, who is a dancer and also knows IT magic. 
-        One day he got tired of having to subscribe to 200 different Facebook groups, getting spammed all the time, and yet still miss out on events because he wasn't subscribed to the right group(s), or it just got lost in the giant pile of groups.`
-    ],
-    Intro2: [
-        `So, I was born to deal with all of that mess. I monitor all the pages and groups so that he (and you) don't have to, because I heard you humans have a lot of things to do nowadays.
-        
-        Need help getting started? Click one of the buttons below and I'll tell you what I know!`
+        "My name is Botty and I'm a chatbot! No humans required here (unless it's really necessary). I monitor pages and groups related to the dance scene in Helsinki so that you don't have to.\n\nNeed help getting started? Click one of the buttons below and I'll tell you what I know!"
     ],
     HowTo1: [
-        `So a quickstart idea: what's happening tonight? You could try asking me that. Or maybe you want to plan what to do next weekend, so asking me "anything going on next weekend?" will get you some results. Maybe you prefer a specific dance style? Try "any bachata this week?"`
+        "I work based off keywords. I understand concepts related to time, event type and dance styles. You can use as many or as few terms as you want in your search."
     ],
     HowTo2: [
-        `I can also do fancier stuff like "are there parties this month?", better yet you can combine things for really specific cases like "kizomba parties on 01.03" if you know that's the only free day you have. Or if you have nothing specific in mind, try "surprise me!"`
+        "Some examples you could try:\n\"are there parties this weekend?\"\n\"any bachata next week?\"\n\"I remember a kizomba party somehwere on 01.03\""
     ],
     Manual1: [
-        `Right now I only work in English. I can pick up some super basic Finnish in base form, but it's not supported yet, sorry! It's work in progress. Also, my owner likes Swedish so hopefully I'll get Swedish support sometime soon!
-        
-        So, first off, I always need to filter by date. Facebook has so much stuff, and I can only display a limited amount so I always need somewhere to start. I'll try to guess if you mention dates in your text, if I can't find anything I'll default to a range of up to seven days from now.`
+        "Right now I only work in English. Finnish and Swedish support will eventually be added.\n\nI work based off keywords. I understand concepts related to time, event type and dance styles."
     ],
     Manual2: [
-        `Some stuff which I understand:
-        - Some semantic date concepts: I can handle stuff like "today", "tomorrow", "this weekend", "next month", etc.
-        - Exact dates in European format: I can work out that things like "12.2" or "12.02" or "12/2" probably means 12th February of the current year. Or maybe next year if it's already past February, if that's working (it's still in progress). At the very least, I shouldn't be trying to read things in American date format, that's kind of wrong when I'm only operating in Finland.`
+        "I can handle some common date terms like \"today\", \"tomorrow\", \"this weekend\", \"next month\", etc. I can also work out if you use give me a date like \"12.2\""
     ],
     Manual3: [
-        `- Date ranges: Give me two exact dates like "from 02.02 to 18.02" or "05.08 - 12.08" and I should be able to parse it as a real date range. If not, it's probably being fixed.
-        - Event types: I categorise events as a "party", "workshop", "course" or "festival". I can filter based on those terms. Just be warned that some things might not be properly categorised though, some organisers throw in a lot of confusing info in their event descriptions!`
+        "I read the event info and try to categorise them as a \"party\", workshop\", \"course\" or \"festival\". You can see it in the list of events I give you, as well as how confident I am in my guess."
     ],
     Manual4: [
-        `- Dance styles: I understand a part of the dance scene in Helsinki right now, so I support filtering based on keywords: mostly salsa, bachata, kizomba and zouk. I'm still working on learning how to handle more complex cases like "cuban salsa" vs "mambo" or "sensual bachata" vs "dominician bachata" or even stuff like "salsa" as a general concept.
-
-        - The intricacies of Macbeth: err actually maybe not yet. But don't be afraid of using full sentences, I'm trying to understand proper language :)`
+        "My currently supported dance styles are \"salsa\", \"bachata\", \"kizomba\" and \"zouk\". I plan to eventually work out the nuances between related concepts like \"cuban salsa\" vs \"mambo\" or \"bachata\" as a general concept vs \"sensual bachata\"."
     ],
-
     Disclaimer: [
         `I'm still under construction (I'm basically a really early Beta build, for the tech-savvy people out there), so don't worry if things break or I do weird things at times.
         If something clearly doesn't work when it should, you should tell my owner so that I can get better at your human languages! It's really hard sometimes, just ask anyone out there who had to learn Finnish as a second language...

@@ -21,7 +21,6 @@ const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
 const QUICK_REPLY_PAYLOADS = {
     Intro1: "Intro1",
-    Intro2: "Intro2",
     HowTo1: "HowTo1",
     HowTo2: "HowTo2",
     Manual1: "Manual1",
@@ -44,28 +43,21 @@ module.exports = {
         switch (quickReplyPayload) {
             case QUICK_REPLY_PAYLOADS.Intro1:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Intro1), [{
-                    type: "text",
-                    text: "Next...",
-                    payload: QUICK_REPLY_PAYLOADS.Intro2
-                }]);
-                break;
-            case QUICK_REPLY_PAYLOADS.Intro2:
-                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Intro2), [{
                         type: "text",
-                        text: "Quickstart: how do I query stuff?",
+                        text: "Quickstart",
                         payload: QUICK_REPLY_PAYLOADS.HowTo1
                     },
                     {
                         type: "text",
-                        text: "Detailed guide: for those who want more info",
+                        text: "Detailed guide",
                         payload: QUICK_REPLY_PAYLOADS.Manual1
-                    },
+                    }
                 ]);
                 break;
             case QUICK_REPLY_PAYLOADS.HowTo1:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.HowTo1), [{
                     type: "text",
-                    text: "More...",
+                    text: "How about some examples?",
                     payload: QUICK_REPLY_PAYLOADS.HowTo2
                 }]);
                 break;
@@ -75,20 +67,20 @@ module.exports = {
             case QUICK_REPLY_PAYLOADS.Manual1:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual1), [{
                     type: "text",
-                    text: "Next...",
+                    text: "How do dates work?",
                     payload: QUICK_REPLY_PAYLOADS.Manual2
                 }]);
                 break;
             case QUICK_REPLY_PAYLOADS.Manual2:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual2), [{
                     type: "text",
-                    text: "Next...",
+                    text: "How about event types?",
                     payload: QUICK_REPLY_PAYLOADS.Manual3
                 }]);
             case QUICK_REPLY_PAYLOADS.Manual3:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual3), [{
                     type: "text",
-                    text: "Next...",
+                    text: "And dance styles?",
                     payload: QUICK_REPLY_PAYLOADS.Manual4
                 }]);
                 break;
@@ -239,17 +231,17 @@ function sendHelpQuickReply() {
 
     let quickReplies = [{
             type: "text",
-            text: "Intro: what is this?",
+            text: "What is this page for?",
             payload: QUICK_REPLY_PAYLOADS.Intro1
         },
         {
             type: "text",
-            text: "Quickstart: how do I query stuff?",
+            text: "Quickstart",
             payload: QUICK_REPLY_PAYLOADS.HowTo1
         },
         {
             type: "text",
-            text: "Detailed guide: for those who want more info",
+            text: "Detailed guide",
             payload: QUICK_REPLY_PAYLOADS.Manual1
         },
         {
