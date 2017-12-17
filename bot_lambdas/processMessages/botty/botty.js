@@ -20,14 +20,14 @@ const dataStagingInterface = require("../dataStagingInterface");
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
 const QUICK_REPLY_PAYLOADS = {
-    Intro: "Intro",
+    BottyOverview: "BottyOverview",
     HowTo_Start: "HowTo_Start",
     HowTo_Examples: "HowTo_Examples",
-    Manual_Start: "Manual_Start",
-    Manual_Datetime: "Manual_Datetime",
-    Manual_EventTypes: "Manual_EventTypes",
-    Manual_Interests: "Manual_Interests",
-    Manual_End: "Manual_End",
+    UserGuide_Start: "UserGuide_Start",
+    UserGuide_Datetime: "UserGuide_Datetime",
+    UserGuide_EventTypes: "UserGuide_EventTypes",
+    UserGuide_Interests: "UserGuide_Interests",
+    UserGuide_End: "UserGuide_End",
     Disclaimer: "Disclaimer"
 };
 
@@ -51,7 +51,7 @@ module.exports = {
                     {
                         type: "text",
                         text: "Detailed guide",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_Start
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_Start
                     }
                 ]);
                 break;
@@ -65,65 +65,65 @@ module.exports = {
             case QUICK_REPLY_PAYLOADS.HowTo_Examples:
                 facebookMessageInterface.sendMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.HowTo_Examples));
                 break;
-            case QUICK_REPLY_PAYLOADS.Manual_Start:
+            case QUICK_REPLY_PAYLOADS.UserGuide_Start:
                 sendQuickReplyUserGuide();
                 break;
-            case QUICK_REPLY_PAYLOADS.Manual_Datetime:
-                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual_Datetime), [{
+            case QUICK_REPLY_PAYLOADS.UserGuide_Datetime:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.UserGuide_Datetime), [{
                         type: "text",
                         text: "Event types?",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_EventTypes
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_EventTypes
                     },
                     {
                         type: "text",
                         text: "Dance styles?",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_Interests
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_Interests
                     },
                     {
                         type: "text",
                         text: "OK, got it!",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_End
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_End
                     }
                 ]);
                 break;
-            case QUICK_REPLY_PAYLOADS.Manual_EventTypes:
-                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual_EventTypes), [{
+            case QUICK_REPLY_PAYLOADS.UserGuide_EventTypes:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.UserGuide_EventTypes), [{
                         type: "text",
                         text: "Date & time?",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_Datetime
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_Datetime
                     },
                     {
                         type: "text",
                         text: "Dance styles?",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_Interests
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_Interests
                     },
                     {
                         type: "text",
                         text: "OK, got it!",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_End
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_End
                     }
                 ]);
                 break;
-            case QUICK_REPLY_PAYLOADS.Manual_Interests:
-                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual_Interests), [{
+            case QUICK_REPLY_PAYLOADS.UserGuide_Interests:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.UserGuide_Interests), [{
                         type: "text",
                         text: "Date & time?",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_Datetime
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_Datetime
                     },
                     {
                         type: "text",
                         text: "Event types?",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_EventTypes
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_EventTypes
                     },
                     {
                         type: "text",
                         text: "OK, got it!",
-                        payload: QUICK_REPLY_PAYLOADS.Manual_End
+                        payload: QUICK_REPLY_PAYLOADS.UserGuide_End
                     }
                 ]);
                 break;
-            case QUICK_REPLY_PAYLOADS.Manual_End:
-                facebookMessageInterface.sendMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual_End));
+            case QUICK_REPLY_PAYLOADS.UserGuide_End:
+                facebookMessageInterface.sendMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.UserGuide_End));
                 break;
             case QUICK_REPLY_PAYLOADS.Disclaimer:
                 facebookMessageInterface.sendMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Disclaimer));
@@ -286,7 +286,7 @@ function sendQuickReplyHelp() {
         {
             type: "text",
             text: "Detailed guide",
-            payload: QUICK_REPLY_PAYLOADS.Manual_Start
+            payload: QUICK_REPLY_PAYLOADS.UserGuide_Start
         }
     ];
 
@@ -294,22 +294,22 @@ function sendQuickReplyHelp() {
 }
 
 function sendQuickReplyUserGuide() {
-    let text = textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual_Start);
+    let text = textGenerator.getText(QUICK_REPLY_PAYLOADS.UserGuide_Start);
 
     let quickReplies = [{
             type: "text",
             text: "Date & time?",
-            payload: QUICK_REPLY_PAYLOADS.Manual_Datetime
+            payload: QUICK_REPLY_PAYLOADS.UserGuide_Datetime
         },
         {
             type: "text",
             text: "Event types?",
-            payload: QUICK_REPLY_PAYLOADS.Manual_EventTypes
+            payload: QUICK_REPLY_PAYLOADS.UserGuide_EventTypes
         },
         {
             type: "text",
             text: "Dance styles?",
-            payload: QUICK_REPLY_PAYLOADS.Manual_Interests
+            payload: QUICK_REPLY_PAYLOADS.UserGuide_Interests
         }
     ];
 
