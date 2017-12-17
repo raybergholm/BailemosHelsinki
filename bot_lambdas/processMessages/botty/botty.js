@@ -86,8 +86,8 @@ module.exports = {
                     }
                 ]);
                 break;
-            case QUICK_REPLY_PAYLOADS.Manual_EventType:
-                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual_EventType), [{
+            case QUICK_REPLY_PAYLOADS.Manual_EventTypes:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.Manual_EventTypes), [{
                         type: "text",
                         text: "Date & time?",
                         payload: QUICK_REPLY_PAYLOADS.Manual_Datetime
@@ -281,7 +281,7 @@ function sendQuickReplyHelp() {
         {
             type: "text",
             text: "Quickstart",
-            payload: QUICK_REPLY_PAYLOADS.Manual_EventType
+            payload: QUICK_REPLY_PAYLOADS.Manual_EventTypes
         },
         {
             type: "text",
@@ -304,7 +304,7 @@ function sendQuickReplyUserGuide() {
         {
             type: "text",
             text: "How about event types?",
-            payload: QUICK_REPLY_PAYLOADS.Manual_EventType
+            payload: QUICK_REPLY_PAYLOADS.Manual_EventTypes
         },
         {
             type: "text",
