@@ -42,8 +42,8 @@ module.exports = {
 
     replyToQuickReply: function (quickReplyPayload) {
         switch (quickReplyPayload) {
-            case QUICK_REPLY_PAYLOADS.HelpIntro:
-                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.HelpIntro), [{
+            case QUICK_REPLY_PAYLOADS.BottyOverview:
+                facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.BottyOverview), [{
                         type: "text",
                         text: "Quickstart",
                         payload: QUICK_REPLY_PAYLOADS.HowTo_Start
