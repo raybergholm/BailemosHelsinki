@@ -194,7 +194,7 @@ function quickScan(text) {
             case "UserGuide":
                 result = {
                     type: "QuickReply",
-                    text: "Help"
+                    text: "UserGuide"
                 };
                 break;
             default:
