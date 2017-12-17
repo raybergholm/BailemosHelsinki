@@ -276,7 +276,7 @@ function sendQuickReplyHelp() {
     let quickReplies = [{
             type: "text",
             text: "Who are you?",
-            payload: QUICK_REPLY_PAYLOADS.HelpIntro
+            payload: QUICK_REPLY_PAYLOADS.BottyOverview
         },
         {
             type: "text",
