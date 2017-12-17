@@ -13,6 +13,7 @@ const QUICK_MESSAGE_KEYWORDS = {
     GoodNight: /\b(?:Good night(!?)|night( ?)night(!?))\b/i,
     // Info: /\b(?:info|disclaimer)\b/i,
     HelpRequest: /(?:\bhelp\b|^\?$)/i,
+    UserGuide: /\b(?:guide|manual)\b/i,
     OpenQuestion: /\bask\b.+\byou\b.+\bsomething\b/i,
     Thank: /\b(?:you're a big help|nice (?::\)|:D|one)|that help(?:s|ed)|good (?:job|work))(!?)\b/i,
     ReplyToThanks: /\b(?:thank(s?)|thank you|tack|tacktack|kiitos)(!?)\b/i,

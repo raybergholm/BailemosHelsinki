@@ -76,26 +76,29 @@ const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I
     HelpQuickReplyHeader: [
         "Alright, here's some topics! Just click one of these buttons and I can tell you more."
     ],
-    Intro1: [
+    HelpIntro: [
         "My name is Botty and I'm a chatbot! No humans required here (unless it's really necessary). I monitor pages and groups related to the dance scene in Helsinki so that you don't have to.\n\nNeed help getting started? Click one of the buttons below and I'll tell you what I know!"
     ],
-    HowTo1: [
+    HowTo_Start: [
         "I work based off keywords. I understand concepts related to time, event type and dance styles. You can use as many or as few terms as you want in your search."
     ],
-    HowTo2: [
-        "Some examples you could try:\n\"are there parties this weekend?\"\n\"any bachata next week?\"\n\"I remember a kizomba party somehwere on 01.03\""
+    HowTo_Examples: [
+        "Some examples you could try:\n\"are there parties this weekend?\"\n\"any bachata next week?\"\n\"I remember a kizomba party somehwere on 01.03\". Go ahead, try searching for something!"
     ],
-    Manual1: [
-        "Right now I only work in English. Finnish and Swedish support will eventually be added.\n\nI work based off keywords. I understand concepts related to time, event type and dance styles."
+    Manual_Start: [
+        "Right now I only work in English. Finnish and Swedish support will eventually be added.\n\nI unserstand text input using keywords. Right now I understand concepts related to time, event type and dance styles."
     ],
-    Manual2: [
+    Manual_Date: [
         "I can handle some common date terms like \"today\", \"tomorrow\", \"this weekend\", \"next month\", etc. I can also work out if you use give me a date like \"12.2\""
     ],
-    Manual3: [
+    Manual_EventTypes: [
         "I read the event info and try to categorise them as a \"party\", workshop\", \"course\" or \"festival\". You can see it in the list of events I give you, as well as how confident I am in my guess."
     ],
-    Manual4: [
+    Manual_Interests: [
         "My currently supported dance styles are \"salsa\", \"bachata\", \"kizomba\" and \"zouk\". I plan to eventually work out the nuances between related concepts like \"cuban salsa\" vs \"mambo\" or \"bachata\" as a general concept vs \"sensual bachata\"."
+    ],
+    Manual_End: [
+        "I hope that helped! :) If you ever get lost, just say \"guide\" to open up this guide again."
     ],
     Disclaimer: [
         `I'm still under construction (I'm basically a really early Beta build, for the tech-savvy people out there), so don't worry if things break or I do weird things at times.
