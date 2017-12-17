@@ -86,13 +86,13 @@ const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I
         "Some examples you could try:\n\"are there parties this weekend?\"\n\"any bachata next week?\"\n\"I remember a kizomba party somehwere on 01.03\". Go ahead, try searching for something!"
     ],
     Manual_Start: [
-        "Right now I only work in English. Finnish and Swedish support will eventually be added.\n\nI unserstand text input using keywords. Right now I understand concepts related to time, event type and dance styles."
+        "I understanding your messages based on the keywords and phase you use. Right now I only work in English. Finnish and Swedish support will eventually be added.\n\nFor now, I work with concepts related to date & time, event types and dance styles."
     ],
     Manual_Date: [
         "I can handle some common date terms like \"today\", \"tomorrow\", \"this weekend\", \"next month\", etc. I can also work out if you use give me a date like \"12.2\""
     ],
     Manual_EventTypes: [
-        "I read the event info and try to categorise them as a \"party\", workshop\", \"course\" or \"festival\". You can see it in the list of events I give you, as well as how confident I am in my guess."
+        "I read the text on the event page and try to categorise them as a \"party\", workshop\", \"course\" or \"festival\". You can see how I categorised them in the list of events I give you, as well as how confident I am in my guess."
     ],
     Manual_Interests: [
         "My currently supported dance styles are \"salsa\", \"bachata\", \"kizomba\" and \"zouk\". I plan to eventually work out the nuances between related concepts like \"cuban salsa\" vs \"mambo\" or \"bachata\" as a general concept vs \"sensual bachata\"."

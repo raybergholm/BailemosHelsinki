@@ -298,17 +298,17 @@ function sendQuickReplyUserGuide() {
 
     let quickReplies = [{
             type: "text",
-            text: "Tell me about how date and time work here.",
+            text: "Date & time?",
             payload: QUICK_REPLY_PAYLOADS.Manual_Datetime
         },
         {
             type: "text",
-            text: "How about event types?",
+            text: "Event types?",
             payload: QUICK_REPLY_PAYLOADS.Manual_EventTypes
         },
         {
             type: "text",
-            text: "And dance styles?",
+            text: "Dance styles?",
             payload: QUICK_REPLY_PAYLOADS.Manual_Interests
         }
     ];
