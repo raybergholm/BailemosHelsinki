@@ -73,6 +73,9 @@ const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I
         "I guess that didn't quite work as intended",
         "Yeah, I have some weird quirks sometimes :("
     ],
+    NewUserIntro: [
+        "Hi there new person!"
+    ],
     HelpQuickReplyHeader: [
         "Alright, here's some topics! Just click one of these buttons and I can tell you more."
     ],
@@ -83,7 +86,7 @@ const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I
         "I work based off keywords. I understand concepts related to time, event type and dance styles. You can use as many or as few terms as you want in your search."
     ],
     HowTo_Examples: [
-        "Some examples you could try:\n\"are there parties this weekend?\"\n\"any bachata next week?\"\n\"I remember a kizomba party somehwere on 01.03\". Go ahead, try searching for something!"
+        "Some examples you could try:\n\"are there parties this weekend?\"o\n\"any bachata next week?\"\n\"I remember a kizomba party somehwere on 01.03\". Go ahead, try searching for something!"
     ],
     UserGuide_Start: [
         "I understanding your messages based on the keywords and phase you use. Right now I only work in English. Finnish and Swedish support will eventually be added.\n\nFor now, I work with concepts related to date & time, event types and dance styles."

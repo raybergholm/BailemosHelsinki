@@ -19,6 +19,7 @@ const dataStagingInterface = require("../dataStagingInterface");
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
 const QUICK_REPLY_PAYLOADS = {
+    NewUserIntro: "NewUserIntro",
     BottyOverview: "BottyOverview",
     HowTo_Start: "HowTo_Start",
     HowTo_Examples: "HowTo_Examples",
@@ -41,6 +42,9 @@ module.exports = {
 
     replyToQuickReply: function (quickReplyPayload) {
         switch (quickReplyPayload) {
+            case QUICK_REPLY_PAYLOADS.NewUserIntro:
+                facebookMessageInterface.sendQuickReplyMessage("");
+                break;
             case QUICK_REPLY_PAYLOADS.BottyOverview:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.BottyOverview), [{
                         type: "text",
