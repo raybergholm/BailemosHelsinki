@@ -17,13 +17,17 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 exports.handler = (event, context, callback) => {
     dataStagingInterface.getOrganiserData(queryOrganiserEvents); // main logical chain gets kicked off asynchronously from here
 
-    let response = {
-        isBase64Encoded: false,
-        statusCode: 200,
-        body: "OK"
-    };
+    let response = generateHttpResponse(200, "OK");
     callback(null, response);
 };
+
+function generateHttpResponse(statusCode, payload) {
+    return {
+        isBase64Encoded: false,
+        statusCode: statusCode,
+        body: payload
+    };
+}
 
 function queryOrganiserEvents(organisers) {
     let pageIds = [],

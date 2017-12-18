@@ -16,20 +16,17 @@ exports.handler = (event, context, callback) => {
         isVerified = facebookRequestVerifier.verifySignature(event.headers['X-Hub-Signature'], event.body);
         if (!isVerified) {
             console.log("X-Hub_Signature did not match the expected value");
-            response = {
-                isBase64Encoded: false,
-                statusCode: 403,
-                body: "Unauthorized request"
+            let payload = {
+                message: "Error, unauthorized request"
             };
-            // return;  TODO: allow it to pass for now, debug it later
+            response = generateHttpResponse(403, JSON.stringify(payload));
         }
     } catch (err) {
         console.log("Error during request verification:", err.message);
-        response = {
-            isBase64Encoded: false,
-            statusCode: 500,
-            body: "Internal server error"
+        let payload = {
+            message: "Internal server error"
         };
+        response = generateHttpResponse(500, JSON.stringify(payload));
     }
 
     if (isVerified && event.httpMethod === "POST") {
@@ -62,16 +59,20 @@ exports.handler = (event, context, callback) => {
         } else {
             console.log("POST request body was null");
         }
-        response = {
-            isBase64Encoded: false,
-            statusCode: 200,
-            body: "OK"
-        };
+        response = generateHttpResponse(200, "OK");
     }
 
     console.log("returning the following response: ", JSON.stringify(response));
     callback(null, response);
 };
+
+function generateHttpResponse(statusCode, payload) {
+    return {
+        isBase64Encoded: false,
+        statusCode: statusCode,
+        body: payload
+    };
+}
 
 function handleReceivedMessage(receivedMessage) {
     let senderId = receivedMessage.sender.id;

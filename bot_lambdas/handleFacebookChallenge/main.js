@@ -15,11 +15,7 @@ exports.handler = (event, context, callback) => {
 
             console.log("Responding to Facebook challenge token");
 
-            response = {
-                isBase64Encoded: false,
-                statusCode: 200,
-                body: parseInt(challengeToken, 10)
-            };
+            response = generateHttpResponse(200, parseInt(challengeToken, 10));
         } else {
             console.log("Incorrect validation token received");
 
@@ -27,14 +23,18 @@ exports.handler = (event, context, callback) => {
                 message: "Error, wrong validation token"
             };
 
-            response = {
-                isBase64Encoded: false,
-                statusCode: 422,
-                body: JSON.stringify(payload)
-            };
+            response = generateHttpResponse(422, JSON.stringify(payload));
         }
     }
 
     console.log("returning the following response: ", JSON.stringify(response));
     callback(null, response);
 };
+
+function generateHttpResponse(statusCode, payload) {
+    return {
+        isBase64Encoded: false,
+        statusCode: statusCode,
+        body: payload
+    };
+}
