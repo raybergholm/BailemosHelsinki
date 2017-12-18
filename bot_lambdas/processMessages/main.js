@@ -9,8 +9,13 @@ const botty = require("./botty/botty");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    if (!facebookRequestVerifier.verifySignature(event.headers['X-Hub-Signature'], event.body)) {
-        console.log("X-Hub_Signature did not match the expected value");
+    try {
+        if (!facebookRequestVerifier.verifySignature(event.headers['X-Hub-Signature'], JSON.stringify(event.body))) {
+            console.log("X-Hub_Signature did not match the expected value");
+            // return;  TODO: allow it to pass for now, debug it later
+        }
+    } catch (err) {
+        console.log("Error during Request verification:", err.message);
         // return;  TODO: allow it to pass for now, debug it later
     }
 

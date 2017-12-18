@@ -20,61 +20,21 @@ module.exports = {
             throw new Error("Failed to extract signature from input");
         }
 
-        let hash = crypto.createHash(HASH_ALGORITHM);
-        hash.update(JSON.stringify(requestPayload));
-        let hashResult = hash.digest("hex");
+        let hmac = crypto.createHmac(HASH_ALGORITHM, FACEBOOK_APP_SECRET);
 
-        console.log("hash result: ", hashResult);
-        console.log("signature from FB: ", signature);
+        hmac.update(requestPayload);
 
-        let verify = crypto.createVerify(HASH_ALGORITHM);
+        let digest = hmac.digest("hex");
 
-        try {
-            verify.update(JSON.stringify(requestPayload));
-        } catch (err) {
-            console.log("it caught fire and died: ", err.message);
-            console.log(requestPayload);
-            return false;
-        }
-
-        let publicKey = FACEBOOK_APP_SECRET;
-        let result;
-
-        try {
-            result = verify.verify(publicKey, signature);
-        } catch (err) {
-            console.log("it caught fire and died: ", err.message);
-            console.log(requestPayload);
-            return false;
-        }
-
-        if (result) {
-            console.log("verify match");
+        if (signature === digest) {
+            console.log("Signature and digest match!");
+            return true;
         } else {
-            console.log("verify not matched");
+            console.log("Verification mismatch!", {
+                fromFB: signature,
+                digest: digest
+            });
+            return false;
         }
-
-        return result;
-    },
-
-    verifySignatureOld: function (payload) {
-        let signature = payload.split('=')[1];
-
-        if (signature) {
-            let hash = crypto.createHash(HASH_ALGORITHM);
-            hash.update(FACEBOOK_APP_SECRET);
-
-            let digest = hash.digest("hex");
-
-            if (signature === digest) { // TODO: always a mismatch right now, investigate why
-                return true;
-            } else {
-                console.log("Verification mismatch!", {
-                    fromFB: signature,
-                    digest: digest
-                });
-            }
-        }
-        return false;
     }
 };
