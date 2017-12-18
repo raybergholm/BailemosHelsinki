@@ -96,7 +96,7 @@ function queryOrganiserEvents(organisers) {
 }
 
 function sendBatchRequestToFacebook(body, callback) {
-    let options = facebookApiInterface.createGraphApiOptions();
+    let options = facebookApiInterface.createBaseGraphApiOptions();
 
     let req = https.request(options, callback);
     req.on("error", (err) => {
