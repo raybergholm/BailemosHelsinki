@@ -9,17 +9,30 @@ const botty = require("./botty/botty");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
+    let response;
+    let isVerified = false;
+
     try {
-        if (!facebookRequestVerifier.verifySignature(event.headers['X-Hub-Signature'], event.body)) {
+        isVerified = facebookRequestVerifier.verifySignature(event.headers['X-Hub-Signature'], event.body);
+        if (!isVerified) {
             console.log("X-Hub_Signature did not match the expected value");
+            response = {
+                isBase64Encoded: false,
+                statusCode: 403,
+                body: "Unauthorized request"
+            };
             // return;  TODO: allow it to pass for now, debug it later
         }
     } catch (err) {
-        console.log("Error during Request verification:", err.message);
-        // return;  TODO: allow it to pass for now, debug it later
+        console.log("Error during request verification:", err.message);
+        response = {
+            isBase64Encoded: false,
+            statusCode: 500,
+            body: "Internal server error"
+        };
     }
 
-    if (event.httpMethod === "POST") {
+    if (isVerified && event.httpMethod === "POST") {
         let data = JSON.parse(event.body);
         if (data) {
             // Make sure this is a page subscription
@@ -49,13 +62,12 @@ exports.handler = (event, context, callback) => {
         } else {
             console.log("POST request body was null");
         }
+        response = {
+            isBase64Encoded: false,
+            statusCode: 200,
+            body: "OK"
+        };
     }
-
-    let response = {
-        isBase64Encoded: false,
-        statusCode: 200,
-        body: "OK"
-    };
 
     console.log("returning the following response: ", JSON.stringify(response));
     callback(null, response);
