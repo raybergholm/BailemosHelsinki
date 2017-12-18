@@ -8,15 +8,15 @@ const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 
 module.exports = {
     verifySignature: function (payload) {
-        let shasum;
-
         let signature = payload.split('=')[1];
 
         if (signature) {
-            shasum = crypto.createHash('sha1');
-            shasum.update(FACEBOOK_APP_SECRET);
+            let hash = crypto.createHash("sha1");
+            hash.update(FACEBOOK_APP_SECRET);
 
-            let digest = shasum.digest("hex");
+            // let digest = hash.digest("hex");
+
+            let digest = hash.digest("latin1");
 
             if (signature === digest) { // TODO: always a mismatch right now, investigate why
                 return true;
