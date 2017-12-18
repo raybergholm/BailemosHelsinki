@@ -44,7 +44,7 @@ module.exports = {
 
     getEventData: (callback) => {
         s3.getObject({
-            Bucket: DATA_STAGING_BUCKET_NAME, // TODO: check if I am allowed to skip the Key property since I want to grab everything from this bucket
+            Bucket: DATA_STAGING_BUCKET_NAME,
             Key: EVENT_DATA_FILENAME
         }, (err, s3Object) => {
             let stagedData;
