@@ -238,7 +238,7 @@ function filterEvents(events, analysisResults) {
         // Filter by date & time: the array is already sorted in date order so we can just use one standard loop
         let startTime = moment(events[i].start_time);
 
-        if (startTime < analysisResults.dateTimeRange.from) { // TODO: check how moment 
+        if (startTime < analysisResults.dateTimeRange.from) {
             continue; // too early, keep going
         } else if (startTime > analysisResults.dateTimeRange.to) {
             break; // everything after this is outside the date range, we can discard the rest

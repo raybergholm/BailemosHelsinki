@@ -129,7 +129,6 @@ function parseResponses(responses) {
                     entries.forEach((entry) => {
                         if (entry.type && entry.link) {
                             // This is a feed message with a link
-
                             if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
                                 linkedEvents.push(entry.link);
                             }
@@ -145,7 +144,7 @@ function parseResponses(responses) {
                                 entry.end_time = firstUpcomingEvent.end_time;
                             }
 
-                            entry._bh = bottyDataAnalyser.analyseEvent(entry);
+                            entry._bh = bottyDataAnalyser.analyseEvent(entry); // attach custom metadata from data analysis to this event.
 
                             eventMap[entry.id] = entry;
                         } else {
@@ -175,7 +174,9 @@ function queryAdditionalEvents(linkedEvents, eventMap) {
     console.log(linkedEvents);
 
     let eventIds = [];
-    linkedEvents.forEach((link) => { // extract the event ID from the URL, then check if it's already in the eventMap: if it is, just skip it, we already have the event data
+
+    // extract the event ID from the URL, then check if it's already in the eventMap: if it is, just skip it, we already have the event data
+    linkedEvents.forEach((link) => {
         let id = eventIdRegex.exec(link)[0];
         if (!eventMap[id]) {
             eventIds.push(id);
@@ -196,8 +197,7 @@ function queryAdditionalEvents(linkedEvents, eventMap) {
         });
     });
 
-
-    console.log(eventIds);
+    // console.log(eventIds);
 
     sendBatchRequestToFacebook(batchRequestContent, (response) => {
         console.log(response);
@@ -210,7 +210,7 @@ function queryAdditionalEvents(linkedEvents, eventMap) {
         response.on("end", () => {
             let responses = JSON.parse(str);
 
-            console.log(responses);
+            // console.log(responses);
 
             let events = parseSecondaryEventResponses(responses);
 
@@ -233,7 +233,7 @@ function parseSecondaryEventResponses(responses) {
             let evt = JSON.parse(response.body);
             console.log(evt);
 
-            if((new Date(evt.start_time)).getTime() > Date.now()){    // future events only
+            if ((new Date(evt.start_time)).getTime() > Date.now()) { // future events only
                 evt._bh = bottyDataAnalyser.analyseEvent(evt);
                 events.push(evt);
             }
