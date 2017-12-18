@@ -14,9 +14,7 @@ module.exports = {
             let hash = crypto.createHash("sha1");
             hash.update(FACEBOOK_APP_SECRET);
 
-            // let digest = hash.digest("hex");
-
-            let digest = hash.digest("latin1");
+            let digest = hash.digest("hex");
 
             if (signature === digest) { // TODO: always a mismatch right now, investigate why
                 return true;
