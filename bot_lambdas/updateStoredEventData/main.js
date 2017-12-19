@@ -4,7 +4,7 @@
 const https = require("https");
 
 // Facebook Graph API interfacing modules
-const facebookApiInterface = require("./facebookApiInterface");
+const facebookApiInterface = require("./facebook/facebookApiInterface");
 
 // AWS data staging interfacing modules
 const dataStagingInterface = require("./dataStagingInterface");
