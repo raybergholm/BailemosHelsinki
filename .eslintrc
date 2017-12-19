@@ -9,20 +9,18 @@
     },
     "env": {
         "browser": true,
-        "node": true
+        "node": true,
+        "es6": true
     },
     "extends": "eslint:recommended",
     "rules": {
-        // Off
         "no-console": 0,
 
-        // Warnings
         "dot-notation": "warn",
         "eqeqeq": ["warn", "always"],
         "no-lonely-if": "warn",
         "no-unused-vars": "warn",
 
-        // Errors
         "curly": ["error", "all"],
         "for-direction": "error",
         "no-array-constructor": "error",
