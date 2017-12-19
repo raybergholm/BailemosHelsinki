@@ -91,7 +91,7 @@ const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I
     UserGuide_Start: [
         "I understanding your messages based on the keywords and phase you use. Right now I only work in English. Finnish and Swedish support will eventually be added.\n\nFor now, I work with concepts related to date & time, event types and dance styles."
     ],
-    UserGuide_Date: [
+    UserGuide_Datetime: [
         "I can handle some common date terms like \"today\", \"tomorrow\", \"this weekend\", \"next month\", etc. I can also work out if you use give me a date like \"12.2\""
     ],
     UserGuide_EventTypes: [
