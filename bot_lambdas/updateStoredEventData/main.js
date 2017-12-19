@@ -55,7 +55,7 @@ function queryOrganiseradditionalEvents(organisers) {
     let batchRequestContent = [];
 
     batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl("/additionalEvents/", {
+            relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
             debug: "all",
             time_filter: "upcoming",
             ids: pageIds,
@@ -112,7 +112,7 @@ function sendBatchRequestToFacebook(body, callback) {
 }
 
 function parseResponses(responses) {
-    let additionalEvents = new Map(); // using a Map to guarentee unique entries
+    let events = new Map(); // using a Map to guarentee unique entries
     let eventLinks = new Set(); // using a Set to guarentee unique entries
 
     let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/additionalEvents\/\d+\/$/i;
@@ -149,8 +149,7 @@ function parseResponses(responses) {
                             }
 
                             entry._bh = bottyDataAnalyser.analyseEvent(entry); // attach custom metadata from data analysis to this event.
-
-                            additionalEvents.set(entry.id, entry);
+                            events.set(entry.id, entry);
                         } else {
                             // console.log("Unknown and/or discarded entry received: ", entry); // Don't care about these right now, they're just clogging up the logs
                         }
@@ -164,15 +163,15 @@ function parseResponses(responses) {
 
     if (eventLinks.length > 0) {
         // Need to wait for secondary event query
-        queryAdditionaladditionalEvents(eventLinks, additionalEvents);
+        queryAdditionalEvents(eventLinks, events);
     } else {
         // No additional queries, save right away
-        let payload = formatForExport(additionalEvents);
+        let payload = formatForExport(events);
         dataStagingInterface.updateEventData(payload);
     }
 }
 
-function queryAdditionaladditionalEvents(eventLinks, events) {
+function queryAdditionalEvents(eventLinks, events) {
     let eventIdRegex = /\d+/i;
 
     console.log(eventLinks);
@@ -251,8 +250,7 @@ function formatForExport(events) {
 }
 
 function convertMapToArray(inputMap) {
-    // Convert the map into an array of additionalEvents sorted in ascending chronological order
-
+    // Convert the map into an array of events sorted in ascending chronological order
     let outputArr = Array.from(inputMap.values());
     outputArr.sort(function (left, right) {
         let leftDate = new Date(left.start_time);
