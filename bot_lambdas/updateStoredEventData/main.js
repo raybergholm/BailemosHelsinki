@@ -15,7 +15,7 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    dataStagingInterface.getOrganiserData(queryOrganiseradditionalEvents); // main logical chain gets kicked off asynchronously from here
+    dataStagingInterface.getOrganiserData(queryOrganiserEvents); // main logical chain gets kicked off asynchronously from here
 
     let response = generateHttpResponse(200, "OK");
     callback(null, response);
@@ -29,14 +29,14 @@ function generateHttpResponse(statusCode, payload) {
     };
 }
 
-function queryOrganiseradditionalEvents(organisers) {
+function queryOrganiserEvents(organisers) {
     let pageIds = [],
         groupIds = [],
         userIds = [];
     for (let prop in organisers) {
         switch (organisers[prop].Type) {
             case "page":
-                // scrape this page's additionalEvents
+                // scrape this page's events
                 pageIds.push(organisers[prop].Id);
                 break;
             case "group":
@@ -44,7 +44,7 @@ function queryOrganiseradditionalEvents(organisers) {
                 groupIds.push(organisers[prop].Id);
                 break;
             case "user":
-                // scrape this user's additionalEvents, NB the user needs to give this app permission!
+                // scrape this user's events, NB the user needs to give this app permission!
                 userIds.push(organisers[prop].Id);
                 break;
             default:
@@ -55,7 +55,7 @@ function queryOrganiseradditionalEvents(organisers) {
     let batchRequestContent = [];
 
     batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl("/additionalEvents/", {
+        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
             debug: "all",
             time_filter: "upcoming",
             ids: pageIds,
