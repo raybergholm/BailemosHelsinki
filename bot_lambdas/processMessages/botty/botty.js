@@ -369,16 +369,30 @@ function replyWithEvents(filteredEvents) {
         });
     }
 
-    let baseString;
-    if (filteredEvents.length === 0) {
-        baseString = textGenerator.getText("NoResults");
-    } else if (filteredEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
-        baseString = textGenerator.getText("OverflowResults");
+    let baseString, messageText;
+
+    let dateDiff = analysisResults.dateTimeRange.to.diff(analysisResults.dateTimeRange.from, "days");
+
+    if (dateDiff > 0) {
+        if (filteredEvents.length === 0) {
+            baseString = textGenerator.getText("NoResults");
+        } else if (filteredEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
+            baseString = textGenerator.getText("OverflowResults");
+        } else {
+            baseString = textGenerator.getText("NormalResults");
+        }
     } else {
-        baseString = textGenerator.getText("NormalResults");
+        // eslint-disable-next-line no-lonely-if
+        if (filteredEvents.length === 0) {
+            baseString = textGenerator.getText("NoResultsOneDay");
+        } else if (filteredEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
+            baseString = textGenerator.getText("OverflowResultsOneDay");
+        } else {
+            baseString = textGenerator.getText("NormalResultsOneDay");
+        }
     }
 
-    let messageText = textGenerator.formatText(baseString, {
+    messageText = textGenerator.formatText(baseString, {
         amount: filteredEvents.length,
         from: moment(analysisResults.dateTimeRange.from).format("Do MMM"),
         to: moment(analysisResults.dateTimeRange.to).format("Do MMM")

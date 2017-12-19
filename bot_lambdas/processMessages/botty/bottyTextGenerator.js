@@ -122,13 +122,25 @@ const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I
         "Hmm, it seems like there's nothing available from {from} to {to}, at least with that criteria",
         "I didn't find anything for the period {from} to {to}"
     ],
+    NoResultsOneDay: [
+        "Hmm, it seems like there's nothing available for {from}, at least with that criteria",
+        "I didn't find anything for {from}"
+    ],
     NormalResults: [
         "Let's see... We have {amount} things happening from {from} to {to}:",
         "Ok! There's {amount} results for {from} to {to}:",
         "Alright, I found {amount} results for {from} to {to}:"
     ],
+    NormalResultsOneDay: [
+        "Let's see... We have {amount} things happening on {from}",
+        "Ok! There's {amount} results for {from}:",
+        "Alright, I found {amount} results for {from}:"
+    ],
     OverflowResults: [
         "I got {amount} results for {from} to {to}, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
+    ],
+    OverflowResultsOneDay: [
+        "I got {amount} results for {from}, here's the first 10 of them. I'd love to display the rest but Facebook doesn't let me :("
     ],
     Address: [
         "\n{street}, {city}"
