@@ -15,7 +15,7 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    dataStagingInterface.getOrganiserData(queryOrganiserEvents); // main logical chain gets kicked off asynchronously from here
+    dataStagingInterface.getOrganiserData(queryOrganiseradditionalEvents); // main logical chain gets kicked off asynchronously from here
 
     let response = generateHttpResponse(200, "OK");
     callback(null, response);
@@ -29,14 +29,14 @@ function generateHttpResponse(statusCode, payload) {
     };
 }
 
-function queryOrganiserEvents(organisers) {
+function queryOrganiseradditionalEvents(organisers) {
     let pageIds = [],
         groupIds = [],
         userIds = [];
     for (let prop in organisers) {
         switch (organisers[prop].Type) {
             case "page":
-                // scrape this page's events
+                // scrape this page's additionalEvents
                 pageIds.push(organisers[prop].Id);
                 break;
             case "group":
@@ -44,7 +44,7 @@ function queryOrganiserEvents(organisers) {
                 groupIds.push(organisers[prop].Id);
                 break;
             case "user":
-                // scrape this user's events, NB the user needs to give this app permission!
+                // scrape this user's additionalEvents, NB the user needs to give this app permission!
                 userIds.push(organisers[prop].Id);
                 break;
             default:
@@ -55,7 +55,7 @@ function queryOrganiserEvents(organisers) {
     let batchRequestContent = [];
 
     batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
+            relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
             debug: "all",
             time_filter: "upcoming",
             ids: pageIds,
@@ -72,7 +72,7 @@ function queryOrganiserEvents(organisers) {
         method: "GET"
     });
     batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
+        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getadditionalEventsPath(), {
             debug: "all",
             time_filter: "upcoming",
             ids: userIds,
@@ -115,7 +115,7 @@ function parseResponses(responses) {
     let events = new Map(); // using a Map to guarentee unique entries
     let eventLinks = new Set(); // using a Set to guarentee unique entries
 
-    let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/events\/\d+\/$/i;
+    let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/additionalEvents\/\d+\/$/i;
 
     responses.forEach((response) => {
         console.log(response.body);
@@ -149,7 +149,6 @@ function parseResponses(responses) {
                             }
 
                             entry._bh = bottyDataAnalyser.analyseEvent(entry); // attach custom metadata from data analysis to this event.
-
                             events.set(entry.id, entry);
                         } else {
                             // console.log("Unknown and/or discarded entry received: ", entry); // Don't care about these right now, they're just clogging up the logs
@@ -235,7 +234,7 @@ function parseSecondaryEventResponses(responses) {
             let evt = JSON.parse(response.body);
             console.log(evt);
 
-            if ((new Date(evt.start_time)).getTime() > Date.now()) { // future events only
+            if ((new Date(evt.start_time)).getTime() > Date.now()) { // future additionalEvents only
                 evt._bh = bottyDataAnalyser.analyseEvent(evt);
                 additionalEvents.push(evt);
             }
@@ -252,7 +251,6 @@ function formatForExport(events) {
 
 function convertMapToArray(inputMap) {
     // Convert the map into an array of events sorted in ascending chronological order
-
     let outputArr = Array.from(inputMap.values());
     outputArr.sort(function (left, right) {
         let leftDate = new Date(left.start_time);
