@@ -112,8 +112,8 @@ function sendBatchRequestToFacebook(body, callback) {
 }
 
 function parseResponses(responses) {
-    let additionalEvents = new Map();         // using a Map to guarentee unique entries
-    let eventLinks = new Set();     // using a Set to guarentee unique entries
+    let additionalEvents = new Map(); // using a Map to guarentee unique entries
+    let eventLinks = new Set(); // using a Set to guarentee unique entries
 
     let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/additionalEvents\/\d+\/$/i;
 
