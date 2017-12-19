@@ -95,31 +95,6 @@ function sendMessageToFacebook(payload) {
     req.end();
 }
 
-function sendBatchedMessage(payload) {
-    console.log("sending this message payload to FB:", payload);
-
-    let body = payload;
-    let options = facebookApiInterface.createBatchGraphApiOptions();
-
-    let callback = function (response) {
-        let str = "";
-        response.on("data", (chunk) => {
-            str += chunk;
-        });
-        response.on("end", () => {
-            postDeliveryCallback(str);
-        });
-    };
-
-    let req = https.request(options, callback);
-    req.on("error", function (err) {
-        console.log("problem with request: " + err);
-    });
-
-    req.write(body);
-    req.end();
-}
-
 function postDeliveryCallback(str) {
     console.log("callback end, got " + str);
 

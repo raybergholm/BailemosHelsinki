@@ -12,7 +12,7 @@ module.exports = {
         return FACEBOOK_API_VERSION + FACEBOOK_GRAPH_API_PATHS.Feed;
     },
 
-    getEventsPath: (path) => {
+    getEventsPath: () => {
         return FACEBOOK_API_VERSION + FACEBOOK_GRAPH_API_PATHS.Events;
     },
 

@@ -43,10 +43,10 @@ module.exports = {
             headers: {
                 "Content-Type": "application/json"
             }
-        }
+        };
     }
 };
 
-function getMessagesPath: () = {
+function getMessagesPath() {
     return FACEBOOK_API_VERSION + FACEBOOK_GRAPH_API_PATHS.Messages;
-};
+}
