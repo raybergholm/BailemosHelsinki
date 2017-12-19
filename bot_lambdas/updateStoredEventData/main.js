@@ -15,7 +15,7 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    dataStagingInterface.getOrganiserData(queryOrganiserEvents); // main logical chain gets kicked off asynchronously from here
+    dataStagingInterface.getOrganiserData(queryOrganiseradditionalEvents); // main logical chain gets kicked off asynchronously from here
 
     let response = generateHttpResponse(200, "OK");
     callback(null, response);
@@ -29,14 +29,14 @@ function generateHttpResponse(statusCode, payload) {
     };
 }
 
-function queryOrganiserEvents(organisers) {
+function queryOrganiseradditionalEvents(organisers) {
     let pageIds = [],
         groupIds = [],
         userIds = [];
     for (let prop in organisers) {
         switch (organisers[prop].Type) {
             case "page":
-                // scrape this page's events
+                // scrape this page's additionalEvents
                 pageIds.push(organisers[prop].Id);
                 break;
             case "group":
@@ -44,7 +44,7 @@ function queryOrganiserEvents(organisers) {
                 groupIds.push(organisers[prop].Id);
                 break;
             case "user":
-                // scrape this user's events, NB the user needs to give this app permission!
+                // scrape this user's additionalEvents, NB the user needs to give this app permission!
                 userIds.push(organisers[prop].Id);
                 break;
             default:
@@ -55,7 +55,7 @@ function queryOrganiserEvents(organisers) {
     let batchRequestContent = [];
 
     batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl("/events/", {
+        relative_url: facebookApiInterface.buildQueryUrl("/additionalEvents/", {
             debug: "all",
             time_filter: "upcoming",
             ids: pageIds,
@@ -72,7 +72,7 @@ function queryOrganiserEvents(organisers) {
         method: "GET"
     });
     batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
+        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getadditionalEventsPath(), {
             debug: "all",
             time_filter: "upcoming",
             ids: userIds,
@@ -112,10 +112,10 @@ function sendBatchRequestToFacebook(body, callback) {
 }
 
 function parseResponses(responses) {
-    let eventMap = {};
-    let linkedEvents = [];
+    let additionalEvents = new Map();         // using a Map to guarentee unique entries
+    let eventLinks = new Set();     // using a Set to guarentee unique entries
 
-    let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/events\/\d+\/$/i;
+    let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/additionalEvents\/\d+\/$/i;
 
     responses.forEach((response) => {
         console.log(response.body);
@@ -134,7 +134,7 @@ function parseResponses(responses) {
                         if (entry.type && entry.link) {
                             // This is a feed message with a link
                             if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
-                                linkedEvents.push(entry.link);
+                                eventLinks.add(entry.link);
                             }
                         } else if (entry.name && entry.description && entry.start_time && entry.end_time) {
                             // This is an event
@@ -150,7 +150,7 @@ function parseResponses(responses) {
 
                             entry._bh = bottyDataAnalyser.analyseEvent(entry); // attach custom metadata from data analysis to this event.
 
-                            eventMap[entry.id] = entry;
+                            additionalEvents.set(entry.id, entry);
                         } else {
                             // console.log("Unknown and/or discarded entry received: ", entry); // Don't care about these right now, they're just clogging up the logs
                         }
@@ -162,32 +162,30 @@ function parseResponses(responses) {
         }
     });
 
-    if (linkedEvents.length > 0) {
+    if (eventLinks.length > 0) {
         // Need to wait for secondary event query
-        queryAdditionalEvents(linkedEvents, eventMap);
+        queryAdditionaladditionalEvents(eventLinks, additionalEvents);
     } else {
         // No additional queries, save right away
-        let payload = formatForExport(eventMap);
+        let payload = formatForExport(additionalEvents);
         dataStagingInterface.updateEventData(payload);
     }
 }
 
-function queryAdditionalEvents(linkedEvents, eventMap) {
+function queryAdditionaladditionalEvents(eventLinks, events) {
     let eventIdRegex = /\d+/i;
 
-    console.log(linkedEvents);
+    console.log(eventLinks);
 
     let eventIds = [];
 
-    // extract the event ID from the URL, then check if it's already in the eventMap: if it is, just skip it, we already have the event data
-    linkedEvents.forEach((link) => {
+    // extract the event ID from the URL, then check if it's already in the events: if it is, just skip it, we already have the event data
+    eventLinks.forEach((link) => {
         let id = eventIdRegex.exec(link)[0];
-        if (!eventMap[id]) {
+        if (!events.get(id)) {
             eventIds.push(id);
         }
     });
-
-    eventIds = [...new Set(eventIds)]; // unique values only 
 
     let batchRequestContent = [];
     eventIds.map((eventId) => {
@@ -216,20 +214,20 @@ function queryAdditionalEvents(linkedEvents, eventMap) {
 
             // console.log(responses);
 
-            let events = parseSecondaryEventResponses(responses);
+            let additionalEvents = parseSecondaryEventResponses(responses);
 
-            events.map((evt) => { // add new events to eventMap (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
-                eventMap[evt.id] = evt;
+            additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+                events.set(evt.id, evt);
             });
 
-            let payload = formatForExport(eventMap);
+            let payload = formatForExport(events);
             dataStagingInterface.updateEventData(payload);
         });
     });
 }
 
 function parseSecondaryEventResponses(responses) {
-    let events = [];
+    let additionalEvents = [];
     responses.forEach((response) => {
         if (response.error) {
             console.log("Response errored: ", response.error.message);
@@ -237,27 +235,25 @@ function parseSecondaryEventResponses(responses) {
             let evt = JSON.parse(response.body);
             console.log(evt);
 
-            if ((new Date(evt.start_time)).getTime() > Date.now()) { // future events only
+            if ((new Date(evt.start_time)).getTime() > Date.now()) { // future additionalEvents only
                 evt._bh = bottyDataAnalyser.analyseEvent(evt);
-                events.push(evt);
+                additionalEvents.push(evt);
             }
         }
     });
 
-    return events;
+    return additionalEvents;
 }
 
-function formatForExport(eventMap) {
-    let payload = convertMapToArray(eventMap);
+function formatForExport(events) {
+    let payload = convertMapToArray(events);
     return JSON.stringify(payload);
 }
 
 function convertMapToArray(inputMap) {
-    // Convert the map into an array of events sorted in ascending chronological order
-    let outputArr = Object.keys(inputMap).map((key) => {
-        return inputMap[key];
-    });
+    // Convert the map into an array of additionalEvents sorted in ascending chronological order
 
+    let outputArr = Array.from(inputMap.values());
     outputArr.sort(function (left, right) {
         let leftDate = new Date(left.start_time);
         let rightDate = new Date(right.start_time);
