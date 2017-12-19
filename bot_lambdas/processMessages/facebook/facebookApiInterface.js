@@ -2,6 +2,12 @@
 
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
+const FACEBOOK_API_VERSION = "/v2.11/";
+
+const FACEBOOK_GRAPH_API_PATHS = {
+    Messages: "me/messages/"
+};
+
 module.exports = {
     buildQueryUrl: (basePath, params, escapePath) => {
         let path = basePath;
@@ -21,7 +27,7 @@ module.exports = {
     createBatchGraphApiOptions: () => {
         return {
             host: "graph.facebook.com",
-            path: "/v2.11/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
+            path: FACEBOOK_API_VERSION + "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -32,11 +38,15 @@ module.exports = {
     createSendMessageOptions: () => {
         return {
             host: "graph.facebook.com",
-            path: "/v2.11/me/messages/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
+            path: getMessagesPath() + "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             }
         }
     }
+};
+
+function getMessagesPath: () = {
+    return FACEBOOK_API_VERSION + FACEBOOK_GRAPH_API_PATHS.Messages;
 };
