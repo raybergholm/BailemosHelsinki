@@ -64,7 +64,7 @@ function queryOrganiserEvents(organisers) {
         method: "GET"
     });
     batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl("/feed/", {
+        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getFeedPath(), {
             debug: "all",
             ids: groupIds,
             fields: ["type", "link", "message", "story"]
@@ -72,7 +72,7 @@ function queryOrganiserEvents(organisers) {
         method: "GET"
     });
     batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl("/events/", {
+        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
             debug: "all",
             time_filter: "upcoming",
             ids: userIds,

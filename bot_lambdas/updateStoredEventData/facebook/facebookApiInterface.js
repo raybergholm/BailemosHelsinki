@@ -1,6 +1,19 @@
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
+const FACEBOOK_GRAPH_API_PATHS = {
+    Events: "/events/",
+    Feed: "/feed/"
+};
+
 module.exports = {
+    getFeedPath: () => {
+        return FACEBOOK_GRAPH_API_PATHS.Feed;
+    },
+
+    getEventsPath: (path) => {
+        return FACEBOOK_GRAPH_API_PATHS.Events;
+    },
+
     buildQueryUrl: (basePath, params, escapePath) => {
         let path = basePath;
         if (params) {
