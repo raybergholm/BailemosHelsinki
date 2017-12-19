@@ -99,7 +99,7 @@ function sendBatchedMessage(payload) {
     console.log("sending this message payload to FB:", payload);
 
     let body = payload;
-    let options = facebookApiInterface.createBaseGraphApiOptions();
+    let options = facebookApiInterface.createBatchGraphApiOptions();
 
     let callback = function (response) {
         let str = "";

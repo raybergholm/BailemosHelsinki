@@ -18,7 +18,7 @@ module.exports = {
         return path;
     },
 
-    createBaseGraphApiOptions: () => {
+    createBatchGraphApiOptions: () => {
         return {
             host: "graph.facebook.com",
             path: "/v2.11/?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
