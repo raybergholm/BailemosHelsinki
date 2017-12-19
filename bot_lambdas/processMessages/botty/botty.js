@@ -33,6 +33,8 @@ const QUICK_REPLY_PAYLOADS = {
 
 let typingIndicatorSent = false;
 
+let userTimezoneOffset = 2; // TODO: dirty hardcoding workaround for now to deal with the fact that the server is in GMT.
+
 let analysisResults;
 
 module.exports = {
@@ -327,7 +329,7 @@ function replyWithEvents(filteredEvents) {
             let subtitleString = "";
             let coverImageUrl = null;
 
-            subtitleString += moment(eventData.start_time).format("Do MMM HH:mm");
+            subtitleString += moment(eventData.start_time).add(userTimezoneOffset, "hours").format("Do MMM HH:mm");
 
             try {
                 if (eventData.place) {
