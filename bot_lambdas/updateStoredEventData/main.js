@@ -237,18 +237,7 @@ function queryAdditionalEvents(eventLinks, events) {
             });
 
             let payload = formatForExport(events);
-            dataStagingInterface.updateEventData(payload).then(
-                (data) => {
-                    console.log("S3 putObject response metadata:", data);
-
-                    return data;
-                },
-                (err) => {
-                    console.log("S3 putObject error: ", err);
-
-                    return err;
-                }
-            );
+            dataStagingInterface.updateEventData(payload);
         });
     });
 }

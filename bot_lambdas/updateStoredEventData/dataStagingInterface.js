@@ -45,13 +45,24 @@ module.exports = {
         );
     },
 
-    updateEventData: (payload, callback) => {
+    updateEventData: (payload) => {
         let s3PutRequest = s3.putObject({
             Bucket: DATA_STAGING_BUCKET_NAME,
             Key: EVENT_DATA_FILENAME,
             Body: payload
         });
 
-        return s3PutRequest.promise();
+        return s3PutRequest.promise().then(
+            (data) => {
+                console.log("S3 putObject response metadata:", data);
+
+                return data;
+            },
+            (err) => {
+                console.log("S3 putObject error: ", err);
+
+                return err;
+            }
+        );
     }
 };
