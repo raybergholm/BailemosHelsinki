@@ -14,13 +14,13 @@ const s3 = new AWS.S3();
 
 module.exports = {
     getOrganiserData: () => {
-        let ddbRequest = dynamoDB.scan({
+        let dynamoDBRequest = dynamoDB.scan({
             TableName: EVENT_ORGANISER_TABLE_NAME,
             Limit: 50
         });
 
-        return ddbRequest.promise().then(
-            (data) => { // post-processing: format data from raw DynamoDB format to local app JS object
+        return dynamoDBRequest.promise().then(
+            (data) => { // post-processing: format data from raw DynamoDB format to locally-defined JSON
                 let item;
                 let nodes = {};
                 for (let prop in data.Items) {
