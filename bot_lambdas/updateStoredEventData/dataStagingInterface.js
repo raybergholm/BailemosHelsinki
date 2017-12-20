@@ -45,41 +45,6 @@ module.exports = {
         );
     },
 
-    getEventData: () => {
-        let s3GetRequest = s3.getObject({
-            Bucket: DATA_STAGING_BUCKET_NAME,
-            Key: EVENT_DATA_FILENAME
-        });
-
-        return s3GetRequest.promise().then(
-            (data) => {
-                let stagedData = JSON.parse(data.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
-
-                // Convert all date strings to date objects (all date/time calculations require it, and JSON.stringify will convert back to string correctly)
-                for (let i = 0; i < stagedData.events.length; i++) {
-                    stagedData.events[i].start_time = new Date(stagedData.events[i].start_time);
-                    stagedData.events[i].end_time = new Date(stagedData.events[i].start_time);
-
-                    if (stagedData.events[i].event_times) {
-                        for (let j = 0; j < stagedData.events[i].event_times.length; j++) {
-                            stagedData.events[i].event_times[j].start_time = new Date(stagedData.events[i].event_times[j].start_time);
-                            stagedData.events[i].event_times[j].end_time = new Date(stagedData.events[i].event_times[j].end_time);
-                        }
-                    }
-                }
-
-                console.log(stagedData);
-
-                return stagedData;
-            },
-            (err) => {
-                console.log("S3 getObject error: ", err);
-
-                return err;
-            }
-        );
-    },
-
     updateEventData: (payload, callback) => {
         let s3PutRequest = s3.putObject({
             Bucket: DATA_STAGING_BUCKET_NAME,
