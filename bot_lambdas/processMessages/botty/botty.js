@@ -30,7 +30,7 @@ module.exports = {
         facebookMessageInterface.setTargetId(targetId);
     },
 
-    responseToQuickReply: (payload) => {
+    respondToQuickReply: (payload) => {
         quickReplyHandler.respondToQuickReply(payload);
     },
 
