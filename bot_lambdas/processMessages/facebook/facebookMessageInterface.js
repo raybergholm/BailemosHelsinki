@@ -71,28 +71,31 @@ module.exports = {
 };
 
 function sendMessageToFacebook(payload) {
-    console.log("sending this message payload to FB:", payload);
+    return new Promise((resolve, reject) => {
+        console.log("sending this message payload to FB:", payload);
 
-    let body = JSON.stringify(payload);
-    let options = facebookApiInterface.createSendMessageOptions();
+        let body = JSON.stringify(payload);
+        let options = facebookApiInterface.createSendMessageOptions();
 
-    let callback = function (response) {
-        let str = "";
-        response.on("data", (chunk) => {
-            str += chunk;
+        let callback = function (response) {
+            let str = "";
+            response.on("data", (chunk) => {
+                str += chunk;
+            });
+            response.on("end", () => {
+                resolve(str);
+            });
+        };
+
+        let req = https.request(options, callback);
+        req.on("error", function (err) {
+            console.log("problem with request: " + err);
+            reject(err);
         });
-        response.on("end", () => {
-            postDeliveryCallback(str);
-        });
-    };
 
-    let req = https.request(options, callback);
-    req.on("error", function (err) {
-        console.log("problem with request: " + err);
+        req.write(body);
+        req.end();
     });
-
-    req.write(body);
-    req.end();
 }
 
 function postDeliveryCallback(str) {
