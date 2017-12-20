@@ -15,12 +15,7 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    dataStagingInterface.getOrganiserData().then(
-        queryOrganiserEvents,
-        (err) => {
-
-        }
-    ); // main logical chain gets kicked off asynchronously from here
+    dataStagingInterface.getOrganiserData().then(queryOrganiserEvents); // main logical chain gets kicked off asynchronously from here
 
     let response = generateHttpResponse(200, "OK");
     callback(null, response);
@@ -244,30 +239,6 @@ function queryAdditionalEvents(eventLinks, events) {
             console.log("problem with request: " + err);
         }
     );
-
-    // sendBatchRequestToFacebook(batchRequestContent, (response) => {
-    //     console.log(response);
-
-    //     let str = "";
-    //     response.on("data", (chunk) => {
-    //         str += chunk;
-    //     });
-
-    //     response.on("end", () => {
-    //         let responses = JSON.parse(str);
-
-    //         // console.log(responses);
-
-    //         let additionalEvents = parseSecondaryEventResponses(responses);
-
-    //         additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
-    //             events.set(evt.id, evt);
-    //         });
-
-    //         let payload = formatForExport(events);
-    //         dataStagingInterface.updateEventData(payload);
-    //     });
-    // });
 }
 
 function parseSecondaryEventResponses(responses) {
