@@ -20,7 +20,7 @@ Message processing is done in the botty modules. The overall process flow is as 
 3. Else, perform a more intensive scan and check for all keywords. Attempt to identify the following attributes:
     * Date range
     * Interests
-    * Event type _(WIP)_
+    * Event type
     * Location _(WIP)_
 5. Fetch the stored event data.
 4. Using the analysis results, start filtering the event data. The filtering logic in short:
@@ -47,4 +47,4 @@ Currently on hold, originally was used as an alternate entry point for debugging
 ## TODOs:
 
 * handleFacebookWebhookUpdate is meant to handle when a subscribed page/user/etc updates, and it would be superior to static batch updates. But, check if this requires the page/user to give permission to this bot, if so we're no longer passively collecting data, but we'd have to actively approach the other event organisers for consent!
-* moment works great for easy date parsing & user-friend displays, however the server is not necessarily in the same time zone as the user. Will need to add a mini-query to FB at some point to fetch the user timezone to handle any random time offset. Alternatively, always use the location's local time for the location.
+* moment works great for easy date parsing & user-friend displays, however the server is not necessarily in the same time zone as the user. Will need to add a mini-query to FB at some point (assuming this can be fetched without requesting permissions) to fetch the user timezone to handle any random time offset. Alternatively, always use the location's local time for the location.
