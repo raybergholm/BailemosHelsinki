@@ -42,7 +42,7 @@ function generateHttpResponse(statusCode, payload) {
 
 function getOrganiserData() {
     return dataStagingInterface.getOrganiserData();
-};
+}
 
 function buildOrganiserQuery(organisers) {
     return new Promise((resolve, reject) => {
