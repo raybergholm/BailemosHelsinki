@@ -175,7 +175,12 @@ module.exports = {
             return;
         }
 
-        dataStagingInterface.getEventData(eventDataCallback);
+        dataStagingInterface.getEventData().then(
+            eventDataCallback,
+            (err) => {
+
+            }
+        );
     }
 };
 
