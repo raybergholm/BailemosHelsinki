@@ -15,7 +15,15 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    dataStagingInterface.getOrganiserData().then(queryOrganiserEvents); // main logical chain gets kicked off asynchronously from here
+    dataStagingInterface.getOrganiserData()
+        .then(buildOrganiserQuery)
+        .then(batchQueryFacebook)
+        .then(processResponseFromFacebook)
+        .then(formatPayloadForStorage)
+        .then(dataStagingInterface.updateEventData)
+        .catch((err) => {
+            console.log("Error thrown: ", err.message);
+        });
 
     let response = generateHttpResponse(200, "OK");
     callback(null, response);
@@ -29,57 +37,83 @@ function generateHttpResponse(statusCode, payload) {
     };
 }
 
-function queryOrganiserEvents(organisers) {
-    let pageIds = [],
-        groupIds = [],
-        userIds = [];
-    for (let prop in organisers) {
-        switch (organisers[prop].Type) {
-            case "page":
-                // scrape this page's events
-                pageIds.push(organisers[prop].Id);
-                break;
-            case "group":
-                // scrape this page's post feed
-                groupIds.push(organisers[prop].Id);
-                break;
-            case "user":
-                // scrape this user's events, NB the user needs to give this app permission!
-                userIds.push(organisers[prop].Id);
-                break;
-            default:
-                console.log("Unexpected node type: ", organisers[prop].Type);
+function buildOrganiserQuery(organisers) {
+    return new Promise((resolve, reject) => {
+        try {
+            let pageIds = [],
+                groupIds = [],
+                userIds = [];
+
+            for (let prop in organisers) {
+                switch (organisers[prop].Type) {
+                    case "page":
+                        // scrape this page's events
+                        pageIds.push(organisers[prop].Id);
+                        break;
+                    case "group":
+                        // scrape this page's post feed
+                        groupIds.push(organisers[prop].Id);
+                        break;
+                    case "user":
+                        // scrape this user's events, NB the user needs to give this app permission!
+                        userIds.push(organisers[prop].Id);
+                        break;
+                    default:
+                        console.log("Unexpected node type: ", organisers[prop].Type);
+                }
+            }
+
+            let batchRequestPayload = [];
+
+            batchRequestPayload.push({
+                relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
+                    debug: "all",
+                    time_filter: "upcoming",
+                    ids: pageIds,
+                    fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
+                }, true),
+                method: "GET"
+            });
+            batchRequestPayload.push({
+                relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getFeedPath(), {
+                    debug: "all",
+                    ids: groupIds,
+                    fields: ["type", "link", "message", "story"]
+                }, true),
+                method: "GET"
+            });
+            batchRequestPayload.push({
+                relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
+                    debug: "all",
+                    time_filter: "upcoming",
+                    ids: userIds,
+                    fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
+                }, true),
+                method: "GET"
+            });
+
+            resolve(batchRequestPayload);
+        } catch (err) {
+            reject(err);
         }
-    }
+    });
+}
 
-    let batchRequestContent = [];
+function batchQueryFacebook(payload) {
+    return new Promise((resolve, reject) => {
+        let options = facebookApiInterface.createBatchGraphApiOptions();
 
-    batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
-            debug: "all",
-            time_filter: "upcoming",
-            ids: pageIds,
-            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
-        }, true),
-        method: "GET"
+        let req = https.request(options, (response) => {
+            resolve(response);
+        });
+        req.on("error", (err) => {
+            reject(err);
+        });
+
+        req.write("batch=" + JSON.stringify(body));
+        req.end();
     });
-    batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getFeedPath(), {
-            debug: "all",
-            ids: groupIds,
-            fields: ["type", "link", "message", "story"]
-        }, true),
-        method: "GET"
-    });
-    batchRequestContent.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
-            debug: "all",
-            time_filter: "upcoming",
-            ids: userIds,
-            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
-        }, true),
-        method: "GET"
-    });
+
 
     sendBatchRequestToFacebook(batchRequestContent).then(
         (response) => {
@@ -104,141 +138,142 @@ function queryOrganiserEvents(organisers) {
     );
 }
 
-function sendBatchRequestToFacebook(body) {
+function processResponseFromFacebook(response) {
     return new Promise((resolve, reject) => {
-        let options = facebookApiInterface.createBatchGraphApiOptions();
+        console.log(response);
 
-        let req = https.request(options, (response) => {
-            resolve(response);
-        });
-        req.on("error", (err) => {
-            reject(err);
+        let str = "";
+        response.on("data", (chunk) => {
+            str += chunk;
         });
 
-        req.write("batch=" + JSON.stringify(body));
-        req.end();
+        response.on("end", () => {
+            let responses = JSON.parse(str);
+
+            console.log(responses);
+
+            resolve(parseResponses(responses)); // TODO: good place refactor into a promise
+        });
     });
-
-}
+};
 
 function parseResponses(responses) {
-    let events = new Map(); // using a Map to guarentee unique entries
-    let eventLinks = new Set(); // using a Set to guarentee unique entries
+    return new Promise((resolve, reject) => {
+        let events = new Map(); // using a Map to guarentee unique entries
+        let eventLinks = new Set(); // using a Set to guarentee unique entries
 
-    let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/events\/\d+\/$/i;
+        let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/events\/\d+\/$/i;
 
-    responses.forEach((response) => {
-        console.log(response.body);
+        responses.forEach((response) => {
+            console.log(response.body);
 
-        if (response.error) {
-            console.log("Response errored: ", response.error.message);
-        } else {
-            let body = JSON.parse(response.body);
+            if (response.error) {
+                console.log("Response errored: ", response.error.message);
+            } else {
+                let body = JSON.parse(response.body);
 
-            for (let prop in body) {
-                console.log(body[prop]);
+                for (let prop in body) {
+                    console.log(body[prop]);
 
-                if (body[prop].data) {
-                    let entries = body[prop].data;
-                    entries.forEach((entry) => {
-                        if (entry.type && entry.link) {
-                            // This is a feed message with a link
-                            if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
-                                eventLinks.add(entry.link);
+                    if (body[prop].data) {
+                        let entries = body[prop].data;
+                        entries.forEach((entry) => {
+                            if (entry.type && entry.link) {
+                                // This is a feed message with a link
+                                if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
+                                    eventLinks.add(entry.link);
+                                }
+                            } else if (entry.name && entry.description && entry.start_time && entry.end_time) {
+                                // This is an event
+                                if (entry.event_times) {
+                                    let firstUpcomingEvent = entry.event_times.find((element) => {
+                                        return (new Date(element.start_time)).getTime() > Date.now();
+                                    });
+
+                                    entry.id = firstUpcomingEvent.id;
+                                    entry.start_time = firstUpcomingEvent.start_time;
+                                    entry.end_time = firstUpcomingEvent.end_time;
+                                }
+
+                                entry._bh = bottyDataAnalyser.analyseEvent(entry); // attach custom metadata from data analysis to this event.
+
+                                events.set(entry.id, entry);
+                            } else {
+                                // console.log("Unknown and/or discarded entry received: ", entry); // Don't care about these right now, they're just clogging up the logs
                             }
-                        } else if (entry.name && entry.description && entry.start_time && entry.end_time) {
-                            // This is an event
-                            if (entry.event_times) {
-                                let firstUpcomingEvent = entry.event_times.find((element) => {
-                                    return (new Date(element.start_time)).getTime() > Date.now();
-                                });
-
-                                entry.id = firstUpcomingEvent.id;
-                                entry.start_time = firstUpcomingEvent.start_time;
-                                entry.end_time = firstUpcomingEvent.end_time;
-                            }
-
-                            entry._bh = bottyDataAnalyser.analyseEvent(entry); // attach custom metadata from data analysis to this event.
-
-                            events.set(entry.id, entry);
-                        } else {
-                            // console.log("Unknown and/or discarded entry received: ", entry); // Don't care about these right now, they're just clogging up the logs
-                        }
-                    });
-                } else {
-                    console.log("Additional metadata in response: ", body[prop]);
+                        });
+                    } else {
+                        console.log("Additional metadata in response: ", body[prop]);
+                    }
                 }
             }
+        });
+
+        if (eventLinks.length > 0) {
+            // Need to wait for secondary event query
+            resolve(buildSecondaryQuery(eventLinks, events)
+                .then(batchQueryFacebook)
+                .then((response) => {
+                    // has to be done here because it needs to merge the results into the events map
+                    return new Promise((resolve, reject) => {
+                        console.log(response);
+
+                        let str = "";
+                        response.on("data", (chunk) => {
+                            str += chunk;
+                        });
+
+                        response.on("end", () => {
+                            let responses = JSON.parse(str);
+
+                            // console.log(responses);
+
+                            let additionalEvents = parseSecondaryEventResponses(responses);
+
+                            additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+                                events.set(evt.id, evt);
+                            });
+
+                            resolve(events);
+                        });
+                    });
+                }));
+        } else {
+            // No additional queries, save right away
+            resolve(events);
         }
     });
-
-    if (eventLinks.length > 0) {
-        // Need to wait for secondary event query
-        queryAdditionalEvents(eventLinks, events);
-    } else {
-        // No additional queries, save right away
-        let payload = formatForExport(events);
-        dataStagingInterface.updateEventData(payload);
-    }
 }
 
-function queryAdditionalEvents(eventLinks, events) {
-    let eventIdRegex = /\d+/i;
+function buildSecondaryQuery(eventLinks, events) {
+    return new Promise((resolve, reject) => {
+        let eventIdRegex = /\d+/i;
 
-    console.log(eventLinks);
+        console.log(eventLinks);
 
-    let eventIds = [];
+        let eventIds = [];
 
-    // extract the event ID from the URL, then check if it's already in the events: if it is, just skip it, we already have the event data
-    eventLinks.forEach((link) => {
-        let id = eventIdRegex.exec(link)[0];
-        if (!events.get(id)) {
-            eventIds.push(id);
-        }
-    });
-
-    let batchRequestContent = [];
-    eventIds.map((eventId) => {
-        batchRequestContent.push({
-            relative_url: facebookApiInterface.buildQueryUrl(eventId + "/", {
-                debug: "all",
-                time_filter: "upcoming",
-                fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
-            }, true),
-            method: "GET"
+        // extract the event ID from the URL, then check if it's already in the events: if it is, just skip it, we already have the event data
+        eventLinks.forEach((link) => {
+            let id = eventIdRegex.exec(link)[0];
+            if (!events.get(id)) {
+                eventIds.push(id);
+            }
         });
+
+        let batchRequestContent = [];
+        eventIds.map((eventId) => {
+            batchRequestContent.push({
+                relative_url: facebookApiInterface.buildQueryUrl(eventId + "/", {
+                    debug: "all",
+                    time_filter: "upcoming",
+                    fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
+                }, true),
+                method: "GET"
+            });
+        });
+        resolve(batchRequestContent);
     });
-
-    // console.log(eventIds);
-
-    sendBatchRequestToFacebook(batchRequestContent).then(
-        (response) => {
-            console.log(response);
-
-            let str = "";
-            response.on("data", (chunk) => {
-                str += chunk;
-            });
-
-            response.on("end", () => {
-                let responses = JSON.parse(str);
-
-                // console.log(responses);
-
-                let additionalEvents = parseSecondaryEventResponses(responses);
-
-                additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
-                    events.set(evt.id, evt);
-                });
-
-                let payload = formatForExport(events);
-                dataStagingInterface.updateEventData(payload);
-            });
-        },
-        (err) => {
-            console.log("problem with request: " + err);
-        }
-    );
 }
 
 function parseSecondaryEventResponses(responses) {
@@ -260,9 +295,9 @@ function parseSecondaryEventResponses(responses) {
     return additionalEvents;
 }
 
-function formatForExport(events) {
+function formatPayloadForStorage(events) {
     let payload = convertMapToArray(events);
-    return JSON.stringify(payload);
+    return Promise.resolve(JSON.stringify(payload));
 }
 
 function convertMapToArray(inputMap) {
