@@ -93,7 +93,7 @@ function handleReceivedMessage(receivedMessage) {
     botty.setConversationTarget(senderId);
 
     if (messageData.quick_reply) {
-        botty.replyToQuickReply(messageData.quick_reply.payload);
+        botty.respondToQuickReply(messageData.quick_reply.payload);
     } else {
         botty.readMessage(messageText, messageAttachments);
     }
