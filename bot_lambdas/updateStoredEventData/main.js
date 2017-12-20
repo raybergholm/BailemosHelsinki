@@ -110,32 +110,9 @@ function batchQueryFacebook(payload) {
             reject(err);
         });
 
-        req.write("batch=" + JSON.stringify(body));
+        req.write("batch=" + JSON.stringify(payload));
         req.end();
     });
-
-
-    sendBatchRequestToFacebook(batchRequestContent).then(
-        (response) => {
-            console.log(response);
-
-            let str = "";
-            response.on("data", (chunk) => {
-                str += chunk;
-            });
-
-            response.on("end", () => {
-                let responses = JSON.parse(str);
-
-                console.log(responses);
-
-                parseResponses(responses); // TODO: good place refactor into a promise
-            });
-        },
-        (err) => {
-            console.log("problem with request: " + err);
-        }
-    );
 }
 
 function processResponseFromFacebook(response) {
@@ -155,7 +132,7 @@ function processResponseFromFacebook(response) {
             resolve(parseResponses(responses)); // TODO: good place refactor into a promise
         });
     });
-};
+}
 
 function parseResponses(responses) {
     return new Promise((resolve, reject) => {
