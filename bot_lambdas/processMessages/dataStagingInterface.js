@@ -13,22 +13,25 @@ const DATA_STAGING_BUCKET_NAME = process.env.DATA_STAGING_BUCKET_NAME;
 const EVENT_DATA_FILENAME = process.env.EVENT_DATA_FILENAME;
 
 module.exports = {
-    getEventData: (callback) => {
-        s3.getObject({
+    getEventData: () => {
+        let s3GetRequest = s3.getObject({
             Bucket: DATA_STAGING_BUCKET_NAME,
             Key: EVENT_DATA_FILENAME
-        }, (err, s3Object) => {
-            if (err) {
-                console.log("S3 interface error: ", err);
-            } else {
-                let data = JSON.parse(s3Object.Body.toString()); // NOTE: this is casting binary >>> string >>> JSON. It's not redundant weirdness.
-
-                // console.log(data);
-
-                if (callback) {
-                    callback(data);
-                }
-            }
         });
+
+        return s3GetRequest.promise().then(
+            (data) => {
+                let stagedData = JSON.parse(data.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
+
+                console.log(stagedData);
+
+                return stagedData;
+            },
+            (err) => {
+                console.log("S3 getObject error: ", err);
+
+                return err;
+            }
+        );
     }
 };
