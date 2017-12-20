@@ -86,34 +86,44 @@ function queryOrganiserEvents(organisers) {
         method: "GET"
     });
 
-    sendBatchRequestToFacebook(batchRequestContent, (response) => {
-        console.log(response);
+    sendBatchRequestToFacebook(batchRequestContent).then(
+        (response) => {
+            console.log(response);
 
-        let str = "";
-        response.on("data", (chunk) => {
-            str += chunk;
-        });
+            let str = "";
+            response.on("data", (chunk) => {
+                str += chunk;
+            });
 
-        response.on("end", () => {
-            let responses = JSON.parse(str);
+            response.on("end", () => {
+                let responses = JSON.parse(str);
 
-            console.log(responses);
+                console.log(responses);
 
-            parseResponses(responses); // TODO: good place refactor into a promise
-        });
-    });
+                parseResponses(responses); // TODO: good place refactor into a promise
+            });
+        },
+        (err) => {
+            console.log("problem with request: " + err);
+        }
+    );
 }
 
-function sendBatchRequestToFacebook(body, callback) {
-    let options = facebookApiInterface.createBatchGraphApiOptions();
+function sendBatchRequestToFacebook(body) {
+    return new Promise((resolve, reject) => {
+        let options = facebookApiInterface.createBatchGraphApiOptions();
 
-    let req = https.request(options, callback);
-    req.on("error", (err) => {
-        console.log("problem with request: " + err);
+        let req = https.request(options, (response) => {
+            resolve(response);
+        });
+        req.on("error", (err) => {
+            reject(err);
+        });
+
+        req.write("batch=" + JSON.stringify(body));
+        req.end();
     });
 
-    req.write("batch=" + JSON.stringify(body));
-    req.end();
 }
 
 function parseResponses(responses) {
@@ -173,18 +183,7 @@ function parseResponses(responses) {
     } else {
         // No additional queries, save right away
         let payload = formatForExport(events);
-        dataStagingInterface.updateEventData(payload).then(
-            (data) => {
-                console.log("S3 putObject response metadata:", data);
-
-                return data;
-            },
-            (err) => {
-                console.log("S3 putObject error: ", err);
-
-                return err;
-            }
-        );
+        dataStagingInterface.updateEventData(payload);
     }
 }
 
@@ -217,29 +216,58 @@ function queryAdditionalEvents(eventLinks, events) {
 
     // console.log(eventIds);
 
-    sendBatchRequestToFacebook(batchRequestContent, (response) => {
-        console.log(response);
+    sendBatchRequestToFacebook(batchRequestContent).then(
+        (response) => {
+            console.log(response);
 
-        let str = "";
-        response.on("data", (chunk) => {
-            str += chunk;
-        });
-
-        response.on("end", () => {
-            let responses = JSON.parse(str);
-
-            // console.log(responses);
-
-            let additionalEvents = parseSecondaryEventResponses(responses);
-
-            additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
-                events.set(evt.id, evt);
+            let str = "";
+            response.on("data", (chunk) => {
+                str += chunk;
             });
 
-            let payload = formatForExport(events);
-            dataStagingInterface.updateEventData(payload);
-        });
-    });
+            response.on("end", () => {
+                let responses = JSON.parse(str);
+
+                // console.log(responses);
+
+                let additionalEvents = parseSecondaryEventResponses(responses);
+
+                additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+                    events.set(evt.id, evt);
+                });
+
+                let payload = formatForExport(events);
+                dataStagingInterface.updateEventData(payload);
+            });
+        },
+        (err) => {
+            console.log("problem with request: " + err);
+        }
+    );
+
+    // sendBatchRequestToFacebook(batchRequestContent, (response) => {
+    //     console.log(response);
+
+    //     let str = "";
+    //     response.on("data", (chunk) => {
+    //         str += chunk;
+    //     });
+
+    //     response.on("end", () => {
+    //         let responses = JSON.parse(str);
+
+    //         // console.log(responses);
+
+    //         let additionalEvents = parseSecondaryEventResponses(responses);
+
+    //         additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+    //             events.set(evt.id, evt);
+    //         });
+
+    //         let payload = formatForExport(events);
+    //         dataStagingInterface.updateEventData(payload);
+    //     });
+    // });
 }
 
 function parseSecondaryEventResponses(responses) {
