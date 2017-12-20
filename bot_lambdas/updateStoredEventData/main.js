@@ -15,7 +15,12 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    dataStagingInterface.getOrganiserData(queryOrganiserEvents); // main logical chain gets kicked off asynchronously from here
+    dataStagingInterface.getOrganiserData().then(
+        queryOrganiserEvents,
+        (err) => {
+
+        }
+    ); // main logical chain gets kicked off asynchronously from here
 
     let response = generateHttpResponse(200, "OK");
     callback(null, response);
@@ -168,7 +173,18 @@ function parseResponses(responses) {
     } else {
         // No additional queries, save right away
         let payload = formatForExport(events);
-        dataStagingInterface.updateEventData(payload);
+        dataStagingInterface.updateEventData(payload).then(
+            (data) => {
+                console.log("S3 putObject response metadata:", data);
+
+                return data;
+            },
+            (err) => {
+                console.log("S3 putObject error: ", err);
+
+                return err;
+            }
+        );
     }
 }
 
@@ -221,7 +237,18 @@ function queryAdditionalEvents(eventLinks, events) {
             });
 
             let payload = formatForExport(events);
-            dataStagingInterface.updateEventData(payload);
+            dataStagingInterface.updateEventData(payload).then(
+                (data) => {
+                    console.log("S3 putObject response metadata:", data);
+
+                    return data;
+                },
+                (err) => {
+                    console.log("S3 putObject error: ", err);
+
+                    return err;
+                }
+            );
         });
     });
 }
