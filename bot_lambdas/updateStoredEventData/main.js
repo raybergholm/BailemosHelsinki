@@ -22,7 +22,7 @@ exports.handler = (event, context, callback) => {
         .then(formatPayloadForStorage)
         .then(updateEventData)
         .then((result) => {
-            console.log("All promises resolved, result from endpoint: ", result);
+            console.log("All promises resolved.");
         })
         .catch((err) => {
             console.log("Error thrown: ", err.message);
