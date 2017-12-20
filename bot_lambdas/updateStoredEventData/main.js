@@ -15,12 +15,15 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    dataStagingInterface.getOrganiserData()
+    getOrganiserData()
         .then(buildOrganiserQuery)
         .then(batchQueryFacebook)
         .then(processResponseFromFacebook)
         .then(formatPayloadForStorage)
-        .then(dataStagingInterface.updateEventData)
+        .then(updateEventData)
+        .then((result) => {
+            console.log("All promises resolved, result from endpoint: ", result);
+        })
         .catch((err) => {
             console.log("Error thrown: ", err.message);
         });
@@ -36,6 +39,10 @@ function generateHttpResponse(statusCode, payload) {
         body: payload
     };
 }
+
+function getOrganiserData() {
+    return dataStagingInterface.getOrganiserData();
+};
 
 function buildOrganiserQuery(organisers) {
     return new Promise((resolve, reject) => {
@@ -293,4 +300,8 @@ function convertMapToArray(inputMap) {
     });
 
     return outputArr;
+}
+
+function updateEventData(payload) {
+    return dataStagingInterface.updateEventData(payload);
 }
