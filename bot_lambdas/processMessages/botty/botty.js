@@ -7,7 +7,7 @@ const moment = require("../node_modules/moment");
 const parser = require("./bottyMessageParser");
 const textGenerator = require("./bottyTextGenerator");
 const quickReplyHandler = require("./bottyQuickReplyHandler");
-const memory = require("./bottyMemoryInterface");
+// const memory = require("./bottyMemoryInterface"); // TODO: Not in use right now, do we even need message history? (NOTE: history can be either stored in S3 or fetched from FB, need to decide the implementation)
 
 // Facebook Graph API interface
 const facebookMessageInterface = require("../facebook/facebookMessageInterface");
@@ -267,7 +267,7 @@ function sendResponse(input) {
             if (input.eventElements) {
                 return facebookMessageInterface.sendGenericTemplateMessage(input.eventElements);
             } else {
-                return Promise.resolve(response);
+                return response;
             }
         }
     );

@@ -20,7 +20,7 @@ exports.handler = (event, context, callback) => {
         .then(batchQueryFacebook)
         .then(processResponseFromFacebook) // NOTE: this step may kick off a secondary FB query if feed scraping returns additional events
         .then(formatPayloadForStorage)
-        .then(updateEventData)
+        .then(saveEventData)
         .then((result) => {
             console.log("All promises resolved.");
         })
@@ -295,6 +295,6 @@ function convertMapToArray(inputMap) {
     return outputArr;
 }
 
-function updateEventData(payload) {
-    return dataStagingInterface.updateEventData(payload);
+function saveEventData(payload) {
+    return dataStagingInterface.saveEventData(payload);
 }
