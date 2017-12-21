@@ -48,7 +48,7 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
         },
         MonthNames: {
             January: /\bjan(uary?)\b/i,
-            February: /\feb(ruary?)\b/i,
+            February: /\bfeb(ruary?)\b/i,
             March: /\bmar(ch?)\b/i,
             April: /\bapr(il?)\b/i,
             May: /\bmay\b/i,
@@ -198,7 +198,7 @@ function scanForSemanticDates(text) {
             }
 
             dateTimeRange.from.add(offset, "days");
-            dateTimeRange.to.startOf("day");
+            dateTimeRange.from.startOf("day");
 
             dateTimeRange.to = dateTimeRange.from.clone();
             dateTimeRange.to.endOf("day");
@@ -259,9 +259,8 @@ function scanForSemanticDates(text) {
                 offset = 0;
             }
 
-            dateTimeRange.from.add(offset, "days");
-
-            dateTimeRange.to.startOf("month");
+            dateTimeRange.from.add(offset, "months");
+            dateTimeRange.from.startOf("month");
 
             dateTimeRange.to = dateTimeRange.from.clone();
             dateTimeRange.to.endOf("month");
