@@ -210,7 +210,7 @@ function buildResponse(inputEvents) {
             let subtitleString = "";
             let coverImageUrl = null;
 
-            subtitleString += moment(eventData.start_time).add(userTimezoneOffset, "hours").format("Do MMM HH:mm");
+            subtitleString += moment(eventData.start_time).add(userTimezoneOffset, "hours").format("ddd Do MMM HH:mm");
 
             try {
                 if (eventData.place) {
