@@ -21,8 +21,6 @@ const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
 let typingIndicatorSent = false;
 
-let userTimezoneOffset = 2; // TODO: dirty hardcoding workaround for now to deal with the fact that the server is in GMT.
-
 let analysisResults;
 
 module.exports = {
@@ -209,8 +207,9 @@ function buildResponse(inputEvents) {
         inputEvents.forEach((eventData) => {
             let subtitleString = "";
             let coverImageUrl = null;
+            let displayMoment = moment(eventData.start_time);
 
-            subtitleString += moment(eventData.start_time).add(userTimezoneOffset, "hours").format("ddd Do MMM HH:mm");
+            subtitleString += displayMoment.add(displayMoment.utcOffset, "minutes").format("ddd Do MMM HH:mm");
 
             try {
                 if (eventData.place) {
