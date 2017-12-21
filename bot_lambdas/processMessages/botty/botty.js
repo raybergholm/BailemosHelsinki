@@ -209,7 +209,7 @@ function buildResponse(inputEvents) {
             let coverImageUrl = null;
             let displayMoment = moment(eventData.start_time);
 
-            subtitleString += displayMoment.add(displayMoment.utcOffset, "minutes").format("ddd Do MMM HH:mm");
+            subtitleString += displayMoment.add(displayMoment.utcOffset(), "minutes").format("ddd Do MMM HH:mm");
 
             try {
                 if (eventData.place) {
