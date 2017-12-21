@@ -73,15 +73,18 @@ module.exports = {
             return;
         }
 
-        dataStagingInterface.getEventData().then(eventDataCallback); // FIXME: refactor to proper promise chaining
+        startConversation() // typing indicator on
+            .then(setConversationStatus)
+            .then(fetchEventData)
+            .then(filterEvents)
+            .then(buildResponse)
+            .then(sendResponse)
+            .then(endConversation) // typing indicator off
+            .catch((err) => {
+                console.log("Error thrown in main Promise chain: ", err);
+            });
     }
 };
-
-function endConversation() {
-    if (typingIndicatorSent) {
-        facebookMessageInterface.sendTypingIndicator(false);
-    }
-}
 
 function quickScan(text) {
     let parsedResult = parser.quickScan(text);
@@ -117,67 +120,91 @@ function deepScan(text) {
     return analysisResults.matched;
 }
 
-function eventDataCallback(stagedData) {
-    // console.log(analysisResults);
-
-    if (!analysisResults.dateTimeRange || !analysisResults.dateTimeRange.from || !analysisResults.dateTimeRange.to) {
-        console.log("major error in date/time range, they were null. Emergency fallback to default date range");
-        analysisResults.dateTimeRange = parser.getDefaultDateRange();
-    }
-
-    // console.log("before filtering: " + stagedData.length + " events");
-
-    // Start throwing out things which don't fit the rest of the keywords
-    let filteredEvents = filterEvents(stagedData, analysisResults);
-
-    // console.log("after all filtering: " + filteredEvents.length + " events");
-
-    replyWithEvents(filteredEvents);
+function startConversation() {
+    return facebookMessageInterface.sendTypingIndicator();
 }
 
-function filterEvents(events, analysisResults) {
-    let filteredEvents = [];
-    for (let i = 0; i < events.length; i++) {
-        // Filter by date & time: the array is already sorted in date order so we can just use one standard loop
-        let startTime = moment(events[i].start_time);
+function setConversationStatus() {
+    typingIndicatorSent = true;
+    return Promise.resolve(typingIndicatorSent);
+}
 
-        if (startTime < analysisResults.dateTimeRange.from) {
-            continue; // too early, keep going
-        } else if (startTime > analysisResults.dateTimeRange.to) {
-            break; // everything after this is outside the date range, we can discard the rest
-        }
+function fetchEventData() { // NOTE: this gets the resolve value from setConversationStatus() but we're not using it
+    return dataStagingInterface.getEventData();
+}
 
-        if (events[i]._bh && analysisResults.optionals) {
+function filterEvents(inputEvents) {
+    let outputEvents = inputEvents.filter((evt) => {
+        let startTime = moment(evt.start_time);
+        return startTime >= analysisResults.dateTimeRange.from && startTime <= analysisResults.dateTimeRange.to;
+    });
+
+    if (analysisResults.optionals) {
+        outputEvents = outputEvents.filter((evt) => {
+            if (!evt._bh) {
+                return false;
+            }
+
+            // TODO: still need to refactor this to be a more flexible filter 
             if (analysisResults.interests) {
-                for (let j = 0; j < analysisResults.interests.length; j++) {
-                    if (events[i]._bh.interestTags.indexOf(analysisResults.interests[j]) !== -1) {
+                for (let i = 0; i < analysisResults.interests.length; i++) {
+                    if (evt._bh.interestTags.indexOf(analysisResults.interests[i]) !== -1) {
                         if (analysisResults.eventTypes) {
-                            if (analysisResults.eventTypes.indexOf(events[i]._bh.type.name) !== -1) {
-                                filteredEvents.push(events[i]);
-                            }
+                            return analysisResults.eventTypes.indexOf(evt._bh.type.name) !== -1;
                         } else {
-                            filteredEvents.push(events[i]);
+                            return true;
                         }
-                        break;
                     }
                 }
+                return false;
             } else if (analysisResults.eventTypes) {
-                if (analysisResults.eventTypes.indexOf(events[i]._bh.type.name) !== -1) {
-                    filteredEvents.push(events[i]);
-                }
+                return analysisResults.eventTypes.indexOf(evt._bh.type.name) !== -1;
             }
-        } else {
-            filteredEvents.push(events[i]);
-        }
+        });
     }
-    return filteredEvents;
+
+    return Promise.resolve(outputEvents);
 }
 
-function replyWithEvents(filteredEvents) {
+function buildResponse(inputEvents) {
+    let output = {
+        overviewMessage: null,
+        eventElements: null
+    };
+
+    let baseString;
+
+    let dateDiff = analysisResults.dateTimeRange.to.diff(analysisResults.dateTimeRange.from, "days");
+
+    if (dateDiff > 0) {
+        if (inputEvents.length === 0) {
+            baseString = textGenerator.getText("NoResults");
+        } else if (inputEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
+            baseString = textGenerator.getText("OverflowResults");
+        } else {
+            baseString = textGenerator.getText("NormalResults");
+        }
+    } else {
+        // eslint-disable-next-line no-lonely-if
+        if (inputEvents.length === 0) {
+            baseString = textGenerator.getText("NoResultsOneDay");
+        } else if (inputEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
+            baseString = textGenerator.getText("OverflowResultsOneDay");
+        } else {
+            baseString = textGenerator.getText("NormalResultsOneDay");
+        }
+    }
+
+    output.overviewMessage = textGenerator.formatText(baseString, {
+        amount: inputEvents.length,
+        from: moment(analysisResults.dateTimeRange.from).format("Do MMM"),
+        to: moment(analysisResults.dateTimeRange.to).format("Do MMM")
+    });
+
     let elements = [];
 
-    if (filteredEvents.length > 0) {
-        filteredEvents.forEach((eventData) => {
+    if (inputEvents.length > 0) {
+        inputEvents.forEach((eventData) => {
             let subtitleString = "";
             let coverImageUrl = null;
 
@@ -219,48 +246,34 @@ function replyWithEvents(filteredEvents) {
                 actionUrl: "https://www.facebook.com/events/" + eventData.id
             });
         });
-    }
 
-    let baseString, messageText;
-
-    let dateDiff = analysisResults.dateTimeRange.to.diff(analysisResults.dateTimeRange.from, "days");
-
-    if (dateDiff > 0) {
-        if (filteredEvents.length === 0) {
-            baseString = textGenerator.getText("NoResults");
-        } else if (filteredEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
-            baseString = textGenerator.getText("OverflowResults");
-        } else {
-            baseString = textGenerator.getText("NormalResults");
-        }
-    } else {
-        // eslint-disable-next-line no-lonely-if
-        if (filteredEvents.length === 0) {
-            baseString = textGenerator.getText("NoResultsOneDay");
-        } else if (filteredEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
-            baseString = textGenerator.getText("OverflowResultsOneDay");
-        } else {
-            baseString = textGenerator.getText("NormalResultsOneDay");
-        }
-    }
-
-    messageText = textGenerator.formatText(baseString, {
-        amount: filteredEvents.length,
-        from: moment(analysisResults.dateTimeRange.from).format("Do MMM"),
-        to: moment(analysisResults.dateTimeRange.to).format("Do MMM")
-    });
-
-    facebookMessageInterface.sendMessage(messageText);
-
-    if (elements.length > 0) {
         if (elements.length > 10) {
             while (elements.length > 10) {
                 elements.pop();
             }
         }
 
-        facebookMessageInterface.sendGenericTemplateMessage(elements);
+        output.eventElements = elements;
     }
 
-    endConversation();
+    return Promise.resolve(output);
+}
+
+function sendResponse(input) {
+    return facebookMessageInterface.sendMessage(input.overviewMessage).then(
+        (response) => {
+            if (input.eventElements) {
+                return facebookMessageInterface.sendGenericTemplateMessage(input.eventElements);
+            } else {
+                return Promise.resolve(response);
+            }
+        }
+    );
+}
+
+function endConversation() {
+    console.log("End of conversation reached.");
+    if (typingIndicatorSent) {
+        facebookMessageInterface.sendTypingIndicator(false);
+    }
 }
