@@ -37,7 +37,7 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
         Zouk: /\bzouk\b/i
     },
     Temporal: {
-        Days: {
+        WeekdayNames: {
             Monday: /\b(?:monday|mo(n?))\b/i,
             Tuesday: /\b(?:tuesday|tu(e?))\b/i,
             Wednesday: /\b(?:wednesday|we(d?))\b/i,
@@ -45,6 +45,20 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
             Friday: /\b(?:friday|fr(i?))\b/i,
             Saturday: /\b(?:saturday|sa(t?))\b/i,
             Sunday: /\b(?:sunday|su(n?))\b/i
+        },
+        MonthNames: {
+            January: /\bjan(uary?)\b/i,
+            February: /\feb(ruary?)\b/i,
+            March: /\bmar(ch?)\b/i,
+            April: /\bapr(il?)\b/i,
+            May: /\bmay\b/i,
+            June: /\bjun(e?)\b/i,
+            July: /\bjul(y?)\b/i,
+            August: /\baug(ust?)\b/i,
+            September: /\bsep(tember?)\b/i,
+            October: /\boct(ober?)\b/i,
+            November: /\bnov(ember?)\b/i,
+            December: /\bdec(ember?)\b/i,
         },
         SemanticRanges: {
             Today: /\b(?:today|tonight)(\??)\b/i,
@@ -119,6 +133,108 @@ module.exports = {
 };
 
 function checkForTemporalCues(text) { // this one is more special because we can only have one date range
+    let result;
+
+    result = scanForSemanticDates(text);
+    if (result) {
+        return result;
+    }
+
+    result = scanForSemanticDateRanges(text);
+    if (result) {
+        return result;
+    }
+
+    result = scanForExactDateRanges(text);
+    if (result) {
+        return result;
+    }
+
+    return null;
+}
+
+function scanForSemanticDates(text) {
+    let dateTimeRange = {
+        from: null,
+        to: null
+    };
+
+    // TODO: currently only handles one day, but most likely will need to handle ranges
+    for (let prop in MAIN_KEYWORDS.Temporal.WeekdayNames) {
+        if (MAIN_KEYWORDS.Temporal.WeekdayNames[prop].test(text)) {
+            switch (prop) {
+                case "Monday":
+
+                    break;
+                case "Tuesday":
+
+                    break;
+                case "Wednesday":
+
+                    break;
+                case "Thursday":
+
+                    break;
+                case "Friday":
+
+                    break;
+                case "Saturday":
+
+                    break;
+                case "Sunday":
+
+                    break;
+            }
+        }
+    }
+
+    for (let prop in MAIN_KEYWORDS.Temporal.MonthNames) {
+        if (MAIN_KEYWORDS.Temporal.MonthNames[prop].test(text)) {
+            switch (prop) {
+                case "January":
+
+                    break;
+                case "February":
+
+                    break;
+                case "March":
+
+                    break;
+                case "April":
+
+                    break;
+                case "May":
+
+                    break;
+                case "June":
+
+                    break;
+                case "July":
+
+                    break;
+                case "August":
+
+                    break;
+                case "September":
+
+                    break;
+                case "October":
+
+                    break;
+                case "November":
+
+                    break;
+                case "December":
+
+                    break;
+            }
+        }
+    }
+
+    return null;
+}
+
+function scanForSemanticDateRanges(text) {
     let dateTimeRange = {
         from: null,
         to: null
@@ -182,6 +298,14 @@ function checkForTemporalCues(text) { // this one is more special because we can
             return dateTimeRange;
         }
     }
+    return null;
+}
+
+function scanForExactDateRanges(text) {
+    let dateTimeRange = {
+        from: null,
+        to: null
+    };
 
     let results;
 
@@ -224,8 +348,6 @@ function checkForTemporalCues(text) { // this one is more special because we can
             return dateTimeRange;
         }
     }
-
-    return null;
 }
 
 function checkForEventTypes(text) {
