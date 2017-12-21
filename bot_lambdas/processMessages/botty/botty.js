@@ -210,10 +210,8 @@ function buildResponse(inputEvents) {
             let displayMoment = moment(eventData.start_time);
 
             // I don't like having to do it this way, but native Date & moment.js end up losing info on the offset in the original date string
-            let timezoneOffset = parseTimezoneOffset(eventData.start_time);
-
-            if (timezoneOffset) {
-                displayMoment.add(timezoneOffset.hours, "hours").add(timezoneOffset.minutes, "minutes");
+            if (eventData._bh && eventData._bh.timezoneOffset) {
+                displayMoment.add(eventData._bh.timezoneOffset.hours, "hours").add(eventData._bh.timezoneOffset.minutes, "minutes");
             }
 
             subtitleString += displayMoment.format("ddd Do MMM HH:mm");
@@ -283,19 +281,5 @@ function endConversation() {
     console.log("End of conversation reached.");
     if (typingIndicatorSent) {
         facebookMessageInterface.sendTypingIndicator(false);
-    }
-}
-
-function parseTimezoneOffset(input) {
-    let timezoneRegex = /[+-]\d{4}/;
-    let result = timezoneRegex.exec(input);
-    if (result) {
-        let sign = result[0][0];
-        return {
-            hours: Number(sign + result[0].substr(1, 2)),
-            minutes: Number(sign + result[0].substr(3, 2))
-        };
-    } else {
-        return null;
     }
 }
