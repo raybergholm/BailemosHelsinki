@@ -8,34 +8,6 @@ const facebookMessageFactory = require("./facebookMessageFactory");
 
 //---------------------------------------------------------------------------//
 
-let _messageBuffer = {
-    _queuedMessages: [],
-    enqueue: function (message) {
-        this._queuedMessages.push(message);
-    },
-    flush: function () {
-        let content;
-        if (this._queuedMessages.length === 1) {
-            content = JSON.stringify(this._queuedMessages[0]);
-        } else {
-            let batchRequestContent = [];
-            for (var i = 0; i < this._queuedMessages.length; i++) {
-                batchRequestContent.push({
-                    relative_url: encodeURIComponent("/me/messages/"),
-                    method: "POST",
-                    body: encodeURIComponent(JSON.stringify(this._queuedMessages[i])) // FIXME: This is hella broken, body needs a different format entirely?
-                });
-            }
-
-            content = "batch=" + JSON.stringify(batchRequestContent);
-        }
-
-        this._messages = [];
-
-        return content;
-    }
-};
-
 let _targetId;
 
 module.exports = {
@@ -98,10 +70,4 @@ function sendMessageToFacebook(payload) {
         req.write(body);
         req.end();
     });
-}
-
-function postDeliveryCallback(str) {
-    console.log("callback end, got " + str);
-
-    module.exports.sendTypingIndicator(false);
 }
