@@ -159,32 +159,51 @@ function scanForSemanticDates(text) {
         to: null
     };
 
+    let source, target, offset;
+
     // TODO: currently only handles one day, but most likely will need to handle ranges
     for (let prop in MAIN_KEYWORDS.Temporal.WeekdayNames) {
         if (MAIN_KEYWORDS.Temporal.WeekdayNames[prop].test(text)) {
             switch (prop) {
                 case "Monday":
-
+                    target = 1;
                     break;
                 case "Tuesday":
-
+                    target = 2;
                     break;
                 case "Wednesday":
-
+                    target = 3;
                     break;
                 case "Thursday":
-
+                    target = 4;
                     break;
                 case "Friday":
-
+                    target = 5;
                     break;
                 case "Saturday":
-
+                    target = 6;
                     break;
                 case "Sunday":
-
+                    target = 0;
                     break;
             }
+
+            dateTimeRange.from = moment();
+
+            source = dateTimeRange.from.day();
+            if (source < target) {
+                offset = target - source;
+            } else {
+                offset = 7 - (source - target);
+            }
+
+            dateTimeRange.from.add(offset, "days");
+            dateTimeRange.to.startOf("day");
+
+            dateTimeRange.to = dateTimeRange.from.clone();
+            dateTimeRange.to.endOf("day");
+
+            return dateTimeRange;
         }
     }
 
@@ -192,42 +211,62 @@ function scanForSemanticDates(text) {
         if (MAIN_KEYWORDS.Temporal.MonthNames[prop].test(text)) {
             switch (prop) {
                 case "January":
-
+                    target = 0;
                     break;
                 case "February":
-
+                    target = 1;
                     break;
                 case "March":
-
+                    target = 2;
                     break;
                 case "April":
-
+                    target = 3;
                     break;
                 case "May":
-
+                    target = 4;
                     break;
                 case "June":
-
+                    target = 5;
                     break;
                 case "July":
-
+                    target = 6;
                     break;
                 case "August":
-
+                    target = 7;
                     break;
                 case "September":
-
+                    target = 8;
                     break;
                 case "October":
-
+                    target = 9;
                     break;
                 case "November":
-
+                    target = 10;
                     break;
                 case "December":
-
+                    target = 11;
                     break;
             }
+
+            dateTimeRange.from = moment();
+
+            source = dateTimeRange.from.month();
+            if (source < target) {
+                offset = target - source;
+            } else if (source > target) {
+                offset = 12 - (source - target);
+            } else {
+                offset = 0;
+            }
+
+            dateTimeRange.from.add(offset, "days");
+
+            dateTimeRange.to.startOf("month");
+
+            dateTimeRange.to = dateTimeRange.from.clone();
+            dateTimeRange.to.endOf("month");
+
+            return dateTimeRange;
         }
     }
 
