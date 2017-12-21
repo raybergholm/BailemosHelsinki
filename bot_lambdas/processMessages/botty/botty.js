@@ -75,7 +75,7 @@ module.exports = {
 
         startConversation() // typing indicator on
             .then(setConversationStatus)
-            .then(fetchEventData)
+            .then(fetchEvents)
             .then(filterEvents)
             .then(buildResponse)
             .then(sendResponse)
@@ -120,6 +120,8 @@ function deepScan(text) {
     return analysisResults.matched;
 }
 
+// Promise chain functions & handlers start here
+
 function startConversation() {
     return facebookMessageInterface.sendTypingIndicator();
 }
@@ -129,7 +131,7 @@ function setConversationStatus() {
     return Promise.resolve(typingIndicatorSent);
 }
 
-function fetchEventData() { // NOTE: this gets the resolve value from setConversationStatus() but we're not using it
+function fetchEvents() { // NOTE: this gets the resolve value from setConversationStatus() but we're not using it
     return dataStagingInterface.getEventData();
 }
 

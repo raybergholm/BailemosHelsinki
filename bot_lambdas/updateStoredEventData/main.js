@@ -40,6 +40,8 @@ function generateHttpResponse(statusCode, payload) {
     };
 }
 
+// Promise chain functions & handlers start here
+
 function getOrganiserData() {
     return dataStagingInterface.getOrganiserData();
 }
