@@ -356,7 +356,10 @@ function scanForExactDateRanges(text) {
                 return null;
             }
             dateTimeRange.from = moment(results[0], "DD.MM.YYYY").startOf("day");
-            dateTimeRange.from.year(dateTimeRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
+            dateTimeRange.from.year(moment().year());
+            if (dateTimeRange.from < moment()) {
+                dateTimeRange.from.add(1, "year");
+            }
 
             dateTimeRange.to = dateTimeRange.from.clone();
             dateTimeRange.to.endOf("day");
