@@ -370,19 +370,26 @@ function scanForExactDateRanges(text) {
 
     results = MAIN_KEYWORDS.Temporal.Precise.ExactDateRange.exec(text);
     if (results) {
-        results = MAIN_KEYWORDS.Temporal.DateLike.exec(results[0]);
+        let dates = results[0];
+        dates = dates.replace(" ", "");
+        dates = dates.replace(/to|until/g, "-");
+        results = dates.split("-");
+
         if (results) {
-            if (results.length < 2 || !moment(results[0], "DD.MM.YYYY").isValid() || !moment(results[1]).isValid()) {
+            if (results.length < 2 || !moment(results[0], "DD.MM.YYYY").isValid() || !moment(results[1], "DD.MM.YYYY").isValid()) {
                 console.log("Attempted to use invalid date(s): ", results);
                 return null;
             }
 
             dateTimeRange.from = moment(results[0], "DD.MM.YYYY").startOf("day");
-            dateTimeRange.from.year(dateTimeRange.from.month() < moment().month() ? moment().year() : moment().add(1, "year").year());
+            dateTimeRange.from.year(moment().year());
+            if (dateTimeRange.from < moment()) {
+                dateTimeRange.from.add(1, "year");
+            }
 
             dateTimeRange.to = moment(results[1], "DD.MM.YYYY").endOf("day");
             dateTimeRange.to.year(dateTimeRange.from.year());
-            if (dateTimeRange.to.month() < dateTimeRange.from.month()) {
+            if (dateTimeRange.to < dateTimeRange.from) {
                 dateTimeRange.to.add(1, "year");
             }
 
