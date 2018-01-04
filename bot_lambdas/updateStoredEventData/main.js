@@ -36,7 +36,7 @@ function generateHttpResponse(statusCode, payload) {
     return {
         isBase64Encoded: false,
         statusCode: statusCode,
-        body: payload
+        body: typeof payload === "string" ? payload : JSON.stringify(payload)
     };
 }
 

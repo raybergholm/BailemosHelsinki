@@ -19,14 +19,14 @@ exports.handler = (event, context, callback) => {
             let payload = {
                 message: "Error, unauthorized request"
             };
-            response = generateHttpResponse(403, JSON.stringify(payload));
+            response = generateHttpResponse(403, payload);
         }
     } catch (err) {
         console.log("Error during request verification:", err.message);
         let payload = {
             message: "Internal server error"
         };
-        response = generateHttpResponse(500, JSON.stringify(payload));
+        response = generateHttpResponse(500, payload);
     }
 
     if (isVerified && event.httpMethod === "POST") {
@@ -70,7 +70,7 @@ function generateHttpResponse(statusCode, payload) {
     return {
         isBase64Encoded: false,
         statusCode: statusCode,
-        body: payload
+        body: typeof payload === "string" ? payload : JSON.stringify(payload)
     };
 }
 
