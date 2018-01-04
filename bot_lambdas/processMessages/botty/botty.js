@@ -60,10 +60,6 @@ module.exports = {
             // TODO: what do we want to do with attachments?
         }
 
-        // this will require a deepScan and may take longer. Send typing indicator
-        facebookMessageInterface.sendTypingIndicator(typingIndicatorSent);
-        typingIndicatorSent = true;
-
         result = deepScan(text);
         if (!result) {
             facebookMessageInterface.sendMessage(textGenerator.getText("Uncertain"));
@@ -78,8 +74,11 @@ module.exports = {
             .then(buildResponse)
             .then(sendResponse)
             .then(endConversation) // typing indicator off
+            .then((result) => {
+                console.log("All promises resolved, end result return value: ", result);
+            })
             .catch((err) => {
-                console.log("Error thrown in main Promise chain: ", err);
+                console.log("Error thrown in main promise chain: ", err);
             });
     }
 };
@@ -114,7 +113,6 @@ function quickScan(text) {
 
 function deepScan(text) {
     analysisResults = parser.deepScan(text);
-    console.log("deepScan:", analysisResults);
     return analysisResults.matched;
 }
 
@@ -278,8 +276,8 @@ function sendResponse(input) {
 }
 
 function endConversation() {
-    console.log("End of conversation reached.");
     if (typingIndicatorSent) {
         facebookMessageInterface.sendTypingIndicator(false);
     }
+    return Promise.resolve("End of conversation reached, all OK");
 }
