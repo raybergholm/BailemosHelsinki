@@ -3,8 +3,6 @@
 const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
 
 exports.handler = (event, context, callback) => {
-    console.log(event);
-
     let response;
 
     if (event.httpMethod === "GET") {
@@ -22,9 +20,13 @@ exports.handler = (event, context, callback) => {
             let payload = {
                 message: "Error, wrong validation token"
             };
-
-            response = generateHttpResponse(422, JSON.stringify(payload));
+            response = generateHttpResponse(422, payload);
         }
+    } else {
+        let payload = {
+            message: "Internal Server Error"
+        };
+        response = generateHttpResponse(500, payload);
     }
 
     console.log("returning the following response: ", JSON.stringify(response));
@@ -35,6 +37,6 @@ function generateHttpResponse(statusCode, payload) {
     return {
         isBase64Encoded: false,
         statusCode: statusCode,
-        body: payload
+        body: typeof payload === "string" ? payload : JSON.stringify(payload)
     };
 }
