@@ -278,8 +278,8 @@ function formatPayloadForStorage(events) {
 function convertMapToArray(inputMap) {
     // Convert the map into an array of events sorted in ascending chronological order
 
-    let outputArr = Array.from(inputMap.values());
-    outputArr.sort(function (left, right) {
+    let outputArr = [...inputMap.values()];
+    outputArr.sort((left, right) => {
         let leftDate = new Date(left.start_time);
         let rightDate = new Date(right.start_time);
 
