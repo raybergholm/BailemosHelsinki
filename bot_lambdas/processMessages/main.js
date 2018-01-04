@@ -36,11 +36,11 @@ exports.handler = (event, context, callback) => {
             if (data.object === "page") {
 
                 // Iterate over each entry - there may be multiple if batched
-                data.entry.forEach(function (entry) {
+                data.entry.forEach((entry) => {
                     // var pageID = entry.id;
                     // var timeOfEvent = entry.time;
                     // Iterate over each messaging event
-                    entry.messaging.forEach(function (msg) {
+                    entry.messaging.forEach((msg) => {
                         if (msg.message) {
                             // Normal message
                             handleReceivedMessage(msg);

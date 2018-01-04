@@ -154,7 +154,7 @@ const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I
 };
 
 module.exports = {
-    getText: function (category) {
+    getText: (category) => {
         if (!BOT_TEXTS[category]) {
             console.log("tried to get an nonexistent bot text category: ", category);
             return "Major error, botty bugged out";
@@ -180,7 +180,7 @@ module.exports = {
 
     formatText: (str, replacements) => {
         if (replacements instanceof Array) {
-            return str.replace(/\{\d+\}/g, function (match) {
+            return str.replace(/\{\d+\}/g, (match) => {
                 return replacements[match.substring(1, match.length - 1)] || match;
             });
         } else if (replacements instanceof Object) {

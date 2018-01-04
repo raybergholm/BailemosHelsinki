@@ -9,7 +9,7 @@ const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const HASH_ALGORITHM = "sha1";
 
 module.exports = {
-    verifySignature: function (inputSignature, requestPayload) {
+    verifySignature: (inputSignature, requestPayload) => {
         if (!inputSignature || !requestPayload) {
             throw new Error("Invalid input params to verifySignature function");
         }
