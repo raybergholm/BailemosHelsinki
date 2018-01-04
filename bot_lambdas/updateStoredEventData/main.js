@@ -22,10 +22,10 @@ exports.handler = (event, context, callback) => {
         .then(formatPayloadForStorage)
         .then(saveEventData)
         .then((result) => {
-            console.log("All promises resolved.");
+            console.log("All promises resolved, end result return value: ", result);
         })
         .catch((err) => {
-            console.log("Error thrown: ", err.message);
+            console.log("Error thrown: ", err);
         });
 
     let response = generateHttpResponse(200, "OK");
@@ -120,20 +120,22 @@ function batchQueryFacebook(payload) {
 
 function processResponseFromFacebook(response) {
     return new Promise((resolve, reject) => {
-        console.log(response);
+        try {
+            let str = "";
+            response.on("data", (chunk) => {
+                str += chunk;
+            });
 
-        let str = "";
-        response.on("data", (chunk) => {
-            str += chunk;
-        });
+            response.on("end", () => {
+                let responses = JSON.parse(str);
 
-        response.on("end", () => {
-            let responses = JSON.parse(str);
+                console.log(responses);
 
-            console.log(responses);
-
-            resolve(parseResponses(responses)); // TODO: good place refactor into a promise
-        });
+                resolve(parseResponses(responses));
+            });
+        } catch (err) {
+            reject(err);
+        }
     });
 }
 
@@ -192,42 +194,42 @@ function parseResponses(responses) {
         // Need to wait for secondary event query
         return Promise.resolve(buildSecondaryQuery(eventLinks, events)
             .then(batchQueryFacebook)
-            .then((response) => {
-                // has to be done here because it needs to merge the results into the events map
-                return new Promise((resolve, reject) => {
-                    console.log(response);
+            .then(
+                (response) => {
+                    // Has to be done here because it needs the ref to the events map to concat the secondary results
+                    return new Promise((resolve, reject) => {
+                        try {
+                            console.log(response);
 
-                    let str = "";
-                    response.on("data", (chunk) => {
-                        str += chunk;
+                            let str = "";
+                            response.on("data", (chunk) => {
+                                str += chunk;
+                            });
+
+                            response.on("end", () => {
+                                let responses = JSON.parse(str);
+
+                                let additionalEvents = parseSecondaryEventResponses(responses);
+                                additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+                                    events.set(evt.id, evt);
+                                });
+
+                                resolve(events);
+                            });
+                        } catch (err) {
+                            reject(err);
+                        }
                     });
-
-                    response.on("end", () => {
-                        let responses = JSON.parse(str);
-
-                        // console.log(responses);
-
-                        let additionalEvents = parseSecondaryEventResponses(responses);
-
-                        additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
-                            events.set(evt.id, evt);
-                        });
-
-                        resolve(events);
-                    });
-                });
-            }));
+                }
+            ));
     } else {
         // No additional queries, save right away
         return Promise.resolve(events);
     }
-
 }
 
 function buildSecondaryQuery(eventLinks, events) {
     let eventIdRegex = /\d+/i;
-
-    console.log(eventLinks);
 
     let eventIds = [];
 

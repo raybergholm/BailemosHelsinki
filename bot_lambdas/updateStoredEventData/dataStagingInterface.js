@@ -53,7 +53,6 @@ module.exports = {
 
         return s3PutRequest.promise().then(
             (data) => {
-                console.log("S3 putObject response metadata:", data);
                 return data;
             },
             (err) => {
