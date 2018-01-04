@@ -15,6 +15,8 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
+    let response;
+
     getOrganiserData()
         .then(buildOrganiserQuery)
         .then(batchQueryFacebook)
@@ -23,12 +25,15 @@ exports.handler = (event, context, callback) => {
         .then(saveEventData)
         .then((result) => {
             console.log("All promises resolved, end result return value: ", result);
+            response = generateHttpResponse(200, "OK");
         })
         .catch((err) => {
             console.log("Error thrown: ", err);
+            response = generateHttpResponse(500, {
+                message: "Internal Server Error"
+            });
         });
 
-    let response = generateHttpResponse(200, "OK");
     callback(null, response);
 };
 
