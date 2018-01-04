@@ -251,10 +251,8 @@ function buildResponse(inputEvents) {
             });
         });
 
-        if (elements.length > 10) {
-            while (elements.length > 10) {
-                elements.pop();
-            }
+        while (elements.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
+            elements.pop();
         }
 
         output.eventElements = elements;
