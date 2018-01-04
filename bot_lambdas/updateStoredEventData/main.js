@@ -29,9 +29,10 @@ exports.handler = (event, context, callback) => {
         })
         .catch((err) => {
             console.log("Error thrown: ", err);
-            response = generateHttpResponse(500, {
+            let payload = {
                 message: "Internal Server Error"
-            });
+            };
+            response = generateHttpResponse(500, payload);
         });
 
     callback(null, response);
