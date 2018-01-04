@@ -3,7 +3,7 @@
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
 module.exports = {
-    createMessage: function (targetId, text, attachment) {
+    createMessage: (targetId, text, attachment) => {
         if (!targetId || (!text && !attachment)) {
             throw new Error("Invalid function arguments: cannot create a message with no targetId or empty body");
         }
@@ -19,7 +19,7 @@ module.exports = {
         return message;
     },
 
-    createSenderActionMessage: function (targetId, action) {
+    createSenderActionMessage: (targetId, action) => {
         if (!targetId || !action) {
             throw new Error("Invalid function arguments: cannot create a message with no targetId or empty body");
         }
@@ -36,7 +36,7 @@ module.exports = {
         };
     },
 
-    createGenericMessageTemplate: function (targetId, elements) {
+    createGenericMessageTemplate: (targetId, elements) => {
         if (!targetId || !elements) {
             throw new Error("Invalid function arguments: cannot create a message with no targetId or empty body");
         }
@@ -56,7 +56,7 @@ module.exports = {
         return module.exports.createMessage(targetId, null, messageTemplate); // A message template is just a message with an attachment and no text, so we can reuse the other function
     },
 
-    createQuickReplyMessage: function (targetId, text, quickReplies) {
+    createQuickReplyMessage: (targetId, text, quickReplies) => {
         if (!targetId || !quickReplies) {
             throw new Error("Invalid function arguments: cannot create a message with no targetId or empty body");
         }

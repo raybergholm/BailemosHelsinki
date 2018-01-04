@@ -87,7 +87,7 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
 };
 
 module.exports = {
-    quickScan: function (text) {
+    quickScan: (text) => {
         for (let prop in QUICK_MESSAGE_KEYWORDS) {
             if (QUICK_MESSAGE_KEYWORDS[prop].test(text)) {
                 return prop;

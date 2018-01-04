@@ -43,7 +43,7 @@ function sendMessageToFacebook(payload) {
         let body = JSON.stringify(payload);
         let options = facebookApiInterface.createSendMessageOptions();
 
-        let callback = function (response) {
+        let callback = (response) => {
             let str = "";
             response.on("data", (chunk) => {
                 str += chunk;
@@ -54,7 +54,7 @@ function sendMessageToFacebook(payload) {
         };
 
         let req = https.request(options, callback);
-        req.on("error", function (err) {
+        req.on("error", (err) => {
             console.log("problem with request: " + err);
             reject(err);
         });
