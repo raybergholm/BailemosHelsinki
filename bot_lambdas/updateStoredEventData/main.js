@@ -159,12 +159,7 @@ function parseResponses(responses) {
                 if (body[prop].data) {
                     let entries = body[prop].data;
                     entries.forEach((entry) => {
-                        if (entry.type && entry.link) {
-                            // This is a feed message with a link
-                            if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
-                                eventLinks.add(entry.link);
-                            }
-                        } else if (entry.name && entry.description && entry.start_time && entry.end_time) {
+                        if (entry.name && entry.description && entry.start_time && entry.end_time) {
                             // This is an event
                             if (entry.event_times) {
                                 let firstUpcomingEvent = entry.event_times.find((element) => {
@@ -179,9 +174,10 @@ function parseResponses(responses) {
                             entry._bh = bottyDataAnalyser.analyseEvent(entry); // attach custom metadata from data analysis to this event.
 
                             events.set(entry.id, entry);
-                        } else {
-                            // console.log("Unknown and/or discarded entry received: ", entry); // Don't care about these right now, they're just clogging up the logs
-                        }
+                        } else if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
+                            // This is a feed message with a link
+                            eventLinks.add(entry.link);
+                        } // no general else clause, discard all the rest since we don't need them
                     });
                 } else {
                     console.log("Additional metadata in response: ", body[prop]);
