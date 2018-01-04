@@ -33,8 +33,6 @@ module.exports = {
                     };
                 }
 
-                console.log(JSON.stringify(nodes));
-
                 return nodes;
             },
             (err) => {
