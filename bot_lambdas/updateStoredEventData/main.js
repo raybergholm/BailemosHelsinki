@@ -128,9 +128,6 @@ function processResponseFromFacebook(response) {
 
             response.on("end", () => {
                 let responses = JSON.parse(str);
-
-                console.log(responses);
-
                 resolve(parseResponses(responses));
             });
         } catch (err) {
@@ -146,16 +143,12 @@ function parseResponses(responses) {
     let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/events\/\d+\/$/i;
 
     responses.forEach((response) => {
-        console.log(response.body);
-
         if (response.error) {
             console.log("Response errored: ", response.error.message);
         } else {
             let body = JSON.parse(response.body);
 
             for (let prop in body) {
-                console.log(body[prop]);
-
                 if (body[prop].data) {
                     let entries = body[prop].data;
                     entries.forEach((entry) => {
@@ -195,8 +188,6 @@ function parseResponses(responses) {
                     // Has to be done here because it needs the ref to the events map to concat the secondary results
                     return new Promise((resolve, reject) => {
                         try {
-                            console.log(response);
-
                             let str = "";
                             response.on("data", (chunk) => {
                                 str += chunk;
