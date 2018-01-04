@@ -23,8 +23,6 @@ module.exports = {
             (data) => { // post-processing: anything outside this module should not need to deal with the raw data format from S3, it expects the result to be JSON
                 let stagedData = JSON.parse(data.Body.toString()); // This is not redundant weirdness, it's casting binary >>> string >>> JSON
 
-                console.log(stagedData);
-
                 return stagedData;
             },
             (err) => {
