@@ -27,7 +27,6 @@ module.exports = {
         let digest = hmac.digest("hex");
 
         if (signature === digest) {
-            console.log("Signature and digest match!");
             return true;
         } else {
             console.log("Verification mismatch!", {

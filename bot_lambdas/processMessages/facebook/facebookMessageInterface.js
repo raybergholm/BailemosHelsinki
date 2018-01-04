@@ -24,30 +24,22 @@ module.exports = {
 
     sendMessage: (text, attachment) => {
         let message = facebookMessageFactory.createMessage(_targetId, text, attachment);
-
-        // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         return sendMessageToFacebook(message);
     },
 
     sendQuickReplyMessage: (text, quickReplies) => {
         let message = facebookMessageFactory.createQuickReplyMessage(_targetId, text, quickReplies);
-
-        // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         return sendMessageToFacebook(message);
     },
 
     sendGenericTemplateMessage: (elements) => {
         let message = facebookMessageFactory.createGenericMessageTemplate(_targetId, elements);
-
-        // _messageBuffer.enqueue(message);    // TODO: async messaging queues aren't going to work until I figure out what the batched message format actually requires
         return sendMessageToFacebook(message);
     }
 };
 
 function sendMessageToFacebook(payload) {
     return new Promise((resolve, reject) => {
-        console.log("sending this message payload to FB:", payload);
-
         let body = JSON.stringify(payload);
         let options = facebookApiInterface.createSendMessageOptions();
 

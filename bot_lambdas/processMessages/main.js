@@ -59,6 +59,8 @@ exports.handler = (event, context, callback) => {
         } else {
             console.log("POST request body was null");
         }
+
+        // always return 200 so that Facebook doesn't spam the lambda like crazy. If any issues appear, it's a server-side problem and Facebook constantly calling an incorrect webhook won't help
         response = generateHttpResponse(200, "OK");
     }
 
@@ -76,15 +78,15 @@ function generateHttpResponse(statusCode, payload) {
 
 function handleReceivedMessage(receivedMessage) {
     let senderId = receivedMessage.sender.id;
-
-    let recipientId = receivedMessage.recipient.id;
-    let timeOfMessage = receivedMessage.timestamp;
     let messageData = receivedMessage.message;
 
-    console.log("entire message data structure: ", receivedMessage);
+    // let recipientId = receivedMessage.recipient.id;
+    // let timeOfMessage = receivedMessage.timestamp;
 
-    console.log("Received message for user %d and page %d at %d with message:", senderId, recipientId, timeOfMessage);
-    console.log("Message data: ", messageData);
+    // console.log("entire message data structure: ", receivedMessage);
+
+    // console.log("Received message for user %d and page %d at %d with message:", senderId, recipientId, timeOfMessage);
+    // console.log("Message data: ", messageData);
 
     // let messageId = messageData.mid;
     let messageText = messageData.text;

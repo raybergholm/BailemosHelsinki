@@ -156,7 +156,7 @@ const BOT_TEXTS = { // TODO: probably should be fetched from S3, especially if I
 module.exports = {
     getText: function (category) {
         if (!BOT_TEXTS[category]) {
-            console.log("tried to get an nonexistent bot text category");
+            console.log("tried to get an nonexistent bot text category: ", category);
             return "Major error, botty bugged out";
         }
 
@@ -171,7 +171,7 @@ module.exports = {
 
     getAllText: (category) => {
         if (!BOT_TEXTS[category]) {
-            console.log("tried to get an nonexistent bot text category");
+            console.log("tried to get an nonexistent bot text category: ", category);
             return "Major error, botty bugged out";
         }
 
