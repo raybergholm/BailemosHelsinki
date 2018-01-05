@@ -179,7 +179,7 @@ function parseResponses(responses) {
                         } // no general else clause, discard all the rest since we don't need them
                     });
                 } else {
-                    console.log("Additional metadata in response: ", body[prop]);
+                    console.log(`Additional metadata ${prop} in response: ${JSON.stringify(body[prop])}`);
                 }
             }
         }
