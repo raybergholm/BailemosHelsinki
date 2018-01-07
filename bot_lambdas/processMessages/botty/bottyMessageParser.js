@@ -104,7 +104,7 @@ module.exports = {
             result.dateTimeRange = dateTimeRange;
             result.matched = true;
         } else {
-            dateTimeRange = this.getDefaultDateRange();
+            result.dateTimeRange = this.getDefaultDateRange();
         }
 
         let interests = checkForInterests(text);
@@ -120,7 +120,7 @@ module.exports = {
             result.optionals = true;
             result.matched = true;
         }
-
+        
         return result;
     },
 
