@@ -207,8 +207,6 @@ function buildResponse(inputEvents) {
 
     if (inputEvents.length > 0) {
         inputEvents.forEach((eventData) => {
-            let subtitleString = "";
-            let coverImageUrl = null;
             let displayMoment = moment(eventData.start_time);
 
             // I don't like having to do it this way, but native Date & moment.js end up losing info on the offset in the original date string
@@ -216,17 +214,14 @@ function buildResponse(inputEvents) {
                 displayMoment.add(eventData._bh.timezoneOffset.hours, "hours").add(eventData._bh.timezoneOffset.minutes, "minutes");
             }
 
-            subtitleString += displayMoment.format("ddd Do MMM HH:mm");
+            let subtitleString = displayMoment.format("ddd Do MMM HH:mm");
 
             try {
                 if (eventData.place) {
                     subtitleString += "\n" + eventData.place.name;
-                    // if (eventData.place.location) {
-                    //     subtitleString += textGenerator.formatText(textGenerator.getText("Address"), {
-                    //         street: eventData.place.location.street,
-                    //         city: eventData.place.location.city
-                    //     });
-                    // }
+                    if (eventData.place.location) { // For some entries, this part might not be in the JSON response if the organiser didn't input a location which FB could parse
+                        subtitleString += ", " + eventData.place.location.city;
+                    }
                 }
             } catch (err) {
                 console.log("Error trying to write the location: ", err.message);
@@ -243,9 +238,7 @@ function buildResponse(inputEvents) {
                 });
             }
 
-            if (eventData.cover && eventData.cover.source) {
-                coverImageUrl = eventData.cover.source;
-            }
+            let coverImageUrl = eventData.cover && eventData.cover.source ? eventData.cover.source : null;
 
             elements.push({
                 title: eventData.name,
