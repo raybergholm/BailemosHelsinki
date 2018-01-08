@@ -33,6 +33,8 @@ module.exports = {
     },
 
     readMessage: function (text, attachments) { // main method: read input text and/or attachments, then reply with something 
+        console.log(`INCOMING MESSAGE TEXT: ${text}, WITH ATTACHMENTS: ${Boolean(attachments)}`);
+
         let result;
         result = quickScan(text);
 
@@ -48,10 +50,12 @@ module.exports = {
                 }
             } else if (result.text instanceof Array) {
                 for (let i = 0; i < result.length; i++) {
-                    facebookMessageInterface.sendMessage(result[i].text);
+                    facebookMessageInterface.sendMessage(result[i].text)
+                        .then(endConversation);
                 }
             } else {
-                facebookMessageInterface.sendMessage(result.text);
+                facebookMessageInterface.sendMessage(result.text)
+                    .then(endConversation);
             }
             return;
         }
@@ -62,21 +66,21 @@ module.exports = {
 
         result = deepScan(text);
         if (!result) {
-            facebookMessageInterface.sendMessage(textGenerator.getText("Uncertain"));
-            endConversation();
+            facebookMessageInterface.sendMessage(textGenerator.getText("Uncertain"))
+                .then(endConversation)
+                .catch((err) => {
+                    console.log("Error thrown in null reply chain: ", err);
+                });
             return;
         }
 
-        startConversation() // typing indicator on
-            .then(setConversationStatus)
+        startConversation() // send "typing indicator on" to FB
+            .then(setConversationStatus) // set typing indicator on local boolean
             .then(fetchEvents)
             .then(filterEvents)
             .then(buildResponse)
             .then(sendResponse)
-            .then(endConversation) // typing indicator off
-            .then((result) => {
-                console.log("All promises resolved, end result return value: ", result);
-            })
+            .then(endConversation) // typing indicator off (where applicable). Log outgoing text
             .catch((err) => {
                 console.log("Error thrown in main promise chain: ", err);
             });
@@ -122,8 +126,8 @@ function startConversation() {
     return facebookMessageInterface.sendTypingIndicator();
 }
 
-function setConversationStatus() {
-    typingIndicatorSent = true;
+function setConversationStatus(typingIndicatorStatus) {
+    typingIndicatorSent = typingIndicatorStatus;
     return Promise.resolve(typingIndicatorSent);
 }
 
@@ -273,9 +277,11 @@ function sendResponse(input) {
     );
 }
 
-function endConversation() {
+function endConversation(messageReceipt) {
+    console.log("FACEBOOK MESSAGE RECEIPT: ", messageReceipt);
+
     if (typingIndicatorSent) {
         facebookMessageInterface.sendTypingIndicator(false);
     }
-    return Promise.resolve("End of conversation reached, all OK");
+    return Promise.resolve(messageReceipt);
 }

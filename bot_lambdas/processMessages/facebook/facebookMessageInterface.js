@@ -18,7 +18,14 @@ module.exports = {
     sendTypingIndicator: (mode) => {
         // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
         // let typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(_targetId, mode ? "typing_on" : "typing_off");
-        // return this.sendMessageToFacebook(typingIndicatorMessage); 
+        // return this.sendMessageToFacebook(typingIndicatorMessage)
+        //     .then((messageReceipt) => {
+        //         if (messageReceipt) {
+        //             return true;
+        //         } else {
+        //             throw new Error("Invalid message receipt");
+        //         }
+        //     });
         return Promise.resolve(true);
     },
 
@@ -39,6 +46,8 @@ module.exports = {
 };
 
 function sendMessageToFacebook(payload) {
+    console.log("SENDING PAYLOAD TO FACEBOOK: ", payload);
+
     return new Promise((resolve, reject) => {
         let body = JSON.stringify(payload);
         let options = facebookApiInterface.createSendMessageOptions();
