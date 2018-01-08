@@ -86,6 +86,8 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
     }
 };
 
+// TODO: Try wit.ai (https://wit.ai/) as an NLP layer. English, Finnish and Swedish are all meant to be supported, and it's open source + free
+
 module.exports = {
     quickScan: (text) => {
         for (let prop in QUICK_MESSAGE_KEYWORDS) {
