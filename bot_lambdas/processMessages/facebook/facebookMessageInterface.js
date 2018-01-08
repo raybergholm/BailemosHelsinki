@@ -46,11 +46,11 @@ module.exports = {
 };
 
 function sendMessageToFacebook(payload) {
-    console.log("Sending payload to Facebook: ", payload);
-
     return new Promise((resolve, reject) => {
         let body = JSON.stringify(payload);
         let options = facebookApiInterface.createSendMessageOptions();
+
+        console.log("Sending payload to Facebook: ", body);
 
         let callback = (response) => {
             let str = "";
