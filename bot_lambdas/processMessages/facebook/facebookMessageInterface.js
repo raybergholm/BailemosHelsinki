@@ -46,7 +46,7 @@ module.exports = {
 };
 
 function sendMessageToFacebook(payload) {
-    console.log("SENDING PAYLOAD TO FACEBOOK: ", payload);
+    console.log("Sending payload to Facebook: ", payload);
 
     return new Promise((resolve, reject) => {
         let body = JSON.stringify(payload);

@@ -11,6 +11,6 @@ exports.handler = (event, context, callback) => {
         body: JSON.stringify(payload)
     };
 
-    console.log("returning the following response: ", JSON.stringify(response));
+    console.log("Returning the following response: ", JSON.stringify(response));
     callback(null, response);
 };

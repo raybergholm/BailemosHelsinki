@@ -64,7 +64,7 @@ exports.handler = (event, context, callback) => {
         response = generateHttpResponse(200, "OK");
     }
 
-    console.log("returning the following response: ", JSON.stringify(response));
+    console.log("Returning the following response: ", JSON.stringify(response));
     callback(null, response);
 };
 

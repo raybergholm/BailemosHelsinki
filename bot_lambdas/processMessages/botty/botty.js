@@ -33,7 +33,7 @@ module.exports = {
     },
 
     readMessage: function (text, attachments) { // main method: read input text and/or attachments, then reply with something 
-        console.log(`INCOMING MESSAGE TEXT: ${text}, WITH ATTACHMENTS: ${Boolean(attachments)}`);
+        console.log(`Incoming message with text: "${text}", ${attachments ? "with" : "no"} attachments`);
 
         let result;
         result = quickScan(text);
@@ -278,7 +278,7 @@ function sendResponse(input) {
 }
 
 function endConversation(messageReceipt) {
-    console.log("FACEBOOK MESSAGE RECEIPT: ", messageReceipt);
+    console.log("Returned message receipt: ", messageReceipt);
 
     if (typingIndicatorSent) {
         facebookMessageInterface.sendTypingIndicator(false);
