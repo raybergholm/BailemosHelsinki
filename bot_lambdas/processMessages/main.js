@@ -84,8 +84,6 @@ function handleReceivedMessage(receivedMessage) {
     // let timeOfMessage = receivedMessage.timestamp;
 
     console.log("entire message data structure: ", JSON.stringify(receivedMessage));
-    
-    console.log("NLP:", JSON.stringify(receivedMessage.nlp));
 
     // console.log("Received message for user %d and page %d at %d with message:", senderId, recipientId, timeOfMessage);
     // console.log("Message data: ", messageData);
@@ -93,13 +91,14 @@ function handleReceivedMessage(receivedMessage) {
     // let messageId = messageData.mid;
     let messageText = messageData.text;
     let messageAttachments = messageData.attachments;
+    let nlpResult = messageData.nlp;
 
     botty.setConversationTarget(senderId);
 
     if (messageData.quick_reply) {
         botty.respondToQuickReply(messageData.quick_reply.payload);
     } else {
-        botty.readMessage(messageText, messageAttachments);
+        botty.readMessage(messageText, messageAttachments, nlpResult);
     }
 }
 

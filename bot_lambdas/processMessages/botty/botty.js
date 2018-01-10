@@ -32,10 +32,13 @@ module.exports = {
         quickReplyHandler.respondToQuickReply(payload);
     },
 
-    readMessage: function (text, attachments) { // main method: read input text and/or attachments, then reply with something 
+    readMessage: function (text, attachments, nlpResult) { // main method: read input text and/or attachments, then reply with something 
         console.log(`Incoming message with text: "${text}", ${attachments ? "with" : "no"} attachments`);
 
         let result;
+
+        handleNlpResult(nlpResult);
+
         result = quickScan(text);
 
         if (result) {
@@ -86,6 +89,10 @@ module.exports = {
             });
     }
 };
+
+function handleNlpResult(nlpResult){
+    console.log("NLP: ", JSON.stringify(nlpResult));
+}
 
 function quickScan(text) {
     let parsedResult = parser.quickScan(text);
