@@ -83,7 +83,9 @@ function handleReceivedMessage(receivedMessage) {
     // let recipientId = receivedMessage.recipient.id;
     // let timeOfMessage = receivedMessage.timestamp;
 
-    // console.log("entire message data structure: ", receivedMessage);
+    console.log("entire message data structure: ", JSON.stringify(receivedMessage));
+    
+    console.log("NLP:", JSON.stringify(receivedMessage.nlp));
 
     // console.log("Received message for user %d and page %d at %d with message:", senderId, recipientId, timeOfMessage);
     // console.log("Message data: ", messageData);
