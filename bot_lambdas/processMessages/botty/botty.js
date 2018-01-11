@@ -101,30 +101,32 @@ function analyseInput(text, nlp) {
     // Check the NLP results first, if we have hits here then we can skip custom parsing
     if (nlp && nlp.entities) {
         let nlpResult = parser.parseBuiltinNlp(nlp.entities);
-        nlpResult.forEach((val, key) => {
-            switch (key) {
-                case "Greetings":
-                    result = {
-                        type: "NormalReply",
-                        text: textGenerator.getText("Greetings")
-                    };
-                    break;
-                case "HelpRequest": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
-                    result = {
-                        type: "QuickReply",
-                        text: "Help"
-                    };
-                    break;
-                case "UserGuide": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
-                    result = {
-                        type: "QuickReply",
-                        text: "UserGuide"
-                    };
-                    break;
-                default:
-                    parsedFromNlp.set(key, val);
-            }
-        });
+        if (nlpResult) {
+            nlpResult.forEach((val, key) => {
+                switch (key) {
+                    case "Greetings":
+                        result = {
+                            type: "NormalReply",
+                            text: textGenerator.getText("Greetings")
+                        };
+                        break;
+                    case "HelpRequest": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
+                        result = {
+                            type: "QuickReply",
+                            text: "Help"
+                        };
+                        break;
+                    case "UserGuide": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
+                        result = {
+                            type: "QuickReply",
+                            text: "UserGuide"
+                        };
+                        break;
+                    default:
+                        parsedFromNlp.set(key, val);
+                }
+            });
+        }
 
         if (result) {
             // If it ends up here, short-circuit the rest since it's some quick reply or response that doesn't require persistent storage access
