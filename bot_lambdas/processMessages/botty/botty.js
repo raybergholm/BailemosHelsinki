@@ -104,19 +104,19 @@ function analyseInput(text, nlp) {
         if (nlpResult) {
             nlpResult.forEach((val, key) => {
                 switch (key) {
-                    case "Greetings":
+                    case "greetings":
                         result = {
                             type: "NormalReply",
                             text: textGenerator.getText("Greetings")
                         };
                         break;
-                    case "HelpRequest": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
+                    case "helpRequest": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
                         result = {
                             type: "QuickReply",
                             text: "Help"
                         };
                         break;
-                    case "UserGuide": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
+                    case "userGuide": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
                         result = {
                             type: "QuickReply",
                             text: "UserGuide"
