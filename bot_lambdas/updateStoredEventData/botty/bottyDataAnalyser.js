@@ -20,6 +20,9 @@ const KEYWORDS = {
     }
 };
 
+// For event data analysis
+const textAnalyser = require("./TextAnalyser");
+
 module.exports = {
     analyseEvent: (eventData) => {
         let result = {};
