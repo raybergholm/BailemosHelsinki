@@ -1,6 +1,7 @@
 "use strict";
 
 module.exports = {
+<<<<<<< HEAD
 
     analyse: (text, keywords, weights) => {
         let collectedResults = {};
@@ -28,5 +29,17 @@ module.exports = {
         });
 
         return Array.from(tags.values());
+=======
+    analyse: (text, keywords) => {
+        /* 
+        let keywords = {
+            prop: {
+                regex: /blah/i,
+                weight: 1
+            },
+            ...
+        }
+        */
+>>>>>>> add initial structure for stand-alone text analysis module
     }
 };
