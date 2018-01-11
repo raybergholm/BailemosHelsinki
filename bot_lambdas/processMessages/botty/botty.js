@@ -101,6 +101,9 @@ function analyseInput(text, nlp) {
     // Check the NLP results first, if we have hits here then we can skip custom parsing
     if (nlp && nlp.entities) {
         let nlpResult = parser.parseBuiltinNlp(nlp.entities);
+
+        console.log("Result after parsing NLP:", nlpResult);
+
         if (nlpResult) {
             nlpResult.forEach((val, key) => {
                 switch (key) {
@@ -127,6 +130,8 @@ function analyseInput(text, nlp) {
                 }
             });
         }
+
+        console.log("Data parsed from NLP which can be used later: ", parsedFromNlp);
 
         if (result) {
             // If it ends up here, short-circuit the rest since it's some quick reply or response that doesn't require persistent storage access

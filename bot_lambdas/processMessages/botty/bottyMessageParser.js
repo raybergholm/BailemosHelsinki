@@ -94,7 +94,11 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
 module.exports = {
     parseBuiltinNlp: (entries) => {
         const CONFIDENCE_THRESHOLD = 0.9;
-        let result = new Map();
+        let result = new Map(),
+            dateTimeResults = new Set(),
+            interestResults = new Set(),
+            eventTypeResults = new Set(),
+            locationResults = new Set();
 
         for (let prop in entries) {
             entries[prop].map((item) => {
@@ -106,23 +110,36 @@ module.exports = {
                             result.set(prop, true);
                             break;
                         case "datetime":
-                            result.set(prop, parseNlpDateTime(item));
+                            dateTimeResults.add(parseNlpDateTime(item));
                             break;
                         case "interests":
-                            result.set(prop, parseNlpInterests(item));
+                            interestResults.add(parseNlpInterests(item));
                             break;
                         case "eventTypes":
-                            result.set(prop, parseNlpEventTypes(item));
+                            eventTypeResults.add(parseNlpEventTypes(item));
                             break;
                         case "location":
-                            result.set(prop, parseNlpLocations(item));
+                            locationResults.add(parseNlpLocations(item));
                             break;
                     }
                 }
             });
         }
 
-        return result.length > 0 ? result : null;
+        if (dateTimeResults.size > 0) {
+            result.set("datetime", dateTimeResults);
+        }
+        if (interestResults.size > 0) {
+            result.set("interests", interestResults);
+        }
+        if (eventTypeResults.size > 0) {
+            result.set("eventTypes", eventTypeResults);
+        }
+        if (locationResults.size > 0) {
+            result.set("locations", locationResults);
+        }
+
+        return result.size > 0 ? result : null;
     },
 
     quickScan: (text) => {
@@ -187,7 +204,6 @@ function parseNlpDateTime(entry) { // FIXME: There's a high chance that due to t
             };
             break;
     }
-    console.log("attempted to get a date range from NLP: ", JSON.stringify(result));
 
     return result;
 }
