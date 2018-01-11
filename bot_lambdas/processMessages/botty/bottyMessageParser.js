@@ -86,9 +86,39 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
     }
 };
 
-// TODO: Try wit.ai (https://wit.ai/) as an NLP layer. English, Finnish and Swedish are all meant to be supported, and it's open source + free
-
 module.exports = {
+    parseBuiltinNlp: (entries) => {
+        const CONFIDENCE_THRESHOLD = 0.9;
+        let result = new Map();
+
+        for (let prop in entries) {
+            if (entries[prop].confidence > CONFIDENCE_THRESHOLD) {
+                switch (prop) {
+                    case "greetings":
+                        result.set("Greetings", true);
+                        break;
+                    case "helpRequest": // TODO: needs wit.ai integration for this to become functional
+                        result.set("HelpRequest", true);
+                        break;
+                    case "userGuide": // TODO: needs wit.ai integration for this to become functional
+                        result.set("UserGuide", true);
+                        break;
+                    case "datetime":
+                        console.log("datetime detected in NLP: ", JSON.stringify(entries[prop]));
+                        result.set("DateTime", parseNlpDateTime(entries[prop]));
+                        break;
+                    case "interests":
+                    case "eventTypes":
+                    case "location":
+                        // TODO: needs wit.ai integration
+                        break;
+                }
+            }
+        }
+
+        return result.length > 0 ? result : null;
+    },
+
     quickScan: (text) => {
         for (let prop in QUICK_MESSAGE_KEYWORDS) {
             if (QUICK_MESSAGE_KEYWORDS[prop].test(text)) {
@@ -122,7 +152,7 @@ module.exports = {
             result.optionals = true;
             result.matched = true;
         }
-        
+
         return result;
     },
 
@@ -133,6 +163,45 @@ module.exports = {
         };
     }
 };
+
+function parseNlpDateTime(entry) { // FIXME: There's a high chance that due to this whole GMT timestamp funsies, -ve timezones will get weird results
+    let result = null;
+    switch (entry.type) {
+        case "interval":
+            result = {
+                from: moment(entry.from.value).startOf(entry.from.grain),
+                to: moment(entry.to.value).endOf(entry.to.grain)
+            };
+            break;
+        case "value":
+            result = {
+                from: moment(entry.value).startOf(entry.grain),
+                to: moment(entry.value).endOf(entry.grain)
+            };
+            break;
+    }
+    return result;
+}
+
+function parseNlpEventTypes(entry) {
+    let result = null;
+
+    return result;
+}
+
+function parseNlpInterests(entry) {
+    let result = null;
+
+    return result;
+}
+
+function parseNlpLocations(entry) {
+    let result = null;
+
+    return result;
+}
+
+// TODO: integrate wit.ai & train it well enough that everything below this line can be dumped, use the NLP versions above instead
 
 function checkForTemporalCues(text) { // this one is more special because we can only have one date range
     let result;
