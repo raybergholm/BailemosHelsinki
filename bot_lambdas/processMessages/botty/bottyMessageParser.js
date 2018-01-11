@@ -86,6 +86,11 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
     }
 };
 
+/*
+    FIXME: The eventual goal of this module is to offload as much of the parsing logic to wit.ai as possible and 
+    use custom parsing only as a fallback, as it's going to be ineffective Reinventing The Wheel otherwise.
+*/
+
 module.exports = {
     parseBuiltinNlp: (entries) => {
         const CONFIDENCE_THRESHOLD = 0.9;
@@ -96,21 +101,21 @@ module.exports = {
                 if (item.confidence > CONFIDENCE_THRESHOLD) {
                     switch (prop) {
                         case "greetings":
-                            result.set("Greetings", true);
-                            break;
                         case "helpRequest": // TODO: needs wit.ai integration for this to become functional
-                            result.set("HelpRequest", true);
-                            break;
                         case "userGuide": // TODO: needs wit.ai integration for this to become functional
-                            result.set("UserGuide", true);
+                            result.set(prop, true);
                             break;
                         case "datetime":
-                            result.set("DateTime", parseNlpDateTime(item));
+                            result.set(prop, parseNlpDateTime(item));
                             break;
                         case "interests":
+                            result.set(prop, parseNlpInterests(item));
+                            break;
                         case "eventTypes":
+                            result.set(prop, parseNlpEventTypes(item));
+                            break;
                         case "location":
-                            // TODO: needs wit.ai integration
+                            result.set(prop, parseNlpLocations(item));
                             break;
                     }
                 }
@@ -167,6 +172,7 @@ module.exports = {
 
 function parseNlpDateTime(entry) { // FIXME: There's a high chance that due to this whole GMT timestamp funsies, -ve timezones will get weird results
     let result = null;
+
     switch (entry.type) {
         case "interval":
             result = {
@@ -182,24 +188,25 @@ function parseNlpDateTime(entry) { // FIXME: There's a high chance that due to t
             break;
     }
     console.log("attempted to get a date range from NLP: ", JSON.stringify(result));
+
     return result;
 }
 
 function parseNlpEventTypes(entry) {
     let result = null;
-
+    // TODO: needs wit.ai integration
     return result;
 }
 
 function parseNlpInterests(entry) {
     let result = null;
-
+    // TODO: needs wit.ai integration
     return result;
 }
 
 function parseNlpLocations(entry) {
     let result = null;
-
+    // TODO: needs wit.ai integration
     return result;
 }
 
