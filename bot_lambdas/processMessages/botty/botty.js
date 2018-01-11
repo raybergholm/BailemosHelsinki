@@ -32,42 +32,17 @@ module.exports = {
         quickReplyHandler.respondToQuickReply(payload);
     },
 
-    readMessage: function (text, attachments, nlpResult) { // main method: read input text and/or attachments, then reply with something 
+    readMessage: function (text, attachments, nlp) { // main method: read input text and/or attachments, then reply with something 
         console.log(`Incoming message with text: "${text}", ${attachments ? "with" : "no"} attachments`);
 
         let result;
-
-        handleNlpResult(nlpResult);
-
-        result = quickScan(text);
-
-        if (result) {
-            if (result.type === "QuickReply") {
-                switch (result.text) {
-                    case "Help":
-                        quickReplyHandler.sendQuickReplyHelp();
-                        break;
-                    case "UserGuide":
-                        quickReplyHandler.sendQuickReplyUserGuide();
-                        break;
-                }
-            } else if (result.text instanceof Array) {
-                for (let i = 0; i < result.length; i++) {
-                    facebookMessageInterface.sendMessage(result[i].text)
-                        .then(endConversation);
-                }
-            } else {
-                facebookMessageInterface.sendMessage(result.text)
-                    .then(endConversation);
-            }
-            return;
-        }
 
         if (attachments) {
             // TODO: what do we want to do with attachments?
         }
 
-        result = deepScan(text);
+        result = analyseInput(text, nlp);
+
         if (!result) {
             facebookMessageInterface.sendMessage(textGenerator.getText("Uncertain"))
                 .then(endConversation)
@@ -75,7 +50,35 @@ module.exports = {
                     console.log("Error thrown in null reply chain: ", err);
                 });
             return;
+        } else if (result.type === "QuickReply") {
+            switch (result.text) {
+                case "Help":
+                    quickReplyHandler.sendQuickReplyHelp();
+                    break;
+                case "UserGuide":
+                    quickReplyHandler.sendQuickReplyUserGuide();
+                    break;
+            }
+        } else if (result.type === "NormalReply") {
+            if (result.text instanceof Array) {
+                for (let i = 0; i < result.length; i++) {
+                    facebookMessageInterface.sendMessage(result[i].text)
+                        .then(endConversation)
+                        .catch((err) => {
+                            console.log("Error thrown in short reply chain: ", err);
+                        });
+                }
+            } else {
+                facebookMessageInterface.sendMessage(result.text)
+                    .then(endConversation)
+                    .catch((err) => {
+                        console.log("Error thrown in short reply chain: ", err);
+                    });
+            }
+            return;
         }
+
+        // DeferredReply = start convo because we got analysis results and events to fetch
 
         startConversation() // send "typing indicator on" to FB
             .then(setConversationStatus) // set typing indicator on local boolean
@@ -90,8 +93,58 @@ module.exports = {
     }
 };
 
-function handleNlpResult(nlpResult){
-    console.log("NLP: ", JSON.stringify(nlpResult));
+function analyseInput(text, nlp) {
+    const CONFIDENCE_THRESHOLD = 0.9;
+
+    console.log("NLP: ", JSON.stringify(nlp));
+
+    let result;
+    let parsedFromNlp;
+
+    // Check the NLP results first, if we have hits here then we can skip custom parsing
+    if (nlp && nlp.entities) {
+        for (let prop in nlp.entities) {
+            if (nlp.entities[prop].confidence > CONFIDENCE_THRESHOLD) {
+                switch (prop) {
+                    case "greetings":
+                        result = {
+                            type: "NormalReply",
+                            text: textGenerator.getText("Greetings")
+                        };
+                        break;
+                    case "helpRequest": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
+                        result = {
+                            type: "QuickReply",
+                            text: "Help"
+                        };
+                        break;
+                    case "userGuide": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
+                        result = {
+                            type: "QuickReply",
+                            text: "UserGuide"
+                        };
+                        break;
+                    case "datetime":
+
+                        break;
+                }
+            }
+        }
+
+        if (result) {
+            return result;
+        }
+    }
+
+    // Need to do custom parsing, though it could be that we have nlpDateTime results to speed things up
+    result = quickScan(text);
+    if (result) {
+        return result;
+    }
+
+    result = deepScan(text, parsedFromNlp);
+
+    return result;
 }
 
 function quickScan(text) {
@@ -124,7 +177,13 @@ function quickScan(text) {
 
 function deepScan(text) {
     analysisResults = parser.deepScan(text);
-    return analysisResults.matched;
+    if (analysisResults.matched) {
+        return {
+            type: "DeferredReply"
+        };
+    } else {
+        return null;
+    }
 }
 
 // Promise chain functions & handlers start here
