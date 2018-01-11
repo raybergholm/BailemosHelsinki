@@ -34,6 +34,7 @@ module.exports = {
 
     readMessage: function (text, attachments, nlp) { // main method: read input text and/or attachments, then reply with something 
         console.log(`Incoming message with text: "${text}", ${attachments ? "with" : "no"} attachments`);
+        console.log("Built-in NLP from Facebook: ", JSON.stringify(nlp));
 
         let result;
 
@@ -95,8 +96,6 @@ module.exports = {
 
 function analyseInput(text, nlp) {
     const CONFIDENCE_THRESHOLD = 0.9;
-
-    console.log("NLP: ", JSON.stringify(nlp));
 
     let result;
     let parsedFromNlp;
