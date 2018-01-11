@@ -92,28 +92,29 @@ module.exports = {
         let result = new Map();
 
         for (let prop in entries) {
-            if (entries[prop].confidence > CONFIDENCE_THRESHOLD) {
-                switch (prop) {
-                    case "greetings":
-                        result.set("Greetings", true);
-                        break;
-                    case "helpRequest": // TODO: needs wit.ai integration for this to become functional
-                        result.set("HelpRequest", true);
-                        break;
-                    case "userGuide": // TODO: needs wit.ai integration for this to become functional
-                        result.set("UserGuide", true);
-                        break;
-                    case "datetime":
-                        console.log("datetime detected in NLP: ", JSON.stringify(entries[prop]));
-                        result.set("DateTime", parseNlpDateTime(entries[prop]));
-                        break;
-                    case "interests":
-                    case "eventTypes":
-                    case "location":
-                        // TODO: needs wit.ai integration
-                        break;
+            entries[prop].map((item) => {
+                if (item.confidence > CONFIDENCE_THRESHOLD) {
+                    switch (prop) {
+                        case "greetings":
+                            result.set("Greetings", true);
+                            break;
+                        case "helpRequest": // TODO: needs wit.ai integration for this to become functional
+                            result.set("HelpRequest", true);
+                            break;
+                        case "userGuide": // TODO: needs wit.ai integration for this to become functional
+                            result.set("UserGuide", true);
+                            break;
+                        case "datetime":
+                            result.set("DateTime", parseNlpDateTime(item));
+                            break;
+                        case "interests":
+                        case "eventTypes":
+                        case "location":
+                            // TODO: needs wit.ai integration
+                            break;
+                    }
                 }
-            }
+            });
         }
 
         return result.length > 0 ? result : null;
@@ -180,6 +181,7 @@ function parseNlpDateTime(entry) { // FIXME: There's a high chance that due to t
             };
             break;
     }
+    console.log("attempted to get a date range from NLP: ", JSON.stringify(result));
     return result;
 }
 
