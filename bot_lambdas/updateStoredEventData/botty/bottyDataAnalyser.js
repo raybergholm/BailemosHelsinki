@@ -39,6 +39,9 @@ const EVENT_DESC_WEIGHTS = {
     Party: 1
 };
 
+// For event data analysis
+const textAnalyser = require("./TextAnalyser");
+
 module.exports = {
     analyseEvent: (eventData) => {
         let result = {};
