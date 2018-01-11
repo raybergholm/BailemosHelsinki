@@ -91,14 +91,14 @@ function handleReceivedMessage(receivedMessage) {
     // let messageId = messageData.mid;
     let messageText = messageData.text;
     let messageAttachments = messageData.attachments;
-    let nlpResult = messageData.nlp;
+    let nlp = messageData.nlp;
 
     botty.setConversationTarget(senderId);
 
     if (messageData.quick_reply) {
         botty.respondToQuickReply(messageData.quick_reply.payload);
     } else {
-        botty.readMessage(messageText, messageAttachments, nlpResult);
+        botty.readMessage(messageText, messageAttachments, nlp);
     }
 }
 
