@@ -95,48 +95,45 @@ module.exports = {
 };
 
 function analyseInput(text, nlp) {
-    const CONFIDENCE_THRESHOLD = 0.9;
-
     let result;
-    let parsedFromNlp;
+    let parsedFromNlp = new Map();
 
     // Check the NLP results first, if we have hits here then we can skip custom parsing
     if (nlp && nlp.entities) {
-        for (let prop in nlp.entities) {
-            if (nlp.entities[prop].confidence > CONFIDENCE_THRESHOLD) {
-                switch (prop) {
-                    case "greetings":
-                        result = {
-                            type: "NormalReply",
-                            text: textGenerator.getText("Greetings")
-                        };
-                        break;
-                    case "helpRequest": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
-                        result = {
-                            type: "QuickReply",
-                            text: "Help"
-                        };
-                        break;
-                    case "userGuide": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
-                        result = {
-                            type: "QuickReply",
-                            text: "UserGuide"
-                        };
-                        break;
-                    case "datetime":
-
-                        break;
-                }
+        let nlpResult = parser.parseBuiltinNlp(nlp.entities);
+        nlpResult.forEach((val, key) => {
+            switch (key) {
+                case "Greetings":
+                    result = {
+                        type: "NormalReply",
+                        text: textGenerator.getText("Greetings")
+                    };
+                    break;
+                case "HelpRequest": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
+                    result = {
+                        type: "QuickReply",
+                        text: "Help"
+                    };
+                    break;
+                case "UserGuide": // TODO: nothing goes here atm, needs wit.ai integration for this to become functional
+                    result = {
+                        type: "QuickReply",
+                        text: "UserGuide"
+                    };
+                    break;
+                default:
+                    parsedFromNlp.set(key, val);
             }
-        }
+        });
 
         if (result) {
+            // If it ends up here, short-circuit the rest since it's some quick reply or response that doesn't require persistent storage access
             return result;
         }
     }
 
     // Need to do custom parsing, though it could be that we have nlpDateTime results to speed things up
-    result = quickScan(text);
+    result = quickScan(text); // TODO: Deprecate this over time, move this stuff to wit.ai instead
     if (result) {
         return result;
     }
