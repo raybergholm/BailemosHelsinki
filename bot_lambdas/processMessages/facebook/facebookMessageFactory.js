@@ -53,7 +53,7 @@ module.exports = {
             };
         }
 
-        return module.exports.createMessage(targetId, null, messageTemplate); // A message template is just a message with an attachment and no text, so we can reuse the other function
+        return this.createMessage(targetId, null, messageTemplate); // A message template is just a message with an attachment and no text, so we can reuse the other function
     },
 
     createQuickReplyMessage: (targetId, text, quickReplies) => {

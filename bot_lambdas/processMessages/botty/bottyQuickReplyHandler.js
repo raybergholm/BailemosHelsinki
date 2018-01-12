@@ -97,7 +97,7 @@ module.exports = {
                 facebookMessageInterface.sendMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.HowTo_Examples));
                 break;
             case QUICK_REPLY_PAYLOADS.UserGuide_Start:
-                module.exports.sendQuickReplyUserGuide();
+                this.sendQuickReplyUserGuide();
                 break;
             case QUICK_REPLY_PAYLOADS.UserGuide_Datetime:
                 facebookMessageInterface.sendQuickReplyMessage(textGenerator.getText(QUICK_REPLY_PAYLOADS.UserGuide_Datetime), [{
