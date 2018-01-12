@@ -2,7 +2,7 @@
 
 module.exports = {
     parseTimezoneOffset: (dateTimeString) => {
-        let timezoneRegex = /[+-]\d{2}(:?)\d{2}/;
+        let timezoneRegex = /[+-]\d{2}(?::?)\d{2}/;
         let result = timezoneRegex.exec(dateTimeString);
         if (result) {
             let sign = result[0][0];
