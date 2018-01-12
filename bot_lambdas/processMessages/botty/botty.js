@@ -131,8 +131,6 @@ function analyseInput(text, nlp) {
             });
         }
 
-        console.log("Data parsed from NLP which can be used later: ", parsedFromNlp);
-
         if (result) {
             // If it ends up here, short-circuit the rest since it's some quick reply or response that doesn't require persistent storage access
             return result;
@@ -178,8 +176,8 @@ function quickScan(text) {
     return result;
 }
 
-function deepScan(text) {
-    analysisResults = parser.deepScan(text);
+function deepScan(text, nlp) {
+    analysisResults = parser.deepScan(text, nlp);
     if (analysisResults.matched) {
         return {
             type: "DeferredReply"
@@ -207,7 +205,9 @@ function fetchEvents() { // NOTE: this gets the resolve value from setConversati
 function filterEvents(inputEvents) {
     let outputEvents = inputEvents.filter((evt) => {
         let startTime = moment(evt.start_time);
-        return startTime >= analysisResults.dateTimeRange.from && startTime <= analysisResults.dateTimeRange.to;
+        return analysisResults.dateTimeRange.some((dateTime) => {
+            return startTime >= dateTime.from && startTime <= dateTime.to;
+        });
     });
 
     if (analysisResults.optionals) {
@@ -245,18 +245,7 @@ function buildResponse(inputEvents) {
 
     let baseString;
 
-    let dateDiff = analysisResults.dateTimeRange.to.diff(analysisResults.dateTimeRange.from, "days");
-
-    if (dateDiff > 0) {
-        if (inputEvents.length === 0) {
-            baseString = textGenerator.getText("NoResults");
-        } else if (inputEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
-            baseString = textGenerator.getText("OverflowResults");
-        } else {
-            baseString = textGenerator.getText("NormalResults");
-        }
-    } else {
-        // eslint-disable-next-line no-lonely-if
+    if (analysisResults.length === 1 && analysisResults[0].dateTimeRange.to.diff(analysisResults[0].dateTimeRange.from, "days") <= 0) {
         if (inputEvents.length === 0) {
             baseString = textGenerator.getText("NoResultsOneDay");
         } else if (inputEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
@@ -264,6 +253,12 @@ function buildResponse(inputEvents) {
         } else {
             baseString = textGenerator.getText("NormalResultsOneDay");
         }
+    } else if (inputEvents.length === 0) {
+        baseString = textGenerator.getText("NoResults");
+    } else if (inputEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
+        baseString = textGenerator.getText("OverflowResults");
+    } else {
+        baseString = textGenerator.getText("NormalResults");
     }
 
     output.overviewMessage = textGenerator.formatText(baseString, {
