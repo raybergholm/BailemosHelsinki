@@ -18,7 +18,7 @@ module.exports = {
     sendTypingIndicator: (mode) => {
         // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
         // let typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(_targetId, mode ? "typing_on" : "typing_off");
-        // return this.sendMessageToFacebook(typingIndicatorMessage)
+        // return sendMessageToFacebook(typingIndicatorMessage)
         //     .then((messageReceipt) => {
         //         if (messageReceipt) {
         //             return true;
