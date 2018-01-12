@@ -1,5 +1,7 @@
 "use strict";
 
+const utils = require("../utils/utils");
+
 const KEYWORDS = {
     Interests: {
         Salsa: /\bsalsa(?:a?)\b/i,
@@ -25,7 +27,7 @@ module.exports = {
         result.type = guessEventType(eventData);
         result.interestTags = scanForInterests(eventData);
 
-        result.timezoneOffset = parseTimezoneOffset(eventData.start_time);
+        result.timezoneOffset = utils.parseTimezoneOffset(eventData.start_time);
 
         return result;
     }
@@ -106,18 +108,4 @@ function scanForInterests(eventData) {
         }
     }
     return tags;
-}
-
-function parseTimezoneOffset(input) {
-    let timezoneRegex = /[+-]\d{4}/;
-    let result = timezoneRegex.exec(input);
-    if (result) {
-        let sign = result[0][0];
-        return {
-            hours: Number(sign + result[0].substr(1, 2)),
-            minutes: Number(sign + result[0].substr(3, 2))
-        };
-    } else {
-        return null;
-    }
 }

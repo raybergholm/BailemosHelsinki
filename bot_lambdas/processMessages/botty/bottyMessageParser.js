@@ -2,6 +2,8 @@
 
 const moment = require("../node_modules/moment");
 
+const utils = require("../utils/utils");
+
 //---------------------------------------------------------------------------//
 
 const QUICK_MESSAGE_KEYWORDS = {
@@ -212,7 +214,7 @@ module.exports = {
                 result.matched = true;
             }
         }
-        
+
         return result;
     },
 
@@ -224,21 +226,30 @@ module.exports = {
     }
 };
 
-function parseNlpDateTime(entry) { // FIXME: There's a high chance that due to this whole GMT timestamp funsies, -ve timezones will get weird results
+function parseNlpDateTime(entry) {
     let result = null;
+
+    const intervalParser = (from, to) => {
+        return {
+            from: () => {
+                let offset = utils.parseTimezoneOffset(from.value);
+                let correctedMoment = utils.correctTimezoneOffset(moment(from.value), offset);
+                return correctedMoment.startOf(from.grain);
+            },
+            to: () => {
+                let offset = utils.parseTimezoneOffset(to.value);
+                let correctedMoment = utils.correctTimezoneOffset(moment(to.value), offset);
+                return correctedMoment.endOf(to.grain);
+            }
+        };
+    };
 
     switch (entry.type) {
         case "interval":
-            result = {
-                from: moment(entry.from.value).startOf(entry.from.grain),
-                to: moment(entry.to.value).endOf(entry.to.grain)
-            };
+            result = intervalParser(entry.from, entry.to);
             break;
         case "value":
-            result = {
-                from: moment(entry.value).startOf(entry.grain),
-                to: moment(entry.value).endOf(entry.grain)
-            };
+            result = intervalParser(entry, entry);
             break;
     }
 
