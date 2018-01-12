@@ -151,31 +151,68 @@ module.exports = {
         return null;
     },
 
-    deepScan: function (text) {
+    deepScan: function (text, nlp) {
         let result = {};
 
-        let dateTimeRange = checkForTemporalCues(text);
-        if (dateTimeRange) {
-            result.dateTimeRange = dateTimeRange;
-            result.matched = true;
-        } else {
-            result.dateTimeRange = this.getDefaultDateRange();
+        if (nlp) {
+            let dateTimes = nlp.get("datetime");
+            if (dateTimes) {
+                result.dateTimeRange = Array.from(dateTimes);
+                result.matched = true;
+            } else {
+                result.dateTimeRange = module.exports.getDefaultDateRange();
+            }
+
+            let interests = nlp.get("interests");
+            if (interests) {
+                result.interests = Array.from(interests);
+                result.matched = true;
+            }
+
+            let eventTypes = nlp.get("eventTypes");
+            if (eventTypes) {
+                result.eventTypes = Array.from(eventTypes);
+                result.matched = true;
+            }
+
+            let locations = nlp.get("locations");
+            if (locations) {
+                result.locations = Array.from(locations);
+                result.matched = true;
+            }
         }
 
-        let interests = checkForInterests(text);
-        if (interests) {
-            result.interests = interests;
-            result.optionals = true;
-            result.matched = true;
+        console.log("results after NLP:", result);
+
+        // Generic custom parsing for fallback purposes: not really efficient, aim to deprecate
+        if (!result.dateTimeRange) {
+            let dateTimeRange = checkForTemporalCues(text);
+            if (dateTimeRange) {
+                result.dateTimeRange = dateTimeRange;
+                result.matched = true;
+            } else {
+                result.dateTimeRange = this.getDefaultDateRange();
+            }
         }
 
-        let eventTypes = checkForEventTypes(text);
-        if (eventTypes) {
-            result.eventTypes = eventTypes;
-            result.optionals = true;
-            result.matched = true;
+        if (!result.interests) {
+            let interests = checkForInterests(text);
+            if (interests) {
+                result.interests = interests;
+                result.optionals = true;
+                result.matched = true;
+            }
         }
 
+        if (!result.eventTypes) {
+            let eventTypes = checkForEventTypes(text);
+            if (eventTypes) {
+                result.eventTypes = eventTypes;
+                result.optionals = true;
+                result.matched = true;
+            }
+        }
+        
         return result;
     },
 
