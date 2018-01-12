@@ -231,16 +231,16 @@ function parseNlpDateTime(entry) {
 
     const intervalParser = (from, to) => {
         return {
-            from: () => {
+            from: (() => {
                 let offset = utils.parseTimezoneOffset(from.value);
                 let correctedMoment = utils.correctTimezoneOffset(moment(from.value), offset);
                 return correctedMoment.startOf(from.grain);
-            },
-            to: () => {
+            })(),
+            to: (() => {
                 let offset = utils.parseTimezoneOffset(to.value);
                 let correctedMoment = utils.correctTimezoneOffset(moment(to.value), offset);
                 return correctedMoment.endOf(to.grain);
-            }
+            })()
         };
     };
 
