@@ -229,17 +229,20 @@ module.exports = {
 function parseNlpDateTime(entry) {
     let result = null;
 
+    // I don't like having to do a bunch of inline timezone corrections, but due to the nature of the way timestamp parsing
+    // currently works, the server will always get incorrect intervals if there's any timezone offsets at all. Also, this method
+    // fixes the week interval to use Monday instead of defaulting to US standards: we're not in the US so no reason to use US weeks
     const intervalParser = (from, to) => {
         return {
             from: (() => {
                 let offset = utils.parseTimezoneOffset(from.value);
                 let correctedMoment = utils.correctTimezoneOffset(moment(from.value), offset);
-                return correctedMoment.startOf(from.grain);
+                return correctedMoment.startOf(from.grain === "week" ? "isoWeek" : from.grain);
             })(),
             to: (() => {
                 let offset = utils.parseTimezoneOffset(to.value);
                 let correctedMoment = utils.correctTimezoneOffset(moment(to.value), offset);
-                return correctedMoment.endOf(to.grain);
+                return correctedMoment.endOf(from.grain === "week" ? "isoWeek" : from.grain);
             })()
         };
     };
