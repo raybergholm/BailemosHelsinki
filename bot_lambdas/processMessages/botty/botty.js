@@ -245,15 +245,7 @@ function buildResponse(inputEvents) {
 
     let baseString;
 
-    if (analysisResults.length === 1 && analysisResults[0].dateTimeRange.to.diff(analysisResults[0].dateTimeRange.from, "days") <= 0) {
-        if (inputEvents.length === 0) {
-            baseString = textGenerator.getText("NoResultsOneDay");
-        } else if (inputEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
-            baseString = textGenerator.getText("OverflowResultsOneDay");
-        } else {
-            baseString = textGenerator.getText("NormalResultsOneDay");
-        }
-    } else if (inputEvents.length === 0) {
+    if (inputEvents.length === 0) {
         baseString = textGenerator.getText("NoResults");
     } else if (inputEvents.length > FACEBOOK_GENERIC_TEMPLATE_LIMIT) {
         baseString = textGenerator.getText("OverflowResults");
@@ -262,9 +254,7 @@ function buildResponse(inputEvents) {
     }
 
     output.overviewMessage = textGenerator.formatText(baseString, {
-        amount: inputEvents.length,
-        from: moment(analysisResults.dateTimeRange.from).format("Do MMM"),
-        to: moment(analysisResults.dateTimeRange.to).format("Do MMM")
+        amount: inputEvents.length
     });
 
     let elements = [];
