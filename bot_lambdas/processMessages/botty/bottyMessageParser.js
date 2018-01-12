@@ -162,7 +162,7 @@ module.exports = {
                 result.dateTimeRange = Array.from(dateTimes);
                 result.matched = true;
             } else {
-                result.dateTimeRange = module.exports.getDefaultDateRange();
+                result.dateTimeRange = this.getDefaultDateRange();
             }
 
             let interests = nlp.get("interests");
