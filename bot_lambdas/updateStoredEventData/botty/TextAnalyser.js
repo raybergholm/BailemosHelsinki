@@ -4,6 +4,7 @@ module.exports = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     analyse: (text, keywords, weights) => {
         let collectedResults = {};
@@ -51,6 +52,9 @@ module.exports = {
     */
 =======
 >>>>>>> fix merge conflict
+=======
+
+>>>>>>> refactor finder logic into TextAnalyser
     analyse: (text, keywords, weights) => {
         let collectedResults = {};
 
