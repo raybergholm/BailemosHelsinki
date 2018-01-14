@@ -1,6 +1,7 @@
 "use strict";
 
 module.exports = {
+
     analyse: (text, keywords, weights) => {
         let collectedResults = {};
 
