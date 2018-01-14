@@ -2,26 +2,42 @@
 
 const utils = require("../utils/utils");
 
-const KEYWORDS = {
-    Interests: {
-        Salsa: /\bsalsa(?:a?)\b/i,
-        Bachata: /\bbachata(?:a?)\b/i,
-        Kizomba: /\bkizomba(?:a?)\b/i,
-        Zouk: /\b(brazilian ?)zouk|lambazouk\b/i
-    },
-    Type: {
-        // NB: This is it's own thing because it's often common to both courses and festivals, so if this turns up it's probably not a party, but by itself it can't tell the difference between course/festival
-        Workshop: /\b(?:workshop(?:s?)|työpaja(?:t?))\b/i,
-        Course: /\b(?:course(?:s?)|(?:tiivis?)kurssi(t?)|lesson(?:s?)|boot(?: ?)camp|leiri(?:t?))\b/i, // NOTE: don't include "teaching" or "opetus", it has a habit of appearing everywhere, pretty meaningless in this context
-        CourseTerminology: /\b(?:novice(?:s?)|alkeet|beginner(?:s?)|improver(?:s?)|advanced|ladie(?:'?)s styling)\b/i, // these words are nearly always massive indicators that this is a course and nothing else 
-        Festival: /\b(?:festival(?:s?)|festivaali(?:t?))\b/i,
-        // NB: annoyingly enough, a "party" might be found connected to any of the above! Usually the best hint that this isn't a workshop/course/festival is the event duration. Still, it can affect the confidence level of which category it should be in
-        Party: /\b(?:part(?:y|ies)|fiesta|show|bash|get(?: ?)together(?:s?)|juhla(?:t?))\b/i // actually, "fiesta" might be dangerous here since a spanish event may use it to mean a lot of things...
-    }
+const textAnalyser = require("./TextAnalyser");
+
+//---------------------------------------------------------------------------//
+
+const INTEREST_KEYWORDS = {
+    Salsa: /\bsalsa(?:a?)\b/i,
+    Bachata: /\bbachata(?:a?)\b/i,
+    Kizomba: /\bkizomba(?:a?)\b/i,
+    Zouk: /\b(brazilian ?)zouk|lambazouk\b/i
 };
 
-// For event data analysis
-const textAnalyser = require("./TextAnalyser");
+const TYPE_KEYWORDS = {
+    // NB: This is it's own thing because it's often common to both courses and festivals, so if this turns up it's probably not a party, but by itself it can't tell the difference between course/festival
+    Workshop: /\b(?:workshop(?:s?)|työpaja(?:t?))\b/i,
+    Course: /\b(?:course(?:s?)|(?:tiivis?)kurssi(t?)|lesson(?:s?)|boot(?: ?)camp|leiri(?:t?))\b/i, // NOTE: don't include "teaching" or "opetus", it has a habit of appearing everywhere, pretty meaningless in this context
+    CourseTerminology: /\b(?:novice(?:s?)|alkeet|beginner(?:s?)|improver(?:s?)|advanced|ladie(?:'?)s styling)\b/i, // these words are nearly always massive indicators that this is a course and nothing else 
+    Festival: /\b(?:festival(?:s?)|festivaali(?:t?))\b/i,
+    // NB: annoyingly enough, a "party" might be found connected to any of the above! Usually the best hint that this isn't a workshop/course/festival is the event duration. Still, it can affect the confidence level of which category it should be in
+    Party: /\b(?:part(?:y|ies)|fiesta|show|bash|get(?: ?)together(?:s?)|juhla(?:t?))\b/i // actually, "fiesta" might be dangerous here since a spanish event may use it to mean a lot of things...
+};
+
+const EVENT_TITLE_WEIGHTS = {
+    Workshop: 100,
+    Course: 100,
+    CourseTerminology: 100,
+    Festival: 100,
+    Party: 100
+};
+
+const EVENT_DESC_WEIGHTS = {
+    Workshop: 1,
+    Course: 1,
+    CourseTerminology: 1,
+    Festival: 1,
+    Party: 1
+};
 
 module.exports = {
     analyseEvent: (eventData) => {
@@ -45,16 +61,19 @@ function guessEventType(eventData) {
         Party: 0
     };
 
-    for (let prop in KEYWORDS.Type) {
-        let result = KEYWORDS.Type[prop].exec(eventData.name);
-        if (result) {
-            weights[prop] += result.length * 100; // if it shows up in the main title, there's a good chance that this is most relevant
-        }
+    let result;
 
-        // I don't like how this will skew towards more verbose descriptions, maybe need to add weights to this. But a naive word count won't work well since I'll need to include all languages involved!
-        result = KEYWORDS.Type[prop].exec(eventData.description);
-        if (result) {
-            weights[prop] += result.length;
+    result = textAnalyser.analyse(eventData.name, TYPE_KEYWORDS, EVENT_TITLE_WEIGHTS);
+    if (result) {
+        for (let prop in weights) {
+            weights[prop] += result[prop] ? result[prop] : 0;
+        }
+    }
+
+    result = textAnalyser.analyse(eventData.description, TYPE_KEYWORDS, EVENT_DESC_WEIGHTS);
+    if (result) {
+        for (let prop in weights) {
+            weights[prop] += result[prop] ? result[prop] : 0;
         }
     }
 
@@ -104,11 +123,5 @@ function guessEventType(eventData) {
 }
 
 function scanForInterests(eventData) {
-    let tags = [];
-    for (let prop in KEYWORDS.Interests) {
-        if (KEYWORDS.Interests[prop].test(eventData.name) || KEYWORDS.Interests[prop].test(eventData.description)) {
-            tags.push(prop);
-        }
-    }
-    return tags;
+    return textAnalyser.find([eventData.name, eventData.description], INTEREST_KEYWORDS);
 }
