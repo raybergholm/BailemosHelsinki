@@ -233,6 +233,20 @@ function parseNlpDateTime(entry) {
     // currently works, the server will always get incorrect intervals if there's any timezone offsets at all. Also, this method
     // fixes the week interval to use Monday instead of defaulting to US standards: we're not in the US so no reason to use US weeks
     const intervalParser = (from, to) => {
+        const createDefaultInterval = () => {
+            return {
+                value: (new Date()).toISOString(),
+                grain: "day"
+            };
+        };
+
+        if(!from){
+            from = createDefaultInterval();
+        }
+        if(!to){
+            to = createDefaultInterval();
+        }
+
         return {
             from: (() => {
                 let offset = utils.parseTimezoneOffset(from.value);
