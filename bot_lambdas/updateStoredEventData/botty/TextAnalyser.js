@@ -3,6 +3,7 @@
 module.exports = {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     analyse: (text, keywords, weights) => {
         let collectedResults = {};
@@ -48,6 +49,8 @@ module.exports = {
 >>>>>>> add initial structure for stand-alone text analysis module
 =======
     */
+=======
+>>>>>>> fix merge conflict
     analyse: (text, keywords, weights) => {
         let collectedResults = {};
 
