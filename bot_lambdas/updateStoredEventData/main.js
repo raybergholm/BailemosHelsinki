@@ -185,7 +185,7 @@ function parseResponses(responses) {
         }
     });
 
-    if (eventLinks.length > 0) {
+    if (eventLinks.size > 0) {
         // Need to wait for secondary event query
         return Promise.resolve(buildSecondaryQuery(eventLinks, events)
             .then(batchQueryFacebook)
@@ -227,7 +227,7 @@ function buildSecondaryQuery(eventLinks, events) {
     let eventIds = [];
 
     // extract the event ID from the URL, then check if it's already in the events: if it is, just skip it, we already have the event data
-    eventLinks.forEach((link) => {
+    Array.from(eventLinks.values()).forEach((link) => {
         let id = eventIdRegex.exec(link)[0];
         if (!events.get(id)) {
             eventIds.push(id);
@@ -255,7 +255,6 @@ function parseSecondaryEventResponses(responses) { // NOTE: this is a normal fun
             console.log("Response errored: ", response.error.message);
         } else {
             let evt = JSON.parse(response.body);
-            console.log(evt);
 
             if ((new Date(evt.start_time)).getTime() > Date.now()) { // future events only
                 evt._bh = bottyDataAnalyser.analyseEvent(evt);
