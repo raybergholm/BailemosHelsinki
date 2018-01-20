@@ -1,15 +1,6 @@
 "use strict";
 
 module.exports = {
-    /* 
-        let keywords = {
-            prop: {
-                regex: /blah/i,
-                weight: 1
-            },
-            ...
-        }
-    */
     analyse: (text, keywords, weights) => {
         let collectedResults = {};
 
