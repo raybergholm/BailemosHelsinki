@@ -11,24 +11,33 @@ exports.handler = (event, context, callback) => {
     if (event.httpMethod === "GET") {
         let accessToken = event.queryStringParameters["bh.access_token"];
         if (accessToken && accessToken === ACCESS_TOKEN) {
-            let events = null;
-
             dataStagingInterface.getEventData()
                 .then((data) => {
-                    events = data;
+                    let payload = data;
+
+                    response = generateHttpResponse(200, payload);
+                    callback(null, response);
                 })
                 .catch((err) => {
                     console.log("Error thrown: ", err);
+                    let payload = {
+                        message: "Internal Server Error"
+                    };
+                    response = generateHttpResponse(500, payload);
+                    callback(null, response);
                 });
-
-            response = generateHttpResponse(200, events);
+        } else {
+            let payload = {
+                message: "Error, wrong validation token"
+            };
+            response = generateHttpResponse(422, payload);
             callback(null, response);
         }
+    } else {
+        response = generateHttpResponse(204, null);
+        callback(null, response);
     }
-
-    response = generateHttpResponse(200, null);
-    callback(null, response);
-}
+};
 
 function generateHttpResponse(statusCode, payload) {
     return {
