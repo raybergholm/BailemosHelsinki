@@ -1,5 +1,5 @@
 // Persistent storage interface 
-const dataStagingInterface = require("../dataStagingInterface");
+const dataStagingInterface = require("./dataStagingInterface");
 
 //---------------------------------------------------------------------------//
 
