@@ -7,6 +7,9 @@ module.exports = {
         for (let prop in keywords) {
             let result = keywords[prop].exec(text);
             if (result) {
+                if (!collectedResults[prop]) {
+                    collectedResults[prop] = 0;
+                }
                 collectedResults[prop] += result.length * weights[prop];
             }
         }
