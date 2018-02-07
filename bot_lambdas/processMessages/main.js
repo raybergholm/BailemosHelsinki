@@ -15,7 +15,7 @@ exports.handler = (event, context, callback) => {
     callback(null, response);
 };
 
-function processMessages(event){
+function processMessages(event) {
     let response;
     let isVerified = false;
 
