@@ -1,6 +1,6 @@
 "use strict";
 
-const utils = require("../utils/utils");
+const utils = require("../utils/dateTimeUtils");
 
 const textAnalyser = require("./TextAnalyser");
 
