@@ -3,17 +3,17 @@ const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 const FACEBOOK_API_VERSION = "/v2.11/";
 
 const FACEBOOK_GRAPH_API_PATHS = {
-    Events: "events/",
-    Feed: "feed/"
+    Events: "events",
+    Feed: "feed"
 };
 
 module.exports = {
     getFeedPath: () => {
-        return FACEBOOK_API_VERSION + FACEBOOK_GRAPH_API_PATHS.Feed;
+        return `${FACEBOOK_API_VERSION}/${FACEBOOK_GRAPH_API_PATHS.Feed}/`;
     },
 
     getEventsPath: () => {
-        return FACEBOOK_API_VERSION + FACEBOOK_GRAPH_API_PATHS.Events;
+        return `${FACEBOOK_API_VERSION}/${FACEBOOK_GRAPH_API_PATHS.Events}/`;
     },
 
     buildQueryUrl: (basePath, params, escapePath) => {
@@ -34,7 +34,7 @@ module.exports = {
     createBatchGraphApiOptions: () => {
         return {
             host: "graph.facebook.com",
-            path: FACEBOOK_API_VERSION + "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
+            path: `/${FACEBOOK_API_VERSION}/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`,
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
