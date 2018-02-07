@@ -9,6 +9,13 @@ const botty = require("./botty/botty");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
+    let response = processMessages(event);
+
+    console.log("Returning the following response: ", JSON.stringify(response));
+    callback(null, response);
+};
+
+function processMessages(event){
     let response;
     let isVerified = false;
 
@@ -64,9 +71,8 @@ exports.handler = (event, context, callback) => {
         response = generateHttpResponse(200, "OK");
     }
 
-    console.log("Returning the following response: ", JSON.stringify(response));
-    callback(null, response);
-};
+    return response;
+}
 
 function generateHttpResponse(statusCode, payload) {
     return {
