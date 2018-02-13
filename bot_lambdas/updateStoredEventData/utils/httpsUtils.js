@@ -73,5 +73,25 @@ module.exports = {
             method: "DELETE",
             headers: headers
         });
+    },
+
+    head: (hostname, path, port = 443, headers = DEFAULT_HEADERS) => {
+        return request({
+            hostname: hostname,
+            port: port,
+            path: path,
+            method: "DELETE",
+            headers: headers
+        });
+    },
+
+    patch: (hostname, path, port = 443, headers = DEFAULT_HEADERS) => {
+        return request({
+            hostname: hostname,
+            port: port,
+            path: path,
+            method: "DELETE",
+            headers: headers
+        });
     }
 };

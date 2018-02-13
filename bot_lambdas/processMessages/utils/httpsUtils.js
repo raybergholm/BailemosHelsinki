@@ -22,11 +22,11 @@ const request = (options, payload = null) => {
             console.log("problem with request: " + err);
             reject(err);
         };
-    
+
         const req = https.request(options, successCallback);
         req.on("error", errorCallback);
-        
-        if(payload) {
+
+        if (payload) {
             const body = JSON.stringify(payload);
             req.write(body);
         }
@@ -44,7 +44,7 @@ module.exports = {
             headers: headers
         });
     },
-    
+
     post: (hostname, path, payload, port = 443, headers = DEFAULT_HEADERS) => {
         return request({
             hostname: hostname,
@@ -66,6 +66,26 @@ module.exports = {
     },
 
     delete: (hostname, path, port = 443, headers = DEFAULT_HEADERS) => {
+        return request({
+            hostname: hostname,
+            port: port,
+            path: path,
+            method: "DELETE",
+            headers: headers
+        });
+    },
+
+    head: (hostname, path, port = 443, headers = DEFAULT_HEADERS) => {
+        return request({
+            hostname: hostname,
+            port: port,
+            path: path,
+            method: "DELETE",
+            headers: headers
+        });
+    },
+
+    patch: (hostname, path, port = 443, headers = DEFAULT_HEADERS) => {
         return request({
             hostname: hostname,
             port: port,
