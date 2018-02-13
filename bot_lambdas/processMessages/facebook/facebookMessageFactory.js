@@ -2,7 +2,7 @@
 
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
-module.exports = (targetId) => {
+const factory = (targetId) => {
     return {
         createMessage: (text, attachment) => {
             if (!targetId || (!text && !attachment)) {
@@ -136,3 +136,5 @@ function createTextQuickReply(text, payload, imageUrl) {
 
     return quickReply;
 }
+
+module.exports = factory;
