@@ -2,6 +2,19 @@
 
 const FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 
+const QUICK_REPLY_PAYLOADS = {
+    NewUserIntro: "NewUserIntro",
+    BottyOverview: "BottyOverview",
+    HowTo_Start: "HowTo_Start",
+    HowTo_Examples: "HowTo_Examples",
+    UserGuide_Start: "UserGuide_Start",
+    UserGuide_Datetime: "UserGuide_Datetime",
+    UserGuide_EventTypes: "UserGuide_EventTypes",
+    UserGuide_Interests: "UserGuide_Interests",
+    UserGuide_End: "UserGuide_End",
+    Disclaimer: "Disclaimer"
+};
+
 const factory = (targetId) => {
     return {
         createMessage: (text, attachment) => {
@@ -57,8 +70,8 @@ const factory = (targetId) => {
             return module.exports.createMessage(targetId, null, messageTemplate); // A message template is just a message with an attachment and no text, so we can reuse the other function
         },
 
-        createQuickReplyMessage: (text, quickReplies) => {
-            if (!targetId || !quickReplies) {
+        createQuickReplyHelpMessage: (text) => {
+            if (!targetId) {
                 throw new Error("Invalid function arguments: cannot create a message with no targetId or empty body");
             }
 
@@ -67,6 +80,30 @@ const factory = (targetId) => {
             if (text) {
                 message.message.text = text;
             }
+
+            const quickReplies = createQuickReplyHelpPayload();
+
+            if (quickReplies) {
+                message.message.quick_replies = quickReplies.map((item) => {
+                    return item.type === "location" ? createLocationQuickReply() : createTextQuickReply(item.text, item.payload, item.imageUrl);
+                });
+            }
+
+            return message;
+        },
+
+        createQuickReplyUSerGuideMessage: (text) => {
+            if (!targetId) {
+                throw new Error("Invalid function arguments: cannot create a message with no targetId or empty body");
+            }
+
+            let message = createMessageBase(targetId);
+
+            if (text) {
+                message.message.text = text;
+            }
+
+            const quickReplies = createQuickReplyUserGuidePayload();
 
             if (quickReplies) {
                 message.message.quick_replies = quickReplies.map((item) => {
@@ -135,6 +172,44 @@ function createTextQuickReply(text, payload, imageUrl) {
     }
 
     return quickReply;
+}
+
+function createQuickReplyHelpPayload() {
+    return [{
+            type: "text",
+            text: "Who are you?",
+            payload: QUICK_REPLY_PAYLOADS.BottyOverview
+        },
+        {
+            type: "text",
+            text: "Quickstart",
+            payload: QUICK_REPLY_PAYLOADS.HowTo_Start
+        },
+        {
+            type: "text",
+            text: "Detailed guide",
+            payload: QUICK_REPLY_PAYLOADS.UserGuide_Start
+        }
+    ];
+}
+
+function createQuickReplyUserGuidePayload() {
+    return [{
+            type: "text",
+            text: "Date & time?",
+            payload: QUICK_REPLY_PAYLOADS.UserGuide_Datetime
+        },
+        {
+            type: "text",
+            text: "Event types?",
+            payload: QUICK_REPLY_PAYLOADS.UserGuide_EventTypes
+        },
+        {
+            type: "text",
+            text: "Dance styles?",
+            payload: QUICK_REPLY_PAYLOADS.UserGuide_Interests
+        }
+    ];
 }
 
 module.exports = factory;
