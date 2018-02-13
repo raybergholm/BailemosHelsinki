@@ -12,8 +12,8 @@ module.exports = {
     buildQueryUrl: (basePath, params, escapePath) => {
         let path = basePath;
         if (params) {
-            let paramsArr = [];
-            for (let prop in params) {
+            const paramsArr = [];
+            for (const prop in params) {
                 paramsArr.push(prop + "=" + (params[prop] instanceof Array ? params[prop].join(',') : params[prop]));
             }
             path += '?' + paramsArr.join('&');

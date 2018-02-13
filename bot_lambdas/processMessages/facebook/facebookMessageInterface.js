@@ -1,6 +1,6 @@
 "use strict";
 
-const https = require("https");
+const request = require("../utils/httpUtils");
 
 // Facebook GraphAPI submodules
 const facebookApiInterface = require("./facebookApiInterface");
@@ -30,45 +30,22 @@ module.exports = {
     },
 
     sendMessage: (text, attachment) => {
-        let message = facebookMessageFactory.createMessage(_targetId, text, attachment);
+        const message = facebookMessageFactory.createMessage(_targetId, text, attachment);
         return sendMessageToFacebook(message);
     },
 
     sendQuickReplyMessage: (text, quickReplies) => {
-        let message = facebookMessageFactory.createQuickReplyMessage(_targetId, text, quickReplies);
+        const message = facebookMessageFactory.createQuickReplyMessage(_targetId, text, quickReplies);
         return sendMessageToFacebook(message);
     },
 
     sendGenericTemplateMessage: (elements) => {
-        let message = facebookMessageFactory.createGenericMessageTemplate(_targetId, elements);
+        const message = facebookMessageFactory.createGenericMessageTemplate(_targetId, elements);
         return sendMessageToFacebook(message);
     }
 };
 
 function sendMessageToFacebook(payload) {
-    return new Promise((resolve, reject) => {
-        let body = JSON.stringify(payload);
-        let options = facebookApiInterface.createSendMessageOptions();
-
-        console.log("Sending payload to Facebook: ", body);
-
-        let callback = (response) => {
-            let str = "";
-            response.on("data", (chunk) => {
-                str += chunk;
-            });
-            response.on("end", () => {
-                resolve(str);
-            });
-        };
-
-        let req = https.request(options, callback);
-        req.on("error", (err) => {
-            console.log("problem with request: " + err);
-            reject(err);
-        });
-
-        req.write(body);
-        req.end();
-    });
+    const options = facebookApiInterface.createSendMessageOptions();
+    return request.post(options, payload);
 }
