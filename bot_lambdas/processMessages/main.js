@@ -9,7 +9,7 @@ const botty = require("./botty/botty");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    let response = processMessages(event);
+    const response = processMessages(event);
 
     console.log("Returning the following response: ", JSON.stringify(response));
     callback(null, response);
@@ -23,21 +23,21 @@ function processMessages(event) {
         isVerified = facebookRequestVerifier.verifySignature(event.headers['X-Hub-Signature'], event.body);
         if (!isVerified) {
             console.log("X-Hub_Signature did not match the expected value");
-            let payload = {
+            const payload = {
                 message: "Error, unauthorized request"
             };
             response = generateHttpResponse(403, payload);
         }
     } catch (err) {
         console.log("Error during request verification:", err.message);
-        let payload = {
+        const payload = {
             message: "Internal server error"
         };
         response = generateHttpResponse(500, payload);
     }
 
     if (isVerified && event.httpMethod === "POST") {
-        let data = JSON.parse(event.body);
+        const data = JSON.parse(event.body);
         if (data) {
             // Make sure this is a page subscription
             if (data.object === "page") {
@@ -83,11 +83,11 @@ function generateHttpResponse(statusCode, payload) {
 }
 
 function handleReceivedMessage(receivedMessage) {
-    let senderId = receivedMessage.sender.id;
-    let messageData = receivedMessage.message;
+    const senderId = receivedMessage.sender.id;
+    const messageData = receivedMessage.message;
 
-    // let recipientId = receivedMessage.recipient.id;
-    // let timeOfMessage = receivedMessage.timestamp;
+    // const recipientId = receivedMessage.recipient.id;
+    // const timeOfMessage = receivedMessage.timestamp;
 
     console.log("entire message data structure: ", JSON.stringify(receivedMessage));
 
@@ -95,11 +95,11 @@ function handleReceivedMessage(receivedMessage) {
     // console.log("Message data: ", messageData);
 
     // let messageId = messageData.mid;
-    let messageText = messageData.text;
-    let messageAttachments = messageData.attachments;
-    let nlp = messageData.nlp;
+    const messageText = messageData.text;
+    const messageAttachments = messageData.attachments;
+    const nlp = messageData.nlp;
 
-    botty.setConversationTarget(senderId);
+    botty.initConversation(senderId);
 
     if (messageData.quick_reply) {
         botty.respondToQuickReply(messageData.quick_reply.payload);

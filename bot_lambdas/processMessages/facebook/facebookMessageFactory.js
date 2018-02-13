@@ -159,7 +159,7 @@ function createLocationQuickReply() {
 }
 
 function createTextQuickReply(text, payload, imageUrl) {
-    let quickReply = {
+    const quickReply = {
         content_type: "text",
         title: text,
         payload: payload

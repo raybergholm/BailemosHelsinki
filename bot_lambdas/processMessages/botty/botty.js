@@ -26,8 +26,8 @@ let typingIndicatorSent = false;
 let analysisResults;
 
 module.exports = {
-    setConversationTarget: (targetId) => {
-        conversation = facebookMessageInterface(targetId, textGenerator);
+    initConversation: (targetId) => {
+        conversation = facebookMessageInterface(targetId)(textGenerator);
     },
 
     respondToQuickReply: (payload) => {
@@ -38,13 +38,11 @@ module.exports = {
         console.log(`Incoming message with text: "${text}", ${attachments ? "with" : "no"} attachments`);
         console.log("Built-in NLP from Facebook: ", JSON.stringify(nlp));
 
-        let result;
-
         if (attachments) {
             // TODO: what do we want to do with attachments?
         }
 
-        result = analyseInput(text, nlp);
+        const result = analyseInput(text, nlp);
 
         if (!result) {
             conversation.sendMessage(textGenerator.getText("Uncertain"))
@@ -98,11 +96,11 @@ module.exports = {
 
 function analyseInput(text, nlp) {
     let result;
-    let parsedFromNlp = new Map();
+    const parsedFromNlp = new Map();
 
     // Check the NLP results first, if we have hits here then we can skip custom parsing
     if (nlp && nlp.entities) {
-        let nlpResult = parser.parseBuiltinNlp(nlp.entities);
+        const nlpResult = parser.parseBuiltinNlp(nlp.entities);
 
         console.log("Result after parsing NLP:", nlpResult);
 
@@ -151,7 +149,7 @@ function analyseInput(text, nlp) {
 }
 
 function quickScan(text) {
-    let parsedResult = parser.quickScan(text);
+    const parsedResult = parser.quickScan(text);
     let result = null;
     if (parsedResult) {
         switch (parsedResult) {
@@ -206,7 +204,7 @@ function fetchEvents() { // NOTE: this gets the resolve value from setConversati
 
 function filterEvents(inputEvents) {
     let outputEvents = inputEvents.filter((evt) => {
-        let startTime = moment(evt.start_time);
+        const startTime = moment(evt.start_time);
         return analysisResults.dateTimeRange.some((dateTime) => {
             return startTime >= dateTime.from && startTime <= dateTime.to;
         });
@@ -240,7 +238,7 @@ function filterEvents(inputEvents) {
 }
 
 function buildResponse(inputEvents) {
-    let output = {
+    const output = {
         overviewMessage: null,
         eventElements: null
     };
@@ -259,11 +257,11 @@ function buildResponse(inputEvents) {
         amount: inputEvents.length
     });
 
-    let elements = [];
+    const elements = [];
 
     if (inputEvents.length > 0) {
         inputEvents.forEach((eventData) => {
-            let displayMoment = moment(eventData.start_time);
+            const displayMoment = moment(eventData.start_time);
 
             // I don't like having to do it this way, but native Date & moment.js end up losing info on the offset in the original date string
             if (eventData._bh && eventData._bh.timezoneOffset) {
@@ -294,7 +292,7 @@ function buildResponse(inputEvents) {
                 });
             }
 
-            let coverImageUrl = eventData.cover && eventData.cover.source ? eventData.cover.source : null;
+            const coverImageUrl = eventData.cover && eventData.cover.source ? eventData.cover.source : null;
 
             elements.push({
                 title: eventData.name,
