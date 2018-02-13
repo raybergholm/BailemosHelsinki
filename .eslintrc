@@ -20,6 +20,7 @@
         "eqeqeq": ["warn", "always"],
         "no-lonely-if": "warn",
         "no-unused-vars": "warn",
+        "prefer-const": "warn",
 
         "curly": ["error", "all"],
         "for-direction": "error",
