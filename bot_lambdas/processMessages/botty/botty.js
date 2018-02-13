@@ -19,13 +19,15 @@ const dataStagingInterface = require("../dataStagingInterface");
 
 const FACEBOOK_GENERIC_TEMPLATE_LIMIT = 10;
 
+let conversation = null;
+
 let typingIndicatorSent = false;
 
 let analysisResults;
 
 module.exports = {
     setConversationTarget: (targetId) => {
-        facebookMessageInterface.setTargetId(targetId);
+        conversation = facebookMessageInterface(targetId, textGenerator);
     },
 
     respondToQuickReply: (payload) => {
@@ -45,7 +47,7 @@ module.exports = {
         result = analyseInput(text, nlp);
 
         if (!result) {
-            facebookMessageInterface.sendMessage(textGenerator.getText("Uncertain"))
+            conversation.sendMessage(textGenerator.getText("Uncertain"))
                 .then(endConversation)
                 .catch((err) => {
                     console.log("Error thrown in null reply chain: ", err);
@@ -63,14 +65,14 @@ module.exports = {
         } else if (result.type === "NormalReply") {
             if (result.text instanceof Array) {
                 for (let i = 0; i < result.length; i++) {
-                    facebookMessageInterface.sendMessage(result[i].text)
+                    conversation.sendMessage(result[i].text)
                         .then(endConversation)
                         .catch((err) => {
                             console.log("Error thrown in short reply chain: ", err);
                         });
                 }
             } else {
-                facebookMessageInterface.sendMessage(result.text)
+                conversation.sendMessage(result.text)
                     .then(endConversation)
                     .catch((err) => {
                         console.log("Error thrown in short reply chain: ", err);
@@ -190,7 +192,7 @@ function deepScan(text, nlp) {
 // Promise chain functions & handlers start here
 
 function startConversation() {
-    return facebookMessageInterface.sendTypingIndicator();
+    return conversation.sendTypingIndicator();
 }
 
 function setConversationStatus(typingIndicatorStatus) {
@@ -313,10 +315,10 @@ function buildResponse(inputEvents) {
 }
 
 function sendResponse(input) {
-    return facebookMessageInterface.sendMessage(input.overviewMessage).then(
+    return conversation.sendMessage(input.overviewMessage).then(
         (response) => {
             if (input.eventElements) {
-                return facebookMessageInterface.sendGenericTemplateMessage(input.eventElements);
+                return conversation.sendGenericTemplateMessage(input.eventElements);
             } else {
                 return response;
             }
@@ -328,7 +330,7 @@ function endConversation(messageReceipt) {
     console.log("Returned message receipt: ", messageReceipt);
 
     if (typingIndicatorSent) {
-        facebookMessageInterface.sendTypingIndicator(false);
+        conversation.sendTypingIndicator(false);
     }
     return Promise.resolve(messageReceipt);
 }
