@@ -8,16 +8,16 @@ const facebookMessageFactory = require("./facebookMessageFactory");
 
 //---------------------------------------------------------------------------//
 
-let _targetId;
+let conversation = null;
 
 module.exports = {
     setTargetId: (targetId) => {
-        _targetId = targetId;
+        conversation = facebookMessageFactory.assignId(targetId);
     },
 
     sendTypingIndicator: (mode) => {
         // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
-        // let typingIndicatorMessage = facebookMessageFactory.createSenderActionMessage(_targetId, mode ? "typing_on" : "typing_off");
+        // let typingIndicatorMessage = conversation.createSenderActionMessage(mode ? "typing_on" : "typing_off");
         // return sendMessageToFacebook(typingIndicatorMessage)
         //     .then((messageReceipt) => {
         //         if (messageReceipt) {
