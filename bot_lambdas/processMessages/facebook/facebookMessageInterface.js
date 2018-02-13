@@ -12,7 +12,7 @@ let conversation = null;
 
 module.exports = {
     setTargetId: (targetId) => {
-        conversation = facebookMessageFactory.assignId(targetId);
+        conversation = facebookMessageFactory(targetId);
     },
 
     sendTypingIndicator: (mode) => {
