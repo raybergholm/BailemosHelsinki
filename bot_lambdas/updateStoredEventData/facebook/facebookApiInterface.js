@@ -2,25 +2,22 @@ const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 const FACEBOOK_API_VERSION = "/v2.11/";
 
-const FACEBOOK_GRAPH_API_PATHS = {
-    Events: "events",
-    Feed: "feed"
-};
+const HOST_URL = "graph.facebook.com";
+const BATCH_PATH = `/${FACEBOOK_API_VERSION}/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`;
+const RELATIVE_EVENTS_PATH = `/${FACEBOOK_API_VERSION}/events?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`;
+const RELATIVE_FEED_PATH = `/${FACEBOOK_API_VERSION}/feed/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`;
 
 module.exports = {
-    getFeedPath: () => {
-        return `${FACEBOOK_API_VERSION}/${FACEBOOK_GRAPH_API_PATHS.Feed}/`;
-    },
-
-    getEventsPath: () => {
-        return `${FACEBOOK_API_VERSION}/${FACEBOOK_GRAPH_API_PATHS.Events}/`;
-    },
+    getHostUrl: () => HOST_URL,
+    getBatchRequestPath: () => BATCH_PATH,
+    getRelativeEventsPath: () => RELATIVE_EVENTS_PATH,
+    getRelativeFeedPath: () => RELATIVE_FEED_PATH,
 
     buildQueryUrl: (basePath, params, escapePath) => {
         let path = basePath;
         if (params) {
-            let paramsArr = [];
-            for (let prop in params) {
+            const paramsArr = [];
+            for (const prop in params) {
                 paramsArr.push(prop + "=" + (params[prop] instanceof Array ? params[prop].join(',') : params[prop]));
             }
             path += '?' + paramsArr.join('&');
@@ -29,16 +26,5 @@ module.exports = {
             path = encodeURIComponent(path);
         }
         return path;
-    },
-
-    createBatchGraphApiOptions: () => {
-        return {
-            host: "graph.facebook.com",
-            path: `/${FACEBOOK_API_VERSION}/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        };
     }
 };

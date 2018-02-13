@@ -2,13 +2,17 @@
 
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
-const FACEBOOK_API_VERSION = "/v2.11/";
+const FACEBOOK_API_VERSION = "v2.11";
 
-const FACEBOOK_GRAPH_API_PATHS = {
-    Messages: "me/messages/"
-};
+const HOST_URL = "graph.facebook.com";
+const BATCH_PATH = `/${FACEBOOK_API_VERSION}/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`;
+const SEND_MESSAGE_PATH = `/${FACEBOOK_API_VERSION}/me/messages/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`;
 
 module.exports = {
+    getHostUrl: () => HOST_URL,
+    getBatchRequestPath: () => BATCH_PATH,
+    getSendMessagePath: () => SEND_MESSAGE_PATH,
+    
     buildQueryUrl: (basePath, params, escapePath) => {
         let path = basePath;
         if (params) {
@@ -22,31 +26,5 @@ module.exports = {
             path = encodeURIComponent(path);
         }
         return path;
-    },
-
-    createBatchGraphApiOptions: () => {
-        return {
-            host: "graph.facebook.com",
-            path: FACEBOOK_API_VERSION + "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        };
-    },
-
-    createSendMessageOptions: () => {
-        return {
-            host: "graph.facebook.com",
-            path: getMessagesPath() + "?access_token=" + FACEBOOK_PAGE_ACCESS_TOKEN,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        };
     }
 };
-
-function getMessagesPath() {
-    return FACEBOOK_API_VERSION + FACEBOOK_GRAPH_API_PATHS.Messages;
-}
