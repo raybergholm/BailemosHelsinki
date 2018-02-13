@@ -46,6 +46,5 @@ module.exports = {
 };
 
 function sendMessageToFacebook(payload) {
-    const options = facebookApiInterface.createSendMessageOptions();
-    return request.post(options, payload);
+    return request.post(facebookApiInterface.getHostUrl(), facebookApiInterface.getSendMessagePath(), payload);
 }

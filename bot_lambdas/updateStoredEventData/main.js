@@ -1,7 +1,6 @@
 "use strict";
 
-// Built-in modules
-const https = require("https");
+const request = require("./utils/httpsUtils");
 
 // Facebook Graph API interfacing modules
 const facebookApiInterface = require("./facebook/facebookApiInterface");
@@ -15,7 +14,7 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 exports.handler = (event, context, callback) => {
-    let response = updateEventData();
+    const response = updateEventData();
     callback(null, response);
 };
 
@@ -33,7 +32,7 @@ function updateEventData() {
         })
         .catch((err) => {
             console.log("Error thrown: ", err);
-            let payload = {
+            const payload = {
                 message: "Internal Server Error"
             };
             return generateHttpResponse(500, payload);
@@ -56,11 +55,11 @@ function getOrganiserData() {
 }
 
 function buildOrganiserQuery(organisers) {
-    let pageIds = [],
+    const pageIds = [],
         groupIds = [],
         userIds = [];
 
-    for (let prop in organisers) {
+    for (const prop in organisers) {
         switch (organisers[prop].Type) {
             case "page":
                 // scrape this page's events
@@ -79,10 +78,10 @@ function buildOrganiserQuery(organisers) {
         }
     }
 
-    let batchRequestPayload = [];
+    const batchRequestPayload = [];
 
     batchRequestPayload.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
+        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getRelativeEventsPath(), {
             debug: "all",
             time_filter: "upcoming",
             ids: pageIds,
@@ -91,7 +90,7 @@ function buildOrganiserQuery(organisers) {
         method: "GET"
     });
     batchRequestPayload.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getFeedPath(), {
+        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getRelativeFeedPath(), {
             debug: "all",
             ids: groupIds,
             fields: ["type", "link", "message", "story"]
@@ -99,7 +98,7 @@ function buildOrganiserQuery(organisers) {
         method: "GET"
     });
     batchRequestPayload.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getEventsPath(), {
+        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getRelativeEventsPath(), {
             debug: "all",
             time_filter: "upcoming",
             ids: userIds,
@@ -112,19 +111,7 @@ function buildOrganiserQuery(organisers) {
 }
 
 function batchQueryFacebook(payload) {
-    return new Promise((resolve, reject) => {
-        let options = facebookApiInterface.createBatchGraphApiOptions();
-
-        let req = https.request(options, (response) => {
-            resolve(response);
-        });
-        req.on("error", (err) => {
-            reject(err);
-        });
-
-        req.write("batch=" + JSON.stringify(payload));
-        req.end();
-    });
+    return request.post(facebookApiInterface.getHostUrl(), facebookApiInterface.getBatchRequestPath(), payload);
 }
 
 function processResponseFromFacebook(response) {
@@ -136,7 +123,7 @@ function processResponseFromFacebook(response) {
             });
 
             response.on("end", () => {
-                let responses = JSON.parse(str);
+                const responses = JSON.parse(str);
                 resolve(parseResponses(responses));
             });
         } catch (err) {
@@ -146,25 +133,25 @@ function processResponseFromFacebook(response) {
 }
 
 function parseResponses(responses) {
-    let events = new Map(); // using a Map to guarentee unique entries
-    let eventLinks = new Set(); // using a Set to guarentee unique entries
+    const events = new Map(); // using a Map to guarentee unique entries
+    const eventLinks = new Set(); // using a Set to guarentee unique entries
 
-    let facebookEventLinkRegex = /^https:\/\/www.facebook.com\/events\/\d+\/$/i;
+    const facebookEventLinkRegex = /^https:\/\/www.facebook.com\/events\/\d+\/$/i;
 
     responses.forEach((response) => {
         if (response.error) {
             console.log("Response errored: ", response.error.message);
         } else {
-            let body = JSON.parse(response.body);
+            const body = JSON.parse(response.body);
 
-            for (let prop in body) {
+            for (const prop in body) {
                 if (body[prop].data) {
-                    let entries = body[prop].data;
+                    const entries = body[prop].data;
                     entries.forEach((entry) => {
                         if (entry.name && entry.description && entry.start_time && entry.end_time) {
                             // This is an event
                             if (entry.event_times) {
-                                let firstUpcomingEvent = entry.event_times.find((element) => {
+                                const firstUpcomingEvent = entry.event_times.find((element) => {
                                     return (new Date(element.start_time)).getTime() > Date.now();
                                 });
 
@@ -203,9 +190,9 @@ function parseResponses(responses) {
                             });
 
                             response.on("end", () => {
-                                let responses = JSON.parse(str);
+                                const responses = JSON.parse(str);
 
-                                let additionalEvents = parseSecondaryEventResponses(responses);
+                                const additionalEvents = parseSecondaryEventResponses(responses);
                                 additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
                                     events.set(evt.id, evt);
                                 });
@@ -225,19 +212,19 @@ function parseResponses(responses) {
 }
 
 function buildSecondaryQuery(eventLinks, events) {
-    let eventIdRegex = /\d+/i;
+    const eventIdRegex = /\d+/i;
 
-    let eventIds = [];
+    const eventIds = [];
 
     // extract the event ID from the URL, then check if it's already in the events: if it is, just skip it, we already have the event data
     Array.from(eventLinks.values()).forEach((link) => {
-        let id = eventIdRegex.exec(link)[0];
+        const id = eventIdRegex.exec(link)[0];
         if (!events.get(id)) {
             eventIds.push(id);
         }
     });
 
-    let batchRequestContent = [];
+    const batchRequestContent = [];
     eventIds.map((eventId) => {
         batchRequestContent.push({
             relative_url: facebookApiInterface.buildQueryUrl(eventId + "/", {
@@ -252,16 +239,16 @@ function buildSecondaryQuery(eventLinks, events) {
 }
 
 function parseSecondaryEventResponses(responses) { // NOTE: this is a normal function, no promise required
-    let additionalEvents = [];
+    const additionalEvents = [];
     responses.forEach((response) => {
         if (response.error) {
             console.log("Response errored: ", response.error.message);
         } else {
-            let evt = JSON.parse(response.body);
+            const event = JSON.parse(response.body);
 
-            if ((new Date(evt.start_time)).getTime() > Date.now()) { // future events only
-                evt._bh = bottyDataAnalyser.analyseEvent(evt);
-                additionalEvents.push(evt);
+            if ((new Date(event.start_time)).getTime() > Date.now()) { // future events only
+                event._bh = bottyDataAnalyser.analyseEvent(event);
+                additionalEvents.push(event);
             }
         }
     });
@@ -270,17 +257,17 @@ function parseSecondaryEventResponses(responses) { // NOTE: this is a normal fun
 }
 
 function formatPayloadForStorage(events) {
-    let payload = convertMapToArray(events);
+    const payload = convertMapToArray(events);
     return Promise.resolve(JSON.stringify(payload));
 }
 
 function convertMapToArray(inputMap) {
     // Convert the map into an array of events sorted in ascending chronological order
 
-    let outputArr = [...inputMap.values()];
+    const outputArr = [...inputMap.values()];
     outputArr.sort((left, right) => {
-        let leftDate = new Date(left.start_time);
-        let rightDate = new Date(right.start_time);
+        const leftDate = new Date(left.start_time);
+        const rightDate = new Date(right.start_time);
 
         if (!leftDate || !rightDate || leftDate.getTime() === rightDate.getTime()) {
             return 0;
