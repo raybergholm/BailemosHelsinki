@@ -2,11 +2,25 @@
 
 const https = require("https");
 
+const DEFAULT_PORT = 443;
+
 const DEFAULT_HEADERS = {
     "Content-Type": "application/json"
 };
 
-const request = (options, payload = null) => {
+const createOptions = (hostname, path, method, port = DEFAULT_PORT, headers = DEFAULT_HEADERS) => {
+    return {
+        hostname: hostname,
+        port: port,
+        path: path,
+        method: method,
+        headers: headers
+    };
+};
+
+const request = (hostname, path, method, payload = null, port = DEFAULT_PORT, headers = DEFAULT_HEADERS) => {
+    const options = createOptions(hostname, path, method, port, headers);
+
     return new Promise((resolve, reject) => {
         const successCallback = (response) => {
             let str = "";
@@ -35,63 +49,11 @@ const request = (options, payload = null) => {
 };
 
 module.exports = {
-    get: (hostname, path, port = 443, headers = DEFAULT_HEADERS) => {
-        return request({
-            hostname: hostname,
-            port: port,
-            path: path,
-            method: "GET",
-            headers: headers
-        });
-    },
-
-    post: (hostname, path, payload, port = 443, headers = DEFAULT_HEADERS) => {
-        return request({
-            hostname: hostname,
-            port: port,
-            path: path,
-            method: "POST",
-            headers: headers
-        }, payload);
-    },
-
-    put: (hostname, path, payload, port = 443, headers = DEFAULT_HEADERS) => {
-        return request({
-            hostname: hostname,
-            port: port,
-            path: path,
-            method: "PUT",
-            headers: headers
-        }, payload);
-    },
-
-    delete: (hostname, path, port = 443, headers = DEFAULT_HEADERS) => {
-        return request({
-            hostname: hostname,
-            port: port,
-            path: path,
-            method: "DELETE",
-            headers: headers
-        });
-    },
-
-    head: (hostname, path, port = 443, headers = DEFAULT_HEADERS) => {
-        return request({
-            hostname: hostname,
-            port: port,
-            path: path,
-            method: "DELETE",
-            headers: headers
-        });
-    },
-
-    patch: (hostname, path, port = 443, headers = DEFAULT_HEADERS) => {
-        return request({
-            hostname: hostname,
-            port: port,
-            path: path,
-            method: "DELETE",
-            headers: headers
-        });
-    }
+    request: request,
+    get: (hostname, path, port = DEFAULT_PORT, headers = DEFAULT_HEADERS) => request(hostname, path, "GET", null, port, headers),
+    head: (hostname, path, port = DEFAULT_PORT, headers = DEFAULT_HEADERS) => request(hostname, path, "HEAD", null, port, headers),
+    post: (hostname, path, payload, port = DEFAULT_PORT, headers = DEFAULT_HEADERS) => request(hostname, path, "POST", payload, port, headers),
+    put: (hostname, path, payload, port = DEFAULT_PORT, headers = DEFAULT_HEADERS) => request(hostname, path, "PUT", payload, port, headers),
+    patch: (hostname, path, payload, port = DEFAULT_PORT, headers = DEFAULT_HEADERS) => request(hostname, path, "PATCH", payload, port, headers),
+    delete: (hostname, path, port = DEFAULT_PORT, headers = DEFAULT_HEADERS) => request(hostname, path, "DELETE", null, port, headers),
 };
