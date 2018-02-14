@@ -6,7 +6,7 @@ const request = require("./utils/httpsUtils");
 const facebookApiInterface = require("./facebook/facebookApiInterface");
 
 // AWS data staging interfacing modules
-const dataStagingInterface = require("./dataStagingInterface");
+const dataInterface = require("./persistentStorageInterface");
 
 // For event data analysis
 const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
@@ -51,7 +51,7 @@ function generateHttpResponse(statusCode, payload) {
 // Promise chain functions & handlers start here
 
 function getOrganiserData() {
-    return dataStagingInterface.getOrganiserData();
+    return dataInterface.getOrganisers();
 }
 
 function buildOrganiserQuery(organisers) {
@@ -280,5 +280,5 @@ function convertMapToArray(inputMap) {
 }
 
 function saveEventData(payload) {
-    return dataStagingInterface.saveEventData(payload);
+    return dataInterface.saveEvents(payload);
 }
