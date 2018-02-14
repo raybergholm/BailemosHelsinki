@@ -8,7 +8,7 @@ const objectUtils = require("./utils/objectUtils");
 
 const AWS = require("aws-sdk");
 AWS.config.update({
-    region: "eu-central-1"
+    region: "eu-west-1"
 });
 
 const dynamoDB = new AWS.DynamoDB();
