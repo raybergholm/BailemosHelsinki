@@ -115,21 +115,8 @@ function batchQueryFacebook(payload) {
 }
 
 function processResponseFromFacebook(response) {
-    return new Promise((resolve, reject) => {
-        try {
-            let str = "";
-            response.on("data", (chunk) => {
-                str += chunk;
-            });
-
-            response.on("end", () => {
-                const responses = JSON.parse(str);
-                resolve(parseResponses(responses));
-            });
-        } catch (err) {
-            reject(err);
-        }
-    });
+    const result = JSON.parse(response);
+    return !result.error ? Promise.resolve(parseResponses(result)) : Promise.reject(result);
 }
 
 function parseResponses(responses) {
