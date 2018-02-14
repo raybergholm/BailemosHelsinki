@@ -79,9 +79,9 @@ function buildOrganiserQuery(organisers) {
     }
 
     const batchRequestPayload = [];
-    batchRequestPayload.push(facebookApiInterface.buildBatchEventPayload(pageIds));
-    batchRequestPayload.push(facebookApiInterface.buildBatchFeedPayload(groupIds));
-    batchRequestPayload.push(facebookApiInterface.buildBatchEventPayload(userIds));
+    batchRequestPayload.push(facebookApiInterface.buildBatchEventQueryPayload(pageIds));
+    batchRequestPayload.push(facebookApiInterface.buildBatchFeedQueryPayload(groupIds));
+    batchRequestPayload.push(facebookApiInterface.buildBatchEventQueryPayload(userIds));
 
     return Promise.resolve(batchRequestPayload);
 }
