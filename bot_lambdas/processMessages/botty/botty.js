@@ -13,7 +13,7 @@ const quickReplyHandler = require("./bottyQuickReplyHandler");
 const facebookMessageInterface = require("../facebook/facebookMessageInterface");
 
 // Persistent storage interface 
-const dataStagingInterface = require("../dataStagingInterface");
+const dataInterface = require("../persistantStorageInterface");
 
 //---------------------------------------------------------------------------//
 
@@ -199,7 +199,7 @@ function setConversationStatus(typingIndicatorStatus) {
 }
 
 function fetchEvents() { // NOTE: this gets the resolve value from setConversationStatus() but we're not using it
-    return dataStagingInterface.getEventData();
+    return dataInterface.getEvents();
 }
 
 function filterEvents(inputEvents) {

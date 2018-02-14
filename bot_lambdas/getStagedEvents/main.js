@@ -1,5 +1,5 @@
 // Persistent storage interface 
-const dataStagingInterface = require("./dataStagingInterface");
+const dataInterface = require("./persistentStorageInterface");
 
 //---------------------------------------------------------------------------//
 
@@ -9,25 +9,25 @@ exports.handler = (event, context, callback) => {
     let response;
 
     if (event.httpMethod === "GET") {
-        let accessToken = event.queryStringParameters["bh.access_token"];
+        const accessToken = event.queryStringParameters["bh.access_token"];
         if (accessToken && accessToken === ACCESS_TOKEN) {
-            dataStagingInterface.getEventData()
+            dataInterface.getEvents()
                 .then((data) => {
-                    let payload = data;
+                    const payload = data;
 
                     response = generateHttpResponse(200, payload);
                     callback(null, response);
                 })
                 .catch((err) => {
                     console.log("Error thrown: ", err);
-                    let payload = {
+                    const payload = {
                         message: "Internal Server Error"
                     };
                     response = generateHttpResponse(500, payload);
                     callback(null, response);
                 });
         } else {
-            let payload = {
+            const payload = {
                 message: "Error, wrong validation token"
             };
             response = generateHttpResponse(422, payload);
