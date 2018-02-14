@@ -2,7 +2,7 @@
 
 const https = require("https");
 
-const DEFAULT_PORT = 443;
+const DEFAULT_PORT = null;
 
 const DEFAULT_HEADERS = {
     "Content-Type": "application/json"
@@ -10,11 +10,11 @@ const DEFAULT_HEADERS = {
 
 const createOptions = (hostname, path, method, port = DEFAULT_PORT, headers = DEFAULT_HEADERS) => {
     return {
-        hostname: hostname,
-        port: port,
-        path: path,
-        method: method,
-        headers: headers
+        hostname,
+        port,
+        path,
+        method,
+        headers
     };
 };
 
