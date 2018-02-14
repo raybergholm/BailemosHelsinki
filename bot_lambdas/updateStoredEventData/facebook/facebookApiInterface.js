@@ -11,7 +11,7 @@ module.exports = {
     getHostUrl: () => HOST_URL,
     getBatchRequestPath: () => BATCH_PATH,
 
-    buildBatchEventPayload: (nodeIds) => {
+    buildBatchEventQueryPayload: (nodeIds) => {
         return {
             relative_url: buildQueryUrl(RELATIVE_EVENTS_PATH, {
                 // debug: "all",
@@ -22,7 +22,7 @@ module.exports = {
             method: "GET"
         };
     },
-    buildBatchFeedPayload: (nodeIds) => {
+    buildBatchFeedQueryPayload: (nodeIds) => {
         return {
             relative_url: buildQueryUrl(RELATIVE_FEED_PATH, {
                 // debug: "all",
