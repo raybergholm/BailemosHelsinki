@@ -79,33 +79,9 @@ function buildOrganiserQuery(organisers) {
     }
 
     const batchRequestPayload = [];
-
-    batchRequestPayload.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getRelativeEventsPath(), {
-            debug: "all",
-            time_filter: "upcoming",
-            ids: pageIds,
-            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
-        }, true),
-        method: "GET"
-    });
-    batchRequestPayload.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getRelativeFeedPath(), {
-            debug: "all",
-            ids: groupIds,
-            fields: ["type", "link", "message", "story"]
-        }, true),
-        method: "GET"
-    });
-    batchRequestPayload.push({
-        relative_url: facebookApiInterface.buildQueryUrl(facebookApiInterface.getRelativeEventsPath(), {
-            debug: "all",
-            time_filter: "upcoming",
-            ids: userIds,
-            fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
-        }, true),
-        method: "GET"
-    });
+    batchRequestPayload.push(facebookApiInterface.buildBatchEventPayload(pageIds));
+    batchRequestPayload.push(facebookApiInterface.buildBatchFeedPayload(groupIds));
+    batchRequestPayload.push(facebookApiInterface.buildBatchEventPayload(userIds));
 
     return Promise.resolve(batchRequestPayload);
 }
