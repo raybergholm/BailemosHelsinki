@@ -1,6 +1,6 @@
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
-const FACEBOOK_API_VERSION = "/v2.11/";
+const FACEBOOK_API_VERSION = "v2.11";
 
 const HOST_URL = "graph.facebook.com";
 const BATCH_PATH = `/${FACEBOOK_API_VERSION}/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`;
