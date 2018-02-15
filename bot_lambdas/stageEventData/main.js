@@ -13,6 +13,11 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 
 //---------------------------------------------------------------------------//
 
+const FACEBOOK_API_VERSION = "v2.11";
+const FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
+
+const api = facebookApiInterface(FACEBOOK_API_VERSION, FACEBOOK_ACCESS_TOKEN);
+
 exports.handler = (event, context, callback) => {
     const response = updateEventData();
     callback(null, response);
@@ -79,15 +84,15 @@ function buildOrganiserQuery(organisers) {
     }
 
     const batchRequestPayload = [];
-    batchRequestPayload.push(facebookApiInterface.buildBatchEventQueryPayload(pageIds));
-    batchRequestPayload.push(facebookApiInterface.buildBatchFeedQueryPayload(groupIds));
-    batchRequestPayload.push(facebookApiInterface.buildBatchEventQueryPayload(userIds));
+    batchRequestPayload.push(api.buildBatchEventQueryPayload(pageIds));
+    batchRequestPayload.push(api.buildBatchFeedQueryPayload(groupIds));
+    batchRequestPayload.push(api.buildBatchEventQueryPayload(userIds));
 
     return Promise.resolve(batchRequestPayload);
 }
 
 function batchQueryFacebook(payload) {
-    return request.post(facebookApiInterface.getHostUrl(), facebookApiInterface.getBatchRequestPath(), payload);
+    return request.post(api.getHostUrl(), api.getBatchRequestPath(), payload);
 }
 
 function processResponseFromFacebook(response) {
@@ -187,17 +192,7 @@ function buildSecondaryQuery(eventLinks, events) {
         }
     });
 
-    const batchRequestContent = [];
-    eventIds.map((eventId) => {
-        batchRequestContent.push({
-            relative_url: facebookApiInterface.buildQueryUrl(eventId + "/", {
-                debug: "all",
-                time_filter: "upcoming",
-                fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
-            }, true),
-            method: "GET"
-        });
-    });
+    const batchRequestContent = api.buildBatchDirectEventQueryPayload(eventIds);
     return Promise.resolve(batchRequestContent);
 }
 

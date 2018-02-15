@@ -5,24 +5,31 @@ const facebookApiInterface = (apiVersion, accessToken) => {
         getHostUrl: () => "graph.facebook.com",
         getBatchRequestPath: () => `/${apiVersion}/?access_token=${accessToken}`,
 
-        buildBatchEventQueryPayload: (nodeIds) => {
-            return {
-                relative_url: buildQueryUrl(`/${apiVersion}/events/`, {
-                    // debug: "all",
-                    time_filter: "upcoming",
-                    ids: nodeIds,
-                    fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
-                }, true),
-                method: "GET"
-            };
+        buildBatchEventQueryPayload: (nodeIds, encodeUri = true) => {
+            return this.buildBatchQueryPayload(`/${apiVersion}/events/`, nodeIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]);
         },
-        buildBatchFeedQueryPayload: (nodeIds) => {
+        buildBatchFeedQueryPayload: (nodeIds, encodeUri = true) => {
+            return this.buildBatchQueryPayload(`/${apiVersion}/feed/`, nodeIds, ["type", "link", "message", "story"]);
+        },
+        buildBatchDirectEventQueryPayload: (eventIds) => {
+            return eventIds.map((eventId) => {
+                return {
+                    relative_url: buildQueryUrl(`${eventId}/`, {
+                        time_filter: "upcoming",
+                        fields: ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]
+                    }, true),
+                    method: "GET"
+                };
+            });
+        },
+
+        buildBatchQueryPayload: (path, nodeIds, fields, encodeUri = true) => {
             return {
-                relative_url: buildQueryUrl(`/${apiVersion}/feed/`, {
+                relative_url: buildQueryUrl(path, {
                     // debug: "all",
                     ids: nodeIds,
-                    fields: ["type", "link", "message", "story"]
-                }, true),
+                    fields: fields
+                }, encodeUri),
                 method: "GET"
             };
         }
