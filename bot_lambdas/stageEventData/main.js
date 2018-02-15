@@ -14,7 +14,7 @@ const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 //---------------------------------------------------------------------------//
 
 const FACEBOOK_API_VERSION = "v2.11";
-const FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
+const FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 const api = facebookApiInterface(FACEBOOK_API_VERSION, FACEBOOK_ACCESS_TOKEN);
 

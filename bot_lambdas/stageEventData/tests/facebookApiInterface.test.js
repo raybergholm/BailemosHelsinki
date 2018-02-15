@@ -8,13 +8,13 @@ const apiVersion = "v2.11";
 
 const process = {
     env: {
-        FACEBOOK_ACCESS_TOKEN: "testtoken123"
+        FACEBOOK_PAGE_ACCESS_TOKEN: "testtoken123"
     }
 };
 
 const hostUrl = "graph.facebook.com";
 
-const apiInstance = facebookApiInterface(apiVersion, process.env.FACEBOOK_ACCESS_TOKEN);
+const apiInstance = facebookApiInterface(apiVersion, process.env.FACEBOOK_PAGE_ACCESS_TOKEN);
 
 describe("Basic sanity checks", () => {
     it("Host URL is valid", () => {
@@ -22,7 +22,7 @@ describe("Basic sanity checks", () => {
     });
 
     it("Api version and access token are being passed through", () => {
-        expect(apiInstance.getBatchRequestPath()).to.equal(`/${apiVersion}/?access_token=${process.env.FACEBOOK_ACCESS_TOKEN}`);
+        expect(apiInstance.getBatchRequestPath()).to.equal(`/${apiVersion}/?access_token=${process.env.FACEBOOK_PAGE_ACCESS_TOKEN}`);
     });
 
     it("Batch event query payloads are the correct format", () => {
