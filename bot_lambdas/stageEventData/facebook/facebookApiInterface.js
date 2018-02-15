@@ -53,10 +53,7 @@ const facebookApiInterface = (apiVersion, accessToken) => {
 function buildQueryUrl(basePath, params, escapePath) {
     let path = basePath;
     if (params) {
-        const paramsArr = [];
-        for (const prop in params) {
-            paramsArr.push(prop + "=" + (params[prop] instanceof Array ? params[prop].join(',') : params[prop]));
-        }
+        const paramsArr = Object.keys(params).map((entry) => `${entry}=${(params[entry] instanceof Array ? params[entry].join(',') : params[entry])}`);
         path += '?' + paramsArr.join('&');
     }
     if (escapePath) {
