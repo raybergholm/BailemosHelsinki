@@ -118,9 +118,11 @@ function parseResponses(responses) {
                                     return (new Date(element.start_time)).getTime() > Date.now();
                                 });
 
-                                entry.id = firstUpcomingEvent.id;
-                                entry.start_time = firstUpcomingEvent.start_time;
-                                entry.end_time = firstUpcomingEvent.end_time;
+                                if (firstUpcomingEvent) {
+                                    entry.id = firstUpcomingEvent.id;
+                                    entry.start_time = firstUpcomingEvent.start_time;
+                                    entry.end_time = firstUpcomingEvent.end_time;
+                                }
                             }
 
                             entry._bh = bottyDataAnalyser.analyseEvent(entry); // attach custom metadata from data analysis to this event.
@@ -144,28 +146,15 @@ function parseResponses(responses) {
             .then(sendSecondaryBatchQuery)
             .then(
                 (response) => {
-                    // Has to be done here because it needs the ref to the events map to concat the secondary results
-                    return new Promise((resolve, reject) => {
-                        try {
-                            let str = "";
-                            response.on("data", (chunk) => {
-                                str += chunk;
-                            });
+                    const result = JSON.parse(response);
 
-                            response.on("end", () => {
-                                const responses = JSON.parse(str);
-
-                                const additionalEvents = parseSecondaryEventResponses(responses);
-                                additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
-                                    events.set(evt.id, evt);
-                                });
-
-                                resolve(events);
-                            });
-                        } catch (err) {
-                            reject(err);
-                        }
+                    const additionalEvents = parseSecondaryEventResponses(result);
+                    additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+                        events.set(evt.id, evt);
                     });
+
+                    // Has to be done here because it needs the ref to the events map to concat the secondary results
+                    return Promise.resolve(events);
                 }
             ));
     } else {
@@ -191,7 +180,7 @@ function buildSecondaryQuery(eventLinks, events) {
 }
 
 function sendSecondaryBatchQuery(eventIds) {
-    api.sendBatchDirectEventsQuery(eventIds);
+    return api.sendBatchDirectEventsQuery(eventIds);
 }
 
 function parseSecondaryEventResponses(responses) { // NOTE: this is a normal function, no promise required

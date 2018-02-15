@@ -136,7 +136,7 @@ const factory = targetId => texts => {
 };
 
 function sendMessageToFacebook(payload) {
-    return request.post(facebookApiInterface.getHostUrl(), facebookApiInterface.getSendMessagePath(), payload);
+    return request.post(facebookApiInterface.getHostUrl(), facebookApiInterface.getSendMessagePath(), JSON.stringify(payload));
 }
 
 module.exports = factory;

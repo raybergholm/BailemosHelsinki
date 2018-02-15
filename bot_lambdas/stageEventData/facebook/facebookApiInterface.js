@@ -26,25 +26,29 @@ const facebookApiInterface = (apiVersion, accessToken) => {
 
     return {
         sendBatchDataQuery: (ids) => {
-            const payload = [];
+            const batchQueries = [];
 
-            payload.push(
+            batchQueries.push(
                 buildBatchQueryPayload(`/${apiVersion}/events/`, ids.pageIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"])
             );
 
-            payload.push(
+            batchQueries.push(
                 buildBatchQueryPayload(`/${apiVersion}/feed/`, ids.groupIds, ["type", "link", "message", "story"])
             );
 
-            payload.push(
+            batchQueries.push(
                 buildBatchQueryPayload(`/${apiVersion}/events/`, ids.userIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"])
             );
+
+            const payload = `batch=${JSON.stringify(batchQueries)}`;
 
             return request.post(HOST_URL, batchRequestUrl, payload);
         },
 
         sendBatchDirectEventsQuery: (eventIds) => {
-            const payload = eventIds.map((eventId) => buildBatchQueryPayload(`${eventId}/`, eventId, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]));
+            const batchQueries = eventIds.map((eventId) => buildBatchQueryPayload(`${eventId}/`, eventId, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]));
+            const payload = `batch=${JSON.stringify(batchQueries)}`;
+
             return request.post(HOST_URL, batchRequestUrl, payload);
         }
     };
