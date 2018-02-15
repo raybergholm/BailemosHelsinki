@@ -41,8 +41,7 @@ const request = (hostname, path, method, payload = null, port = DEFAULT_PORT, he
         req.on("error", errorCallback);
 
         if (payload) {
-            const body = JSON.stringify(payload);
-            req.write(body);
+            req.write(payload);
         }
         req.end();
     });
