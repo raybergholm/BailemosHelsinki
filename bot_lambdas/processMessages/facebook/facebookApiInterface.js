@@ -1,6 +1,6 @@
 "use strict";
 
-const request = require("./utils/httpsUtils");
+const request = require("../utils/httpsUtils");
 
 //---------------------------------------------------------------------------//
 
