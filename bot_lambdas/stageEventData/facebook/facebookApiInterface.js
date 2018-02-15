@@ -6,10 +6,10 @@ const facebookApiInterface = (apiVersion, accessToken) => {
         getBatchRequestPath: () => `/${apiVersion}/?access_token=${accessToken}`,
 
         buildBatchEventQueryPayload: (nodeIds, encodeUri = true) => {
-            return this.buildBatchQueryPayload(`/${apiVersion}/events/`, nodeIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]);
+            return this.buildBatchQueryPayload(`/${apiVersion}/events/`, nodeIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"], encodeUri);
         },
         buildBatchFeedQueryPayload: (nodeIds, encodeUri = true) => {
-            return this.buildBatchQueryPayload(`/${apiVersion}/feed/`, nodeIds, ["type", "link", "message", "story"]);
+            return this.buildBatchQueryPayload(`/${apiVersion}/feed/`, nodeIds, ["type", "link", "message", "story"], encodeUri);
         },
         buildBatchDirectEventQueryPayload: (eventIds) => {
             return eventIds.map((eventId) => {
