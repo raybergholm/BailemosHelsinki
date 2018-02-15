@@ -1,7 +1,5 @@
 "use strict";
 
-const request = require("./utils/httpsUtils");
-
 // Facebook Graph API interfacing modules
 const facebookApiInterface = require("./facebook/facebookApiInterface");
 
@@ -27,7 +25,7 @@ function updateEventData() {
     return Promise.resolve(
         getOrganiserData()
         .then(buildOrganiserQuery)
-        .then(batchQueryFacebook)
+        .then(sendPrimaryBatchQuery)
         .then(processResponseFromFacebook) // NOTE: this step may kick off a secondary FB query if feed scraping returns additional events
         .then(formatPayloadForStorage)
         .then(saveEventData)
@@ -60,39 +58,36 @@ function getOrganiserData() {
 }
 
 function buildOrganiserQuery(organisers) {
-    const pageIds = [],
-        groupIds = [],
-        userIds = [];
+    const ids = {
+        pageIds: [],
+        groupIds: [],
+        userIds: []
+    };
 
     for (const prop in organisers) {
         switch (organisers[prop].Type) {
             case "page":
                 // scrape this page's events
-                pageIds.push(organisers[prop].Id);
+                ids.pageIds.push(organisers[prop].Id);
                 break;
             case "group":
                 // scrape this page's post feed
-                groupIds.push(organisers[prop].Id);
+                ids.groupIds.push(organisers[prop].Id);
                 break;
             case "user":
                 // scrape this user's events, NB the user needs to give this app permission!
-                userIds.push(organisers[prop].Id);
+                ids.userIds.push(organisers[prop].Id);
                 break;
             default:
                 console.log("Unexpected node type: ", organisers[prop].Type);
         }
     }
 
-    const batchRequestPayload = [];
-    batchRequestPayload.push(api.buildBatchEventQueryPayload(pageIds));
-    batchRequestPayload.push(api.buildBatchFeedQueryPayload(groupIds));
-    batchRequestPayload.push(api.buildBatchEventQueryPayload(userIds));
-
-    return Promise.resolve(batchRequestPayload);
+    return Promise.resolve(ids);
 }
 
-function batchQueryFacebook(payload) {
-    return request.post(api.getHostUrl(), api.getBatchRequestPath(), payload);
+function sendPrimaryBatchQuery(payload) {
+    return api.sendBatchDataQuery(payload);
 }
 
 function processResponseFromFacebook(response) {
@@ -146,7 +141,7 @@ function parseResponses(responses) {
     if (eventLinks.size > 0) {
         // Need to wait for secondary event query
         return Promise.resolve(buildSecondaryQuery(eventLinks, events)
-            .then(batchQueryFacebook)
+            .then(sendSecondaryBatchQuery)
             .then(
                 (response) => {
                     // Has to be done here because it needs the ref to the events map to concat the secondary results
@@ -192,8 +187,11 @@ function buildSecondaryQuery(eventLinks, events) {
         }
     });
 
-    const batchRequestContent = api.buildBatchDirectEventQueryPayload(eventIds);
-    return Promise.resolve(batchRequestContent);
+    return Promise.resolve(eventIds);
+}
+
+function sendSecondaryBatchQuery(eventIds) {
+    api.sendBatchDirectEventsQuery(eventIds);
 }
 
 function parseSecondaryEventResponses(responses) { // NOTE: this is a normal function, no promise required

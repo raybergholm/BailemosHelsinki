@@ -1,5 +1,9 @@
 "use strict";
 
+const request = require("./utils/httpsUtils");
+
+//---------------------------------------------------------------------------//
+
 const FACEBOOK_PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 const FACEBOOK_API_VERSION = "v2.11";
@@ -9,6 +13,14 @@ const BATCH_PATH = `/${FACEBOOK_API_VERSION}/?access_token=${FACEBOOK_PAGE_ACCES
 const SEND_MESSAGE_PATH = `/${FACEBOOK_API_VERSION}/me/messages/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`;
 
 module.exports = {
+    sendBatchDataQuery: (ids) => {
+
+    },
+
+    sendBatchDirectEventsQuery: () => {
+
+    },
+
     getHostUrl: () => HOST_URL,
     getBatchRequestPath: () => BATCH_PATH,
     getSendMessagePath: () => SEND_MESSAGE_PATH,
