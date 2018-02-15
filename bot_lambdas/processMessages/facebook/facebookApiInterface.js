@@ -12,6 +12,19 @@ const HOST_URL = "graph.facebook.com";
 const BATCH_PATH = `/${FACEBOOK_API_VERSION}/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`;
 const SEND_MESSAGE_PATH = `/${FACEBOOK_API_VERSION}/me/messages/?access_token=${FACEBOOK_PAGE_ACCESS_TOKEN}`;
 
+
+const facebookApiInterface = (apiVersion, accessToken) => {
+    if (!/^v\d{1}\.\d{2}$/.test(apiVersion)) {
+        throw new Error("Invalid API version input");
+    }
+
+    return {
+        sendMessage: () => {
+            
+        }
+    };
+};
+
 module.exports = {
     sendBatchDataQuery: (ids) => {
 
