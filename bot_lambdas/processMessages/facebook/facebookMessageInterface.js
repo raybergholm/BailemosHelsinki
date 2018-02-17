@@ -1,7 +1,5 @@
 "use strict";
 
-const request = require("../utils/httpUtils");
-
 // Facebook GraphAPI submodules
 const facebookApiInterface = require("./facebookApiInterface");
 const messageFactory = require("./facebookMessageFactory");
@@ -141,7 +139,7 @@ const factory = targetId => texts => {
 };
 
 function sendMessageToFacebook(payload) {
-    return request.post(facebookApiInterface.getHostUrl(), facebookApiInterface.getSendMessagePath(), JSON.stringify(payload));
+    return api.sendMessage(JSON.stringify(payload));
 }
 
 module.exports = factory;
