@@ -1,7 +1,7 @@
 "use strict";
 
 // Used to handle incoming HTTP request verification
-const facebookRequestVerifier = require("./facebook/facebookRequestVerifier");
+const verifier = require("./facebook/requestVerifier");
 
 // Main bot logic module
 const botty = require("./botty/botty");
@@ -20,7 +20,7 @@ function processMessages(event) {
     let isVerified = false;
 
     try {
-        isVerified = facebookRequestVerifier.verifySignature(event.headers['X-Hub-Signature'], event.body);
+        isVerified = verifier.verifySignature(event.headers['X-Hub-Signature'], event.body);
         if (!isVerified) {
             console.log("X-Hub_Signature did not match the expected value");
             const payload = {
