@@ -86,6 +86,8 @@ module.exports = {
         if (quickReplies) {
             message.message.quick_replies = quickReplies.map(formatQuickReplies);
         }
+
+        return message;
     },
 
     createQuickReplyHelpMessage: (targetId, text) => {
