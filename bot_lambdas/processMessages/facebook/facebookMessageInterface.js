@@ -11,7 +11,7 @@ const FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
 const api = facebookApiInterface(FACEBOOK_API_VERSION, FACEBOOK_ACCESS_TOKEN);
 
-const factory = targetId => texts => {
+const factory = (targetId, texts) => {
     return {
         sendTypingIndicator: (mode) => {
             // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
@@ -40,6 +40,52 @@ const factory = targetId => texts => {
         sendGenericTemplateMessage: (elements) => {
             const message = messageFactory.createGenericMessageTemplate(targetId, elements);
             return sendMessageToFacebook(message);
+        },
+
+        sendQuickReplyHelp: () => {
+            const headerText = texts.getText(messageFactory.QuickReplyPayloads.Help_Start);
+
+            const quickReplies = [{
+                    type: "text",
+                    text: "Who are you?",
+                    payload: messageFactory.QuickReplyPayloads.BottyOverview
+                },
+                {
+                    type: "text",
+                    text: "Quickstart",
+                    payload: messageFactory.QuickReplyPayloads.HowTo_Start
+                },
+                {
+                    type: "text",
+                    text: "Detailed guide",
+                    payload: messageFactory.QuickReplyPayloads.UserGuide_Start
+                }
+            ];
+    
+            this.sendQuickReplyMessage(headerText, quickReplies);
+        },
+
+        sendQuickReplyUserGuide: () => {
+            const text = texts.getText(messageFactory.QuickReplyPayloads.UserGuide_Start);
+
+            const quickReplies = [{
+                    type: "text",
+                    text: "Date & time?",
+                    payload: messageFactory.QuickReplyPayloads.UserGuide_Datetime
+                },
+                {
+                    type: "text",
+                    text: "Event types?",
+                    payload: messageFactory.QuickReplyPayloads.UserGuide_EventTypes
+                },
+                {
+                    type: "text",
+                    text: "Dance styles?",
+                    payload: messageFactory.QuickReplyPayloads.UserGuide_Interests
+                }
+            ];
+    
+            this.sendQuickReplyMessage(text, quickReplies);
         },
 
         respondToQuickReply: (payload) => {
