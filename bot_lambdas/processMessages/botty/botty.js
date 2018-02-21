@@ -12,7 +12,7 @@ const textGenerator = require("./bottyTextGenerator");
 const facebookMessageInterface = require("../facebook/facebookMessageInterface");
 
 // Persistent storage interface 
-const dataInterface = require("../persistantStorageInterface");
+const dataInterface = require("../persistentStorageInterface");
 
 //---------------------------------------------------------------------------//
 
