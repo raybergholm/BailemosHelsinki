@@ -59,6 +59,7 @@ module.exports = {
                     conversation.sendQuickReplyUserGuide();
                     break;
             }
+            return;
         } else if (result.type === "NormalReply") {
             if (result.text instanceof Array) {
                 for (let i = 0; i < result.length; i++) {

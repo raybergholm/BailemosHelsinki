@@ -72,9 +72,25 @@ module.exports = {
         return module.exports.createMessage(targetId, null, messageTemplate); // A message template is just a message with an attachment and no text, so we can reuse the other function
     },
 
+    createQuickReplyMessage: (targetId, text, quickReplies) => {
+        if (!targetId || !text) {
+            throw new Error("Invalid function arguments: cannot create a message with no targetId or no message text");
+        }
+
+        const message = createMessageBase(targetId);
+
+        if (text) {
+            message.message.text = text;
+        }
+
+        if (quickReplies) {
+            message.message.quick_replies = quickReplies.map(formatQuickReplies);
+        }
+    },
+
     createQuickReplyHelpMessage: (targetId, text) => {
-        if (!targetId) {
-            throw new Error("Invalid function arguments: cannot create a message with no targetId or empty body");
+        if (!targetId || !text) {
+            throw new Error("Invalid function arguments: cannot create a message with no targetId or no message text");
         }
 
         const message = createMessageBase(targetId);
@@ -86,17 +102,15 @@ module.exports = {
         const quickReplies = createQuickReplyHelpPayload();
 
         if (quickReplies) {
-            message.message.quick_replies = quickReplies.map((item) => {
-                return item.type === "location" ? createLocationQuickReply() : createTextQuickReply(item.text, item.payload, item.imageUrl);
-            });
+            message.message.quick_replies = quickReplies.map(formatQuickReplies);
         }
 
         return message;
     },
 
     createQuickReplyUserGuideMessage: (targetId, text) => {
-        if (!targetId) {
-            throw new Error("Invalid function arguments: cannot create a message with no targetId or empty body");
+        if (!targetId || !text) {
+            throw new Error("Invalid function arguments: cannot create a message with no targetId or no message text");
         }
 
         const message = createMessageBase(targetId);
@@ -108,9 +122,7 @@ module.exports = {
         const quickReplies = createQuickReplyUserGuidePayload();
 
         if (quickReplies) {
-            message.message.quick_replies = quickReplies.map((item) => {
-                return item.type === "location" ? createLocationQuickReply() : createTextQuickReply(item.text, item.payload, item.imageUrl);
-            });
+            message.message.quick_replies = quickReplies.map(formatQuickReplies);
         }
 
         return message;
@@ -153,6 +165,10 @@ function createTemplateElement(title, subtitle, imageUrl, defaultActionUrl) {
             url: defaultActionUrl
         }
     };
+}
+
+function formatQuickReplies(item) {
+    return item.type === "location" ? createLocationQuickReply() : createTextQuickReply(item.text, item.payload, item.imageUrl);
 }
 
 function createLocationQuickReply() {

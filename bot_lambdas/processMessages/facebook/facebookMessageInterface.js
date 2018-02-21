@@ -12,7 +12,7 @@ const FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 const api = facebookApiInterface(FACEBOOK_API_VERSION, FACEBOOK_ACCESS_TOKEN);
 
 const factory = (targetId, texts) => {
-    return {
+    const messageInterface = {
         sendTypingIndicator: (mode) => {
             // TODO: turning this off for now since it's clogging up the logs. Can reenable this after the main logic gets cleaned up
             // let typingIndicatorMessage = conversation.createSenderActionMessage(mode ? "typing_on" : "typing_off");
@@ -43,58 +43,27 @@ const factory = (targetId, texts) => {
         },
 
         sendQuickReplyHelp: () => {
-            const headerText = texts.getText(messageFactory.QuickReplyPayloads.Help_Start);
+            const text = texts.getText(messageFactory.QuickReplyPayloads.Help_Start);
+            const message = messageFactory.createQuickReplyHelpMessage(targetId, text);
 
-            const quickReplies = [{
-                    type: "text",
-                    text: "Who are you?",
-                    payload: messageFactory.QuickReplyPayloads.BottyOverview
-                },
-                {
-                    type: "text",
-                    text: "Quickstart",
-                    payload: messageFactory.QuickReplyPayloads.HowTo_Start
-                },
-                {
-                    type: "text",
-                    text: "Detailed guide",
-                    payload: messageFactory.QuickReplyPayloads.UserGuide_Start
-                }
-            ];
-    
-            this.sendQuickReplyMessage(headerText, quickReplies);
+            return sendMessageToFacebook(message);
         },
 
         sendQuickReplyUserGuide: () => {
             const text = texts.getText(messageFactory.QuickReplyPayloads.UserGuide_Start);
+            const message = messageFactory.createQuickReplyUserGuideMessage(targetId, text);
 
-            const quickReplies = [{
-                    type: "text",
-                    text: "Date & time?",
-                    payload: messageFactory.QuickReplyPayloads.UserGuide_Datetime
-                },
-                {
-                    type: "text",
-                    text: "Event types?",
-                    payload: messageFactory.QuickReplyPayloads.UserGuide_EventTypes
-                },
-                {
-                    type: "text",
-                    text: "Dance styles?",
-                    payload: messageFactory.QuickReplyPayloads.UserGuide_Interests
-                }
-            ];
-    
-            this.sendQuickReplyMessage(text, quickReplies);
+            return sendMessageToFacebook(message);
         },
 
         respondToQuickReply: (payload) => {
+            let promise;
             switch (payload) {
                 case messageFactory.QuickReplyPayloads.NewUserIntro:
-                    this.sendQuickReplyMessage("");
+                    promise = messageInterface.sendQuickReplyMessage("");
                     break;
                 case messageFactory.QuickReplyPayloads.BottyOverview:
-                    this.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.BottyOverview), [{
+                    promise = messageInterface.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.BottyOverview), [{
                             type: "text",
                             text: "Quickstart",
                             payload: messageFactory.QuickReplyPayloads.HowTo_Start
@@ -107,20 +76,20 @@ const factory = (targetId, texts) => {
                     ]);
                     break;
                 case messageFactory.QuickReplyPayloads.HowTo_Start:
-                    this.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.HowTo_Start), [{
+                    promise = messageInterface.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.HowTo_Start), [{
                         type: "text",
                         text: "Any examples?",
                         payload: messageFactory.QuickReplyPayloads.HowTo_Examples
                     }]);
                     break;
                 case messageFactory.QuickReplyPayloads.HowTo_Examples:
-                    this.sendMessage(texts.getText(messageFactory.QuickReplyPayloads.HowTo_Examples));
+                    promise = messageInterface.sendMessage(texts.getText(messageFactory.QuickReplyPayloads.HowTo_Examples));
                     break;
                 case messageFactory.QuickReplyPayloads.UserGuide_Start:
-                    module.exports.sendQuickReplyUserGuide();
+                    promise = messageInterface.sendQuickReplyUserGuide();
                     break;
                 case messageFactory.QuickReplyPayloads.UserGuide_Datetime:
-                    this.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.UserGuide_Datetime), [{
+                    promise = messageInterface.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.UserGuide_Datetime), [{
                             type: "text",
                             text: "Event types?",
                             payload: messageFactory.QuickReplyPayloads.UserGuide_EventTypes
@@ -138,7 +107,7 @@ const factory = (targetId, texts) => {
                     ]);
                     break;
                 case messageFactory.QuickReplyPayloads.UserGuide_EventTypes:
-                    this.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.UserGuide_EventTypes), [{
+                    promise = messageInterface.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.UserGuide_EventTypes), [{
                             type: "text",
                             text: "Date & time?",
                             payload: messageFactory.QuickReplyPayloads.UserGuide_Datetime
@@ -156,7 +125,7 @@ const factory = (targetId, texts) => {
                     ]);
                     break;
                 case messageFactory.QuickReplyPayloads.UserGuide_Interests:
-                    this.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.UserGuide_Interests), [{
+                    promise = messageInterface.sendQuickReplyMessage(texts.getText(messageFactory.QuickReplyPayloads.UserGuide_Interests), [{
                             type: "text",
                             text: "Date & time?",
                             payload: messageFactory.QuickReplyPayloads.UserGuide_Datetime
@@ -174,14 +143,16 @@ const factory = (targetId, texts) => {
                     ]);
                     break;
                 case messageFactory.QuickReplyPayloads.UserGuide_End:
-                    this.sendMessage(texts.getText(messageFactory.QuickReplyPayloads.UserGuide_End));
+                    promise = messageInterface.sendMessage(texts.getText(messageFactory.QuickReplyPayloads.UserGuide_End));
                     break;
                 case messageFactory.QuickReplyPayloads.Disclaimer:
-                    module.exports.sendMessage(texts.getText(messageFactory.QuickReplyPayloads.Disclaimer));
+                    messageInterface.sendMessage(texts.getText(messageFactory.QuickReplyPayloads.Disclaimer));
                     break;
             }
+            return promise;
         }
     };
+    return messageInterface;
 };
 
 function sendMessageToFacebook(payload) {
