@@ -7,6 +7,7 @@ const QUICK_REPLY_PAYLOADS = {
     BottyOverview: "BottyOverview",
     HowTo_Start: "HowTo_Start",
     HowTo_Examples: "HowTo_Examples",
+    Help_Start: "HelpQuickReplyHeader",
     UserGuide_Start: "UserGuide_Start",
     UserGuide_Datetime: "UserGuide_Datetime",
     UserGuide_EventTypes: "UserGuide_EventTypes",
@@ -16,6 +17,8 @@ const QUICK_REPLY_PAYLOADS = {
 };
 
 module.exports = {
+    QuickReplyPayloads: QUICK_REPLY_PAYLOADS,
+
     createMessage: (targetId, text, attachment) => {
         if (!targetId || (!text && !attachment)) {
             throw new Error("Invalid function arguments: cannot create a message with no targetId or empty body");

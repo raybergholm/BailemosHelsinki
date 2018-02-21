@@ -6,7 +6,6 @@ const moment = require("../node_modules/moment");
 // Botty internal modules
 const parser = require("./bottyMessageParser");
 const textGenerator = require("./bottyTextGenerator");
-const quickReplyHandler = require("./bottyQuickReplyHandler");
 // const memory = require("./bottyMemoryInterface"); // TODO: Not in use right now, do we even need message history? (NOTE: history can be either stored in S3 or fetched from FB, need to decide the implementation)
 
 // Facebook Graph API interface
@@ -27,11 +26,11 @@ let analysisResults;
 
 module.exports = {
     initConversation: (targetId) => {
-        conversation = facebookMessageInterface(targetId)(textGenerator);
+        conversation = facebookMessageInterface(targetId, textGenerator);
     },
 
     respondToQuickReply: (payload) => {
-        quickReplyHandler.respondToQuickReply(payload);
+        conversation.respondToQuickReply(payload);
     },
 
     readMessage: function (text, attachments, nlp) { // main method: read input text and/or attachments, then reply with something 
@@ -54,10 +53,10 @@ module.exports = {
         } else if (result.type === "QuickReply") {
             switch (result.text) {
                 case "Help":
-                    quickReplyHandler.sendQuickReplyHelp();
+                    conversation.sendQuickReplyHelp();
                     break;
                 case "UserGuide":
-                    quickReplyHandler.sendQuickReplyUserGuide();
+                    conversation.sendQuickReplyUserGuide();
                     break;
             }
         } else if (result.type === "NormalReply") {
