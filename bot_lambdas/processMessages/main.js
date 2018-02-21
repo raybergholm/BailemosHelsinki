@@ -1,7 +1,7 @@
 "use strict";
 
 // Used to handle incoming HTTP request verification
-const verifier = require("./facebook/requestVerifier");
+const verifier = require("./facebook/facebookRequestVerifier");
 
 // Main bot logic module
 const botty = require("./botty/botty");
