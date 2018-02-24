@@ -176,7 +176,7 @@ module.exports = {
 
             tempString = str;
 
-            for (let prop in replacements) {
+            for (const prop in replacements) {
                 // eslint-disable-next-line no-useless-escape
                 regex = new RegExp("\\{" + prop + "\}", "g");
                 tempString = tempString.replace(regex, replacements[prop]);

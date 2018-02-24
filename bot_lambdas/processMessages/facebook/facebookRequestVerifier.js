@@ -14,17 +14,17 @@ module.exports = {
             throw new Error("Invalid input params to verifySignature function");
         }
 
-        let signature = inputSignature.split('=')[1];
+        const signature = inputSignature.split('=')[1];
 
         if (!signature) {
             throw new Error("Failed to extract signature from input");
         }
 
-        let hmac = crypto.createHmac(HASH_ALGORITHM, FACEBOOK_APP_SECRET);
+        const hmac = crypto.createHmac(HASH_ALGORITHM, FACEBOOK_APP_SECRET);
 
         hmac.update(requestPayload);
 
-        let digest = hmac.digest("hex");
+        const digest = hmac.digest("hex");
 
         if (signature === digest) {
             return true;

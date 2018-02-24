@@ -96,7 +96,7 @@ const MAIN_KEYWORDS = { // TODO: worry about localisation later. This could end 
 module.exports = {
     parseBuiltinNlp: (entries) => {
         const CONFIDENCE_THRESHOLD = 0.9;
-        let result = new Map(),
+        const result = new Map(),
             dateTimeResults = new Set(),
             interestResults = new Set(),
             eventTypeResults = new Set(),
@@ -145,7 +145,7 @@ module.exports = {
     },
 
     quickScan: (text) => {
-        for (let prop in QUICK_MESSAGE_KEYWORDS) {
+        for (const prop in QUICK_MESSAGE_KEYWORDS) {
             if (QUICK_MESSAGE_KEYWORDS[prop].test(text)) {
                 return prop;
             }
@@ -154,10 +154,10 @@ module.exports = {
     },
 
     deepScan: function (text, nlp) {
-        let result = {};
+        const result = {};
 
         if (nlp) {
-            let dateTimes = nlp.get("datetime");
+            const dateTimes = nlp.get("datetime");
             if (dateTimes) {
                 result.dateTimeRange = Array.from(dateTimes);
                 result.matched = true;
@@ -165,19 +165,19 @@ module.exports = {
                 result.dateTimeRange = module.exports.getDefaultDateRange();
             }
 
-            let interests = nlp.get("interests");
+            const interests = nlp.get("interests");
             if (interests) {
                 result.interests = Array.from(interests);
                 result.matched = true;
             }
 
-            let eventTypes = nlp.get("eventTypes");
+            const eventTypes = nlp.get("eventTypes");
             if (eventTypes) {
                 result.eventTypes = Array.from(eventTypes);
                 result.matched = true;
             }
 
-            let locations = nlp.get("locations");
+            const locations = nlp.get("locations");
             if (locations) {
                 result.locations = Array.from(locations);
                 result.matched = true;
@@ -188,7 +188,7 @@ module.exports = {
 
         // Generic custom parsing for fallback purposes: not really efficient, aim to deprecate
         if (!result.dateTimeRange) {
-            let dateTimeRange = checkForTemporalCues(text);
+            const dateTimeRange = checkForTemporalCues(text);
             if (dateTimeRange) {
                 result.dateTimeRange = dateTimeRange;
                 result.matched = true;
@@ -198,7 +198,7 @@ module.exports = {
         }
 
         if (!result.interests) {
-            let interests = checkForInterests(text);
+            const interests = checkForInterests(text);
             if (interests) {
                 result.interests = interests;
                 result.optionals = true;
@@ -207,7 +207,7 @@ module.exports = {
         }
 
         if (!result.eventTypes) {
-            let eventTypes = checkForEventTypes(text);
+            const eventTypes = checkForEventTypes(text);
             if (eventTypes) {
                 result.eventTypes = eventTypes;
                 result.optionals = true;
@@ -249,13 +249,13 @@ function parseNlpDateTime(entry) {
 
         return {
             from: (() => {
-                let offset = utils.parseTimezoneOffset(from.value);
-                let correctedMoment = utils.correctTimezoneOffset(moment(from.value), offset);
+                const offset = utils.parseTimezoneOffset(from.value);
+                const correctedMoment = utils.correctTimezoneOffset(moment(from.value), offset);
                 return correctedMoment.startOf(from.grain === "week" ? "isoWeek" : from.grain);
             })(),
             to: (() => {
-                let offset = utils.parseTimezoneOffset(to.value);
-                let correctedMoment = utils.correctTimezoneOffset(moment(to.value), offset);
+                const offset = utils.parseTimezoneOffset(to.value);
+                const correctedMoment = utils.correctTimezoneOffset(moment(to.value), offset);
                 return correctedMoment.endOf(from.grain === "week" ? "isoWeek" : from.grain);
             })()
         };
@@ -274,19 +274,19 @@ function parseNlpDateTime(entry) {
 }
 
 function parseNlpEventTypes(entry) {
-    let result = null;
+    const result = null;
     // TODO: needs wit.ai integration
     return result;
 }
 
 function parseNlpInterests(entry) {
-    let result = null;
+    const result = null;
     // TODO: needs wit.ai integration
     return result;
 }
 
 function parseNlpLocations(entry) {
-    let result = null;
+    const result = null;
     // TODO: needs wit.ai integration
     return result;
 }
@@ -315,7 +315,7 @@ function checkForTemporalCues(text) { // this one is more special because we can
 }
 
 function scanForSemanticDates(text) {
-    let dateTimeRange = {
+    const dateTimeRange = {
         from: null,
         to: null
     };
@@ -323,7 +323,7 @@ function scanForSemanticDates(text) {
     let source, target, offset;
 
     // TODO: currently only handles one day, but most likely will need to handle ranges
-    for (let prop in MAIN_KEYWORDS.Temporal.WeekdayNames) {
+    for (const prop in MAIN_KEYWORDS.Temporal.WeekdayNames) {
         if (MAIN_KEYWORDS.Temporal.WeekdayNames[prop].test(text)) {
             switch (prop) {
                 case "Monday":
@@ -368,7 +368,7 @@ function scanForSemanticDates(text) {
         }
     }
 
-    for (let prop in MAIN_KEYWORDS.Temporal.MonthNames) {
+    for (const prop in MAIN_KEYWORDS.Temporal.MonthNames) {
         if (MAIN_KEYWORDS.Temporal.MonthNames[prop].test(text)) {
             switch (prop) {
                 case "January":
@@ -434,7 +434,7 @@ function scanForSemanticDates(text) {
 }
 
 function scanForSemanticDateRanges(text) {
-    let dateTimeRange = {
+    const dateTimeRange = {
         from: null,
         to: null
     };
@@ -442,7 +442,7 @@ function scanForSemanticDateRanges(text) {
     let offset;
 
     // Semantic ranges don't directly reference numbers, so we have to convert it from language actual dates
-    for (let prop in MAIN_KEYWORDS.Temporal.SemanticRanges) {
+    for (const prop in MAIN_KEYWORDS.Temporal.SemanticRanges) {
         if (MAIN_KEYWORDS.Temporal.SemanticRanges[prop].test(text)) {
             switch (prop) {
                 case "Today":
@@ -501,7 +501,7 @@ function scanForSemanticDateRanges(text) {
 }
 
 function scanForExactDateRanges(text) {
-    let dateTimeRange = {
+    const dateTimeRange = {
         from: null,
         to: null
     };
@@ -560,9 +560,9 @@ function scanForExactDateRanges(text) {
 }
 
 function checkForEventTypes(text) {
-    let eventTypes = [];
+    const eventTypes = [];
 
-    for (let prop in MAIN_KEYWORDS.Types) {
+    for (const prop in MAIN_KEYWORDS.Types) {
         if (MAIN_KEYWORDS.Types[prop].test(text)) {
             eventTypes.push(prop);
         }
@@ -572,9 +572,9 @@ function checkForEventTypes(text) {
 }
 
 function checkForInterests(text) {
-    let interests = [];
+    const interests = [];
 
-    for (let prop in MAIN_KEYWORDS.Interests) {
+    for (const prop in MAIN_KEYWORDS.Interests) {
         if (MAIN_KEYWORDS.Interests[prop].test(text)) {
             interests.push(prop);
         }
