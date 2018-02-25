@@ -1,6 +1,9 @@
 "use strict";
 
-const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
+const VERIFY_TOKEN_VALUE = process.env.FACEBOOK_VERIFY_TOKEN;
+
+const VERIFY_TOKEN_PARAM_NAME = "hub.verify_token";
+const CHALLENGE_PARAM_NAME = "hub.challenge";
 
 exports.handler = (event, context, callback) => {
     const response = handleChallengeResponse(event);
@@ -12,13 +15,13 @@ exports.handler = (event, context, callback) => {
 function handleChallengeResponse(event) {
     let response;
 
-    if (event.httpMethod === "GET" && event.queryStringParameters["hub.verify_token"] && event.queryStringParameters["hub.challenge"]) {
-        const verifyToken = event.queryStringParameters["hub.verify_token"];
+    if (event.httpMethod === "GET" && event.queryStringParameters[VERIFY_TOKEN_PARAM_NAME] && event.queryStringParameters[CHALLENGE_PARAM_NAME]) {
+        const verifyToken = event.queryStringParameters[VERIFY_TOKEN_PARAM_NAME];
 
-        if (verifyToken === FACEBOOK_VERIFY_TOKEN) {
+        if (verifyToken === VERIFY_TOKEN_VALUE) {
             console.log("Responding to Facebook challenge token");
 
-            const challengeToken = parseInt(event.queryStringParameters["hub.challenge"], 10);
+            const challengeToken = parseInt(event.queryStringParameters[CHALLENGE_PARAM_NAME], 10);
             response = generateHttpResponse(200, parseInt(challengeToken, 10));
         } else {
             console.log("Incorrect validation token received");
