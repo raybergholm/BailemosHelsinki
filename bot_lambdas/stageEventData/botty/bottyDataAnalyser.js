@@ -41,7 +41,7 @@ const EVENT_DESC_WEIGHTS = {
 
 module.exports = {
     analyseEvent: (eventData) => {
-        let result = {};
+        const result = {};
 
         result.type = guessEventType(eventData);
         result.interestTags = scanForInterests(eventData);
@@ -53,7 +53,7 @@ module.exports = {
 };
 
 function guessEventType(eventData) {
-    let weights = {
+    const weights = {
         Workshop: 0,
         Course: 0,
         CourseTerminology: 0,
@@ -65,14 +65,14 @@ function guessEventType(eventData) {
 
     result = textAnalyser.analyse(eventData.name, TYPE_KEYWORDS, EVENT_TITLE_WEIGHTS);
     if (result) {
-        for (let prop in weights) {
+        for (const prop in weights) {
             weights[prop] += result[prop] ? result[prop] : 0;
         }
     }
 
     result = textAnalyser.analyse(eventData.description, TYPE_KEYWORDS, EVENT_DESC_WEIGHTS);
     if (result) {
-        for (let prop in weights) {
+        for (const prop in weights) {
             weights[prop] += result[prop] ? result[prop] : 0;
         }
     }
@@ -87,7 +87,7 @@ function guessEventType(eventData) {
     // 3 days over FRI-SUN? really high chance of being a festival. Sometimes a workshop. May also include parties, they may be separate. Not a course
     // over a week? a) yay, an organiser set it up right, b) almost 100% it's a long-term course
 
-    let probabilities = {
+    const probabilities = {
         Party: weights.Party * 15,
         Workshop: weights.Workshop * 30 + weights.Party + weights.Course,
         Course: weights.Course * 10 + weights.CourseTerminology * 100,
@@ -95,12 +95,12 @@ function guessEventType(eventData) {
     };
 
     let totalWeights = 0;
-    let highestWeight = {
+    const highestWeight = {
         type: "",
         value: 0
     };
 
-    for (let prop in probabilities) {
+    for (const prop in probabilities) {
         totalWeights += probabilities[prop];
         if (probabilities[prop] > highestWeight.value) {
             highestWeight.type = prop;

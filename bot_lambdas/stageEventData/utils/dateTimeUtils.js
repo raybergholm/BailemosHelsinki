@@ -2,17 +2,17 @@
 
 module.exports = {
     parseTimezoneOffset: (dateTimeString) => {
-        let gmtRegex = /Z$/;
+        const gmtRegex = /Z$/;
         if (gmtRegex.test(dateTimeString)) {
             return {
                 hours: 0,
                 minutes: 0
             };
         } else {
-            let timezoneRegex = /[+-]\d{2}(?::?)\d{2}/;
-            let result = timezoneRegex.exec(dateTimeString);
+            const timezoneRegex = /[+-]\d{2}(?::?)\d{2}/;
+            const result = timezoneRegex.exec(dateTimeString);
             if (result) {
-                let sign = result[0][0];
+                const sign = result[0][0];
                 result[0] = result[0].replace(":", "");
                 return {
                     hours: Number(sign + result[0].substr(1, 2)),
