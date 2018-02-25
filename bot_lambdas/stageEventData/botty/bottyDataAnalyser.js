@@ -1,6 +1,6 @@
 "use strict";
 
-const utils = require("../utils/dateTimeUtils");
+const dateTimeUtils = require("../utils/dateTimeUtils");
 
 const textAnalyser = require("./TextAnalyser");
 
@@ -46,7 +46,7 @@ module.exports = {
         result.type = guessEventType(eventData);
         result.interestTags = scanForInterests(eventData);
 
-        result.timezoneOffset = utils.parseTimezoneOffset(eventData.start_time);
+        result.timezoneOffset = dateTimeUtils.parseTimezoneOffset(eventData.start_time);
 
         return result;
     }
