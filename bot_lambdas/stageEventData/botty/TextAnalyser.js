@@ -2,10 +2,10 @@
 
 module.exports = {
     analyse: (text, keywords, weights) => {
-        let collectedResults = {};
+        const collectedResults = {};
 
-        for (let prop in keywords) {
-            let result = keywords[prop].exec(text);
+        for (const prop in keywords) {
+            const result = keywords[prop].exec(text);
             if (result) {
                 if (!collectedResults[prop]) {
                     collectedResults[prop] = 0;
@@ -18,11 +18,11 @@ module.exports = {
     },
 
     find: (texts, keywords) => {
-        let tags = new Set();
+        const tags = new Set();
 
         texts.forEach((text) => {
-            for (let prop in keywords) {
-                let result = keywords[prop].test(text);
+            for (const prop in keywords) {
+                const result = keywords[prop].test(text);
                 if (result) {
                     tags.add(prop);
                 }
