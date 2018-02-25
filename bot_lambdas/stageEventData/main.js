@@ -9,6 +9,8 @@ const dataInterface = require("./persistentStorageInterface");
 // For event data analysis
 const bottyDataAnalyser = require("./botty/bottyDataAnalyser");
 
+const dateTimeUtils = require("./utils/dateTimeUtils");
+
 //---------------------------------------------------------------------------//
 
 const FACEBOOK_API_VERSION = "v2.11";
@@ -113,21 +115,10 @@ function parseResponses(responses) {
                     entries.forEach((entry) => {
                         if (entry.name && entry.description && entry.start_time && entry.end_time) {
                             // This is an event
-                            if (entry.event_times) {
-                                const firstUpcomingEvent = entry.event_times.find((element) => {
-                                    return (new Date(element.start_time)).getTime() > Date.now();
-                                });
-
-                                if (firstUpcomingEvent) {
-                                    entry.id = firstUpcomingEvent.id;
-                                    entry.start_time = firstUpcomingEvent.start_time;
-                                    entry.end_time = firstUpcomingEvent.end_time;
-                                }
+                            const event = formatEvent(entry);
+                            if (event) {
+                                events.set(events.id, events);
                             }
-
-                            entry._bh = bottyDataAnalyser.analyseEvent(entry); // attach custom metadata from data analysis to this event.
-
-                            events.set(entry.id, entry);
                         } else if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
                             // This is a feed message with a link
                             eventLinks.add(entry.link);
@@ -149,8 +140,8 @@ function parseResponses(responses) {
                     const result = JSON.parse(response);
 
                     const additionalEvents = parseSecondaryEventResponses(result);
-                    additionalEvents.map((evt) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
-                        events.set(evt.id, evt);
+                    additionalEvents.map((event) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+                        events.set(event.id, event);
                     });
 
                     // Has to be done here because it needs the ref to the events map to concat the secondary results
@@ -160,6 +151,27 @@ function parseResponses(responses) {
     } else {
         // No additional queries, save right away
         return Promise.resolve(events);
+    }
+}
+
+function formatEvent(event) {
+    if (event.event_times) {
+        const firstUpcomingEvent = event.event_times.find((element) => {
+            return (new Date(element.start_time)).getTime() > Date.now();
+        });
+
+        if (firstUpcomingEvent) {
+            event.id = firstUpcomingEvent.id;
+            event.start_time = firstUpcomingEvent.start_time;
+            event.end_time = firstUpcomingEvent.end_time;
+        }
+    }
+
+    if (!dateTimeUtils.isFuture(event.start_time)) {
+        return null;
+    } else {
+        event._bh = bottyDataAnalyser.analyseEvent(event); // attach custom metadata from data analysis to this event.
+        return event;
     }
 }
 
@@ -189,9 +201,15 @@ function parseSecondaryEventResponses(responses) { // NOTE: this is a normal fun
         if (response.error) {
             console.log("Response errored: ", response.error.message);
         } else {
-            const event = JSON.parse(response.body);
+            const entry = JSON.parse(response.body);
+
+            const event = formatEvent(entry);
+            if (event) {
+                additionalEvents.push(event);
+            }
 
             if ((new Date(event.start_time)).getTime() > Date.now()) { // future events only
+
                 event._bh = bottyDataAnalyser.analyseEvent(event);
                 additionalEvents.push(event);
             }
