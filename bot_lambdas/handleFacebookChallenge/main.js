@@ -12,7 +12,7 @@ exports.handler = (event, context, callback) => {
 function handleChallengeResponse(event) {
     let response;
 
-    if (event.httpMethod === "GET") {
+    if (event.httpMethod === "GET" && event.queryStringParameters["hub.verify_token"] && event.queryStringParameters["hub.challenge"]) {
         const verifyToken = event.queryStringParameters["hub.verify_token"];
 
         if (verifyToken === FACEBOOK_VERIFY_TOKEN) {
