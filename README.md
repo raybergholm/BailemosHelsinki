@@ -29,13 +29,16 @@ Message processing is done in the botty modules. The overall process flow is as 
     * If optional keywords were in the user input but corresponding terms were not found in the event data, remove it from the list
 5. Respond to the user with the filtered event list. Use a carousel of generic templates to display the events. This has an built-in max limit of 10 messages.
 
-### updateStoredEventData
+### stageEventData
 Batch job method of updating everything in the corresponding S3 bucket. Iterates through DynamoDB to get the relevant node IDs and S3 filenames, then queries GraphAPI and updates the event data stored in S3.
 
 Currently set up on AWS to automatically run twice a day at 06:00 EET (update during the night to catch any changes) and 17:00 EET (update prior to most event start times to have all info up-to-date in case of last-minute changes). For the moment, the data volume is small enough that there's no need to calculate deltas, the lambda can just replace the entire thing.
 
 ### handleFacebookWebhookUpdate
 Alternative to updateStoredEventData: this can be used as an entry point to update S3 bucket entries. Returns a 501 - Not Implemented for now.
+
+### getStagedEvents
+Accessor method for public access to the staged event data.
 
 ---
 
@@ -47,4 +50,5 @@ Currently on hold, originally was used as an alternate entry point for debugging
 ## TODOs:
 
 * handleFacebookWebhookUpdate is meant to handle when a subscribed page/user/etc updates, and it would be superior to static batch updates. But, check if this requires the page/user to give permission to this bot, if so we're no longer passively collecting data, but we'd have to actively approach the other event organisers for consent!
+* getStagedEvents is implemented but currently not in use, so it may be out of date.
 * moment works great for easy date parsing & user-friend displays, however the server is not necessarily in the same time zone as the user. Will need to add a mini-query to FB at some point (assuming this can be fetched without requesting permissions) to fetch the user timezone to handle any random time offset. Alternatively, always use the location's local time for the location.
