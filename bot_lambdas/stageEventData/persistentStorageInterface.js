@@ -1,15 +1,17 @@
 "use strict";
 
-const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
-const DATA_STAGING_BUCKET_NAME = process.env.DATA_STAGING_BUCKET_NAME;
-const EVENT_DATA_FILENAME = process.env.EVENT_DATA_FILENAME;
-
 const objectUtils = require("./utils/objectUtils");
 
 const AWS = require("aws-sdk");
 AWS.config.update({
     region: "eu-west-1"
 });
+
+//---------------------------------------------------------------------------//
+
+const EVENT_ORGANISER_TABLE_NAME = process.env.EVENT_ORGANISER_TABLE_NAME;
+const DATA_STAGING_BUCKET_NAME = process.env.DATA_STAGING_BUCKET_NAME;
+const EVENT_DATA_FILENAME = process.env.EVENT_DATA_FILENAME;
 
 const dynamoDB = new AWS.DynamoDB();
 const s3 = new AWS.S3();

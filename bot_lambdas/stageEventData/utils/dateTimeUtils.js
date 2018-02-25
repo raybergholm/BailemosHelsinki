@@ -1,5 +1,7 @@
 "use strict";
 
+//---------------------------------------------------------------------------//
+
 module.exports = {
     parseTimezoneOffset: (dateTimeString) => {
         const gmtRegex = /Z$/;
@@ -22,5 +24,9 @@ module.exports = {
                 return null;
             }
         }
+    },
+
+    isFuture: (dateTimeString) => {
+        return (new Date(dateTimeString)).getTime() > Date.now();
     }
 };
