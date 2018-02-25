@@ -240,22 +240,20 @@ function parseNlpDateTime(entry) {
             };
         };
 
-        if(!from){
+        if (!from) {
             from = createDefaultInterval();
         }
-        if(!to){
+        if (!to) {
             to = createDefaultInterval();
         }
 
         return {
             from: (() => {
-                const offset = utils.parseTimezoneOffset(from.value);
-                const correctedMoment = utils.correctTimezoneOffset(moment(from.value), offset);
+                const correctedMoment = utils.parse(from.value);
                 return correctedMoment.startOf(from.grain === "week" ? "isoWeek" : from.grain);
             })(),
             to: (() => {
-                const offset = utils.parseTimezoneOffset(to.value);
-                const correctedMoment = utils.correctTimezoneOffset(moment(to.value), offset);
+                const correctedMoment = utils.parse(to.value);
                 return correctedMoment.endOf(from.grain === "week" ? "isoWeek" : from.grain);
             })()
         };
