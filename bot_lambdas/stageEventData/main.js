@@ -207,12 +207,6 @@ function parseSecondaryEventResponses(responses) { // NOTE: this is a normal fun
             if (event) {
                 additionalEvents.push(event);
             }
-
-            if ((new Date(event.start_time)).getTime() > Date.now()) { // future events only
-
-                event._bh = bottyDataAnalyser.analyseEvent(event);
-                additionalEvents.push(event);
-            }
         }
     });
 
