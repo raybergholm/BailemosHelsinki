@@ -1,5 +1,9 @@
 "use strict";
 
+const moment = require("../node_modules/moment");
+
+//---------------------------------------------------------------------------//
+
 module.exports = {
     parseTimezoneOffset: (dateTimeString) => {
         const gmtRegex = /Z$/;
@@ -26,5 +30,10 @@ module.exports = {
 
     correctTimezoneOffset: (momentDateTime, offset) => {
         return momentDateTime.clone().add(offset.hours, "hours").add(offset.minutes, "minutes");
+    },
+
+    parse: (dateTimeString) => {
+        const offset = module.exports.parseTimezoneOffset(dateTimeString);
+        return module.exports.correctTimezoneOffset(moment(dateTimeString), offset);
     }
 };
