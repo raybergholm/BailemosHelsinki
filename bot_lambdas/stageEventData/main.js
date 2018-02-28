@@ -177,13 +177,14 @@ function formatEvent(event) {
 
 function buildSecondaryQuery(eventLinks, events) {
     const eventIdRegex = /\d+/i;
+    const batchQueryLimit = 50;
 
     const eventIds = [];
 
     // extract the event ID from the URL, then check if it's already in the events: if it is, just skip it, we already have the event data
     Array.from(eventLinks.values()).forEach((link) => {
         const id = eventIdRegex.exec(link)[0];
-        if (!events.get(id)) {
+        if (!events.get(id) && eventIds.length < batchQueryLimit) {
             eventIds.push(id);
         }
     });
