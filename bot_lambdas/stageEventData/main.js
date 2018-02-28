@@ -117,7 +117,7 @@ function parseResponses(responses) {
                             // This is an event
                             const event = formatEvent(entry);
                             if (event) {
-                                events.set(events.id, events);
+                                events.set(event.id, event);
                             }
                         } else if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
                             // This is a feed message with a link
