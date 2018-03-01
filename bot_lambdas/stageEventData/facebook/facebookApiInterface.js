@@ -6,6 +6,9 @@ const request = require("../utils/httpsUtils");
 
 const HOST_URL = "graph.facebook.com";
 
+const EVENT_FIELDS = ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"];
+const FEED_FIELDS = ["type", "link", "message", "story"];
+
 const facebookApiInterface = (apiVersion, accessToken) => {
     if (!/^v\d{1}\.\d{2}$/.test(apiVersion)) {
         throw new Error("Invalid API version input");
@@ -18,15 +21,15 @@ const facebookApiInterface = (apiVersion, accessToken) => {
             const batchQueries = [];
 
             batchQueries.push(
-                buildBatchUpcomingQueryPayload(`/${apiVersion}/events/`, ids.pageIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"])
+                buildBatchUpcomingQueryPayload(`/${apiVersion}/events/`, ids.pageIds, EVENT_FIELDS)
             );
 
             batchQueries.push(
-                buildBatchQueryPayload(`/${apiVersion}/feed/`, ids.groupIds, ["type", "link", "message", "story"])
+                buildBatchQueryPayload(`/${apiVersion}/feed/`, ids.groupIds, FEED_FIELDS)
             );
 
             batchQueries.push(
-                buildBatchUpcomingQueryPayload(`/${apiVersion}/events/`, ids.userIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"])
+                buildBatchUpcomingQueryPayload(`/${apiVersion}/events/`, ids.userIds, EVENT_FIELDS)
             );
 
             const payload = `batch=${JSON.stringify(batchQueries)}`;
@@ -35,7 +38,7 @@ const facebookApiInterface = (apiVersion, accessToken) => {
         },
 
         sendBatchDirectEventsQuery: (eventIds) => {
-            const batchQueries = eventIds.map((eventId) => buildBatchQueryPayload(`${eventId}/`, eventId, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"]));
+            const batchQueries = eventIds.map((eventId) => buildBatchQueryPayload(`${eventId}/`, eventId, EVENT_FIELDS));
             const payload = `batch=${JSON.stringify(batchQueries)}`;
 
             return request.post(HOST_URL, batchRequestUrl, payload);
