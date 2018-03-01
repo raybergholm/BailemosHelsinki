@@ -6,8 +6,10 @@ const request = require("../utils/httpsUtils");
 
 const HOST_URL = "graph.facebook.com";
 
+const API_VERSION_STRING_REGEX = /^v\d{1}\.\d{2}$/;
+
 const facebookApiInterface = (apiVersion, accessToken) => {
-    if (!/^v\d{1}\.\d{2}$/.test(apiVersion)) {
+    if (!API_VERSION_STRING_REGEX.test(apiVersion)) {
         throw new Error("Invalid API version input");
     }
 
