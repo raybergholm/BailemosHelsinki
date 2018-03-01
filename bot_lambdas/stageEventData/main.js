@@ -131,6 +131,8 @@ function parseResponses(responses) {
         }
     });
 
+    console.log(`Primary query response processed, ${events.size} events added with ${eventLinks.size} additional events to query.`);
+
     if (eventLinks.size > 0) {
         // Need to wait for secondary event query
         return Promise.resolve(buildSecondaryQuery(eventLinks, events)
@@ -143,6 +145,8 @@ function parseResponses(responses) {
                     additionalEvents.map((event) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
                         events.set(event.id, event);
                     });
+
+                    console.log(`Secondary query response processed, event count is now ${events.size}.`);
 
                     // Has to be done here because it needs the ref to the events map to concat the secondary results
                     return Promise.resolve(events);
