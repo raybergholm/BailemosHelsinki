@@ -13,11 +13,11 @@ const facebookApiInterface = (apiVersion, accessToken) => {
         throw new Error("Invalid API version input");
     }
 
-    const SendMessagePath = `/${apiVersion}/me/messages/?access_token=${accessToken}`;
+    const sendMessagePath = `/${apiVersion}/me/messages/?access_token=${accessToken}`;
 
     return {
         sendMessage: (payload) => {
-            return request.post(HOST_URL, SendMessagePath, payload);
+            return request.post(HOST_URL, sendMessagePath, payload);
         }
     };
 };
