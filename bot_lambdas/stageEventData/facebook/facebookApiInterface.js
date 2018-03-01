@@ -4,17 +4,6 @@ const request = require("../utils/httpsUtils");
 
 //---------------------------------------------------------------------------//
 
-const buildBatchQueryPayload = (path, nodeIds, fields, encodeUri = true) => {
-    return {
-        relative_url: buildQueryUrl(path, {
-            // debug: "all",
-            ids: nodeIds,
-            fields: fields
-        }, encodeUri),
-        method: "GET"
-    };
-};
-
 const HOST_URL = "graph.facebook.com";
 
 const facebookApiInterface = (apiVersion, accessToken) => {
@@ -29,7 +18,7 @@ const facebookApiInterface = (apiVersion, accessToken) => {
             const batchQueries = [];
 
             batchQueries.push(
-                buildBatchQueryPayload(`/${apiVersion}/events/`, ids.pageIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"])
+                buildBatchUpcomingQueryPayload(`/${apiVersion}/events/`, ids.pageIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"])
             );
 
             batchQueries.push(
@@ -37,7 +26,7 @@ const facebookApiInterface = (apiVersion, accessToken) => {
             );
 
             batchQueries.push(
-                buildBatchQueryPayload(`/${apiVersion}/events/`, ids.userIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"])
+                buildBatchUpcomingQueryPayload(`/${apiVersion}/events/`, ids.userIds, ["name", "description", "place", "start_time", "end_time", "event_times", "owner", "cover", "attending_count"])
             );
 
             const payload = `batch=${JSON.stringify(batchQueries)}`;
@@ -51,6 +40,29 @@ const facebookApiInterface = (apiVersion, accessToken) => {
 
             return request.post(HOST_URL, batchRequestUrl, payload);
         }
+    };
+};
+
+function buildBatchUpcomingQueryPayload (path, nodeIds, fields, encodeUri = true) {
+    return {
+        relative_url: buildQueryUrl(path, {
+            // debug: "all",
+            ids: nodeIds,
+            time_filter: "upcoming",
+            fields: fields
+        }, encodeUri),
+        method: "GET"
+    };
+};
+
+function buildBatchQueryPayload (path, nodeIds, fields, encodeUri = true) {
+    return {
+        relative_url: buildQueryUrl(path, {
+            // debug: "all",
+            ids: nodeIds,
+            fields: fields
+        }, encodeUri),
+        method: "GET"
     };
 };
 
