@@ -58,7 +58,7 @@ function buildBatchUpcomingQueryPayload (path, nodeIds, fields, encodeUri = true
         }, encodeUri),
         method: "GET"
     };
-};
+}
 
 function buildBatchQueryPayload (path, nodeIds, fields, encodeUri = true) {
     return {
@@ -69,7 +69,7 @@ function buildBatchQueryPayload (path, nodeIds, fields, encodeUri = true) {
         }, encodeUri),
         method: "GET"
     };
-};
+}
 
 function buildQueryUrl(basePath, params, escapePath) {
     let path = basePath;
