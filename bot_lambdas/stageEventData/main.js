@@ -26,9 +26,9 @@ exports.handler = (event, context, callback) => {
 function updateEventData() {
     return Promise.resolve(
         getOrganiserData()
-        .then(buildOrganiserQuery)
-        .then(sendPrimaryBatchQuery)
-        .then(processResponseFromFacebook) // NOTE: this step may kick off a secondary FB query if feed scraping returns additional events
+        .then(buildPrimaryQuery)
+        .then(sendPrimaryQuery)
+        .then(processPrimaryResponse) // NOTE: this step may kick off a secondary FB query if feed scraping returns additional events
         .then(formatPayloadForStorage)
         .then(saveEventData)
         .then((result) => {
@@ -59,7 +59,7 @@ function getOrganiserData() {
     return dataInterface.getOrganisers();
 }
 
-function buildOrganiserQuery(organisers) {
+function buildPrimaryQuery(organisers) {
     const ids = {
         pageIds: [],
         groupIds: [],
@@ -88,40 +88,47 @@ function buildOrganiserQuery(organisers) {
     return Promise.resolve(ids);
 }
 
-function sendPrimaryBatchQuery(payload) {
+function sendPrimaryQuery(payload) {
     return api.sendBatchDataQuery(payload);
 }
 
-function processResponseFromFacebook(response) {
+function processPrimaryResponse(response) {
     const result = JSON.parse(response);
-    return !result.error ? Promise.resolve(parseResponses(result)) : Promise.reject(result);
-}
 
-function parseResponses(responses) {
-    const events = new Map(); // using a Map to guarentee unique entries
-    const eventLinks = new Set(); // using a Set to guarentee unique entries
+    if (result.error) {
+        return Promise.reject(result.error); // TODO: wait will this ever happen?
+    }
 
     const facebookEventLinkRegex = /^https:\/\/www.facebook.com\/events\/\d+\/$/i;
 
-    responses.forEach((response) => {
+    const data = result.reduce((reducer, response) => {
         if (response.error) {
-            console.log("Response errored: ", response.error.message);
+            console.log(`Error in primary response: ${response.error.message}`, response.error);
         } else {
             const body = JSON.parse(response.body);
 
             for (const prop in body) {
                 if (body[prop].data) {
-                    const entries = body[prop].data;
-                    entries.forEach((entry) => {
+                    body[prop].data.forEach((entry) => {
+
+                        if(!reducer) {
+                            // FIXME: how did this end up undefined?
+
+                            console.log("REDUCER UNDEFINED");
+
+                            console.log(entry);
+                            console.log(prop);
+                        }
+
                         if (entry.name && entry.description && entry.start_time && entry.end_time) {
                             // This is an event
                             const event = formatEvent(entry);
                             if (event) {
-                                events.set(event.id, event);
+                                reducer.events.set(event.id, event);
                             }
                         } else if (entry.type && entry.type === "event" && entry.link && facebookEventLinkRegex.test(entry.link)) {
                             // This is a feed message with a link
-                            eventLinks.add(entry.link);
+                            reducer.links.add(entry.link);
                         } // no general else clause, discard all the rest since we don't need them
                     });
                 } else {
@@ -129,32 +136,19 @@ function parseResponses(responses) {
                 }
             }
         }
+    }, {
+        events: new Map(),
+        links: new Set()
     });
 
-    console.log(`Primary query response processed, ${events.size} events added with ${eventLinks.size} additional events to query.`);
+    console.log(`Primary query response processed, ${data.events.size} events added with ${data.links.size} additional events to query.`);
 
-    if (eventLinks.size > 0) {
+    if (data.links.size > 0) {
         // Need to wait for secondary event query
-        return Promise.resolve(buildSecondaryQuery(eventLinks, events)
-            .then(sendSecondaryBatchQuery)
-            .then(
-                (response) => {
-                    const result = JSON.parse(response);
-
-                    const additionalEvents = parseSecondaryEventResponses(result);
-                    additionalEvents.map((event) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
-                        events.set(event.id, event);
-                    });
-
-                    console.log(`Secondary query response processed, event count is now ${events.size}.`);
-
-                    // Has to be done here because it needs the ref to the events map to concat the secondary results
-                    return Promise.resolve(events);
-                }
-            ));
+        return executeSecondaryQuery(data);
     } else {
         // No additional queries, save right away
-        return Promise.resolve(events);
+        return Promise.resolve(data.events);
     }
 }
 
@@ -179,16 +173,38 @@ function formatEvent(event) {
     }
 }
 
-function buildSecondaryQuery(eventLinks, events) {
+function executeSecondaryQuery(data) {
+    return Promise.resolve(buildSecondaryQuery(data)
+        .then(sendSecondaryQuery)
+        .then(
+            (response) => {
+                const result = JSON.parse(response);
+
+                console.log(`Secondary query response processed, event count is now ${data.size}.`);
+
+                const additionalEvents = parseSecondaryResponse(result);
+                additionalEvents.map((event) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
+                    data.events.set(event.id, event);
+                });
+
+                console.log(`Secondary query response processed, event count is now ${data.events.size}.`);
+
+                // Has to be done here because it needs the ref to the events map to concat the secondary results
+                return Promise.resolve(data.events);
+            }
+        ));
+}
+
+function buildSecondaryQuery(data) {
     const eventIdRegex = /\d+/i;
     const BATCH_QUERY_LIMIT = 50;
 
     const eventIds = [];
 
     // extract the event ID from the URL, then check if it's already in the events: if it is, just skip it, we already have the event data
-    Array.from(eventLinks.values()).forEach((link) => {
+    Array.from(data.links.values()).forEach((link) => {
         const id = eventIdRegex.exec(link)[0];
-        if (!events.get(id) && eventIds.length < BATCH_QUERY_LIMIT) {
+        if (!data.events.get(id) && eventIds.length < BATCH_QUERY_LIMIT) {
             eventIds.push(id);
         }
     });
@@ -196,26 +212,23 @@ function buildSecondaryQuery(eventLinks, events) {
     return Promise.resolve(eventIds);
 }
 
-function sendSecondaryBatchQuery(eventIds) {
+function sendSecondaryQuery(eventIds) {
     return api.sendBatchDirectEventsQuery(eventIds);
 }
 
-function parseSecondaryEventResponses(responses) { // NOTE: this is a normal function, no promise required
-    const additionalEvents = [];
-    responses.forEach((response) => {
+function parseSecondaryResponse(responses) { // NOTE: this is a normal function, no promise required
+    return responses.reduce((reducer, response) => {
         if (response.error) {
-            console.log("Response errored: ", response.error.message);
+            console.log(`Error in secondary response: ${response.error.message}`, response.error);
         } else {
             const entry = JSON.parse(response.body);
 
             const event = formatEvent(entry);
             if (event) {
-                additionalEvents.push(event);
+                reducer.push(event);
             }
         }
-    });
-
-    return additionalEvents;
+    }, []);
 }
 
 function formatPayloadForStorage(events) {
