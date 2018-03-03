@@ -219,6 +219,7 @@ function parseSecondaryResponse(responses) { // NOTE: this is a normal function,
                 reducer.push(event);
             }
         }
+        return reducer;
     }, []);
 }
 
