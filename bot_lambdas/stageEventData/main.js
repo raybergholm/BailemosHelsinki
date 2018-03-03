@@ -171,7 +171,7 @@ function executeSecondaryQuery(data) {
             (response) => {
                 const result = JSON.parse(response);
 
-                console.log(`Secondary query response processed, event count is now ${data.size}.`);
+                console.log(`Secondary query response received, ${result.length} events to process.`);
 
                 const additionalEvents = parseSecondaryResponse(result);
                 additionalEvents.map((event) => { // add additional events to the main map (if it somehow gets a duplicate here, it's fine. We just end up overwriting)
