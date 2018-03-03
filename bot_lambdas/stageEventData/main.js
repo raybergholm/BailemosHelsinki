@@ -110,16 +110,6 @@ function processPrimaryResponse(response) {
             for (const prop in body) {
                 if (body[prop].data) {
                     body[prop].data.forEach((entry) => {
-
-                        if(!reducer) {
-                            // FIXME: how did this end up undefined?
-
-                            console.log("REDUCER UNDEFINED");
-
-                            console.log(entry);
-                            console.log(prop);
-                        }
-
                         if (entry.name && entry.description && entry.start_time && entry.end_time) {
                             // This is an event
                             const event = formatEvent(entry);
@@ -136,6 +126,7 @@ function processPrimaryResponse(response) {
                 }
             }
         }
+        return reducer;
     }, {
         events: new Map(),
         links: new Set()
