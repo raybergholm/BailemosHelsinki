@@ -156,6 +156,7 @@ const factory = (targetId, texts) => {
 };
 
 function sendMessageToFacebook(payload) {
+    console.log("Outbound message payload: ", payload.message);
     return api.sendMessage(JSON.stringify(payload));
 }
 

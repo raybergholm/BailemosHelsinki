@@ -184,7 +184,7 @@ module.exports = {
             }
         }
 
-        console.log("results after NLP:", result);
+        console.log("[DEBUG] results after NLP:", result);
 
         // Generic custom parsing for fallback purposes: not really efficient, aim to deprecate
         if (!result.dateTimeRange) {

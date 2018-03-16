@@ -34,9 +34,8 @@ module.exports = {
     },
 
     readMessage: function (text, attachments, nlp) { // main method: read input text and/or attachments, then reply with something 
-        console.log(`Incoming message with text: "${text}", ${attachments ? "with" : "no"} attachments`);
-        console.log("Built-in NLP from Facebook: ", JSON.stringify(nlp));
-
+        console.log(`Incoming message: "${text}", ${attachments ? "with" : "no"} attachments, NLP: `, nlp);
+        
         if (attachments) {
             // TODO: what do we want to do with attachments?
         }
@@ -102,7 +101,7 @@ function analyseInput(text, nlp) {
     if (nlp && nlp.entities) {
         const nlpResult = parser.parseBuiltinNlp(nlp.entities);
 
-        console.log("Result after parsing NLP:", nlpResult);
+        console.log("[DEBUG] Result after parsing NLP:", nlpResult);
 
         if (nlpResult) {
             nlpResult.forEach((val, key) => {
