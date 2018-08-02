@@ -1,6 +1,6 @@
 {
     "parserOptions": {
-        "ecmaVersion": 6,
+        "ecmaVersion": 2017,
         "sourceType": "module",
         "ecmaFeatures": {
             "jsx": false,
@@ -22,6 +22,8 @@
         "no-unused-vars": "warn",
         "prefer-const": "warn",
 
+        "arrow-body-style": ["error", "as-needed"],
+        "arrow-parens": ["error", "always"],
         "curly": ["error", "all"],
         "for-direction": "error",
         "no-array-constructor": "error",
@@ -31,10 +33,14 @@
         "no-implied-eval": "error",
         "no-new-object": "error",
         "no-new-wrappers": "error",
+        "no-return-assign": "error",
+        "no-return-await": "error",
         "no-self-compare": "error",
         "no-undef-init": "error",
         "no-undefined": "error",
         "no-unmodified-loop-condition": "error",
-        "semi": ["error", "always"]
+        "object-shorthand": "error",
+        "semi": ["error", "always"],
+        "spaced-comment": "error"
     }
 }
