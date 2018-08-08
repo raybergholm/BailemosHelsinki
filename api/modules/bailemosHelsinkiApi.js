@@ -12,30 +12,36 @@ const fetchEvents = async (query) => {
         return { error };
     }
 
-    const filtered = events.reduce((accumulator, entry) => {
-        const entryIsValid = false;
+    const filtered = events.filter((entry) => {
         if (query.from || query.to) {
             // filter this event by time range
+            if (query.from && entry.start_time < query.from) {
+                return false;
+            }
+
+            if (query.to && entry.end_time > query.to) {
+                return false;
+            }
         }
 
-        if (query.tags) {
+        if (query.tags && entry.tags) {
             // filter by event tags (dance style in this case)
+            return false;
         }
 
-        if (query.type) {
-            // filter by event type
+        if (query.type && entry.type !== query.type) {
+            return false;
         }
 
         if (query.pattern) {
-            // filter for events matching the pattern in title or body
+            const pattern = new RegExp(query.pattern);
+            if (!pattern.test(entry.title) && !pattern.test(entry.body)) {
+                return false;
+            }
         }
 
-        if (entryIsValid) {
-            accumulator.push(entry);
-        }
-        
-        return accumulator;
-    }, []);
+        return true;
+    });
     return { data: filtered };
 };
 
