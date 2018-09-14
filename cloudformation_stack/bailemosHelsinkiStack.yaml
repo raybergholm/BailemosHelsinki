@@ -1,0 +1,181 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AWS Cloudformation template for BailemosHelsinki bot and API stack
+Parameters:
+    S3BucketName:
+        Type: String
+        Description: S3 bucket name (used to store lambda code and event data)
+    FacebookAppSecret:
+        Type: String
+        Description: Facebook app secret
+    FacebookPageAccessToken:
+        Type: String
+        Description: Facebook page access token
+    FacebookPageId:
+        Type: Number
+        Description: Facebook page ID
+Resources:
+
+
+    LambdaBotMessageHandler:
+        Type: AWS::Lambda::Function
+        Properties:
+            Code:
+                S3Bucket: 
+                    Ref: S3BucketName
+                S3Key: botLambdas/processMessages/lambda_package.zip
+            Description: Lambda for processing incoming chat messages
+            Environment:
+                Variables:
+                    DATA_STAGING_BUCKET_NAME: bailemoshelsinki
+                    EVENT_DATA_FILENAME: datastaging/events.json
+                    FACEBOOK_APP_SECRET: 
+                        Ref: FacebookAppSecret
+                    FACEBOOK_PAGE_ACCESS_TOKEN: 
+                        Ref: FacebookPageAccessToken
+                    FACEBOOK_PAGE_ID: 
+                        Ref: FacebookPageId
+            FunctionName: bailemoshelsinki-processMessages
+            Handler: index.handler
+            Role: 
+                Fn::Sub: 'arn:aws:iam::${AWS::Region}:role/bailemoshelsinki-bot'
+            Runtime: nodejs8.10
+            Timeout: 30
+    
+    LambdaEventDataScheduledUpdater:
+        Type: AWS::Lambda::Function
+        Properties:
+            Code:
+                S3Bucket:
+                    Ref: S3BucketName
+                S3Key: scheduled/eventDataAutoUpdater/lambda_package.zip
+            Description: Lambda for auto-updating stored event data
+            FunctionName: bailemoshelsinki-eventDataAutoUpdater
+            Handler: index.handler
+            Runtime: nodejs8.10
+            Timeout: 180
+    
+    PublicRestApi:
+        Type: AWS::ApiGateway::RestApi
+        Properties:
+            Name: bailemoshelsinki-public-api
+
+    ApiResourceHealth:
+        Type: 'AWS::ApiGateway::Resource'
+        Properties:
+        ParentId: 
+            Fn::GetAtt:
+                -   PublicRestApi
+                -   RootResourceId
+        PathPart: health
+        RestApiId: 
+            Ref: PublicRestApi
+    ApiMethodHealthOptions:
+        Type: AWS::ApiGateway::Method
+        Properties:
+            ResourceId: 
+                Ref: ApiResourceHealth
+            RestApiId: 
+                Ref: PublicRestApi
+            AuthorizationType: NONE
+            HttpMethod: OPTIONS
+            RequestParameters: {}
+            Integration:
+                Type: MOCK
+                RequestTemplates:
+                application/json: '{statusCode:200}'
+                IntegrationResponses:
+                    -   StatusCode: '200'
+                        ResponseParameters:
+                            method.response.header.Access-Control-Allow-Origin: '''*'''
+                            method.response.header.Access-Control-Allow-Headers: >-
+                                'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
+                            method.response.header.Access-Control-Allow-Methods: '''OPTIONS,GET'''
+                        ResponseTemplates:
+                            application/json: ''
+            MethodResponses:
+                -   StatusCode: '200'
+                    ResponseParameters:
+                        method.response.header.Access-Control-Allow-Origin: true
+                        method.response.header.Access-Control-Allow-Headers: true
+                        method.response.header.Access-Control-Allow-Methods: true
+                    ResponseModels: {}
+    ApiMethodHealthGet:
+        Type: AWS::ApiGateway::Method
+        Properties:
+            ResourceId: 
+                Ref: ApiResourceHealth
+            RestApiId: 
+                Ref: PublicRestApi
+            ApiKeyRequired: true
+            AuthorizationType: NONE
+            HttpMethod: GET
+            RequestParameters: {}
+            Integration:
+                Type: MOCK
+                RequestTemplates:
+                application/json: '{statusCode:200}'
+                IntegrationResponses:
+                    -   StatusCode: '200'
+                        ResponseTemplates:
+                            application/json: ''
+            MethodResponses:
+                -   StatusCode: '200'
+                    ResponseModels: {}
+
+    ApiResourceBot:
+        Type: AWS::ApiGateway::Resource
+        Properties:
+            ParentId: 
+                Fn::GetAtt:
+                    - PublicRestApi
+                    - RootResourceId
+            PathPart: bot
+            RestApiId: 
+                Ref: PublicRestApi
+    
+    ApiMethodBotGet:
+        Type: AWS::ApiGateway::Method
+        Properties:
+            HttpMethod: GET
+            RequestParameters: {}
+            ResourceId:
+                Ref: ApiResourceBot
+            RestApiId:
+                Ref: PublicRestApi
+            AuthorizationType: NONE
+            Integration:
+                IntegrationHttpMethod: GET
+                Type: AWS_PROXY
+                Uri:
+                    Fn::Sub:
+                        -   "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+                        - { region: 
+                                Ref: AWS::Region, 
+                            }
+
+    "ApiGatewayMethodD2lBrandingDashcopyPpwsPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "HttpMethod": "POST",
+                "RequestParameters": {},
+                "ResourceId": {
+                    "Ref": "ApiGatewayResourceD2lBrandingDashcopyPpws"
+                },
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                },
+                "AuthorizationType": "NONE",
+                "Integration": {
+                    "IntegrationHttpMethod": "POST",
+                    "Type": "AWS_PROXY",
+                    "Uri": {
+                        "Fn::Join": ["", ["arn:aws:apigateway:", {
+                            "Ref": "AWS::Region"
+                        }, ":lambda:path/2015-03-31/functions/", {
+                            "Fn::GetAtt": ["EsbPublicEndpointsLambdaFunction", "Arn"]
+                        }, "/invocations"]]
+                    }
+                },
+                "MethodResponses": []
+            }
+        },
