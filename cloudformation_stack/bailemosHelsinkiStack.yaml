@@ -14,8 +14,6 @@ Parameters:
         Type: Number
         Description: Facebook page ID
 Resources:
-
-
     LambdaBotMessageHandler:
         Type: AWS::Lambda::Function
         Properties:
@@ -40,7 +38,6 @@ Resources:
                 Fn::Sub: 'arn:aws:iam::${AWS::Region}:role/bailemoshelsinki-bot'
             Runtime: nodejs8.10
             Timeout: 30
-    
     LambdaEventDataScheduledUpdater:
         Type: AWS::Lambda::Function
         Properties:
@@ -62,13 +59,13 @@ Resources:
     ApiResourceHealth:
         Type: 'AWS::ApiGateway::Resource'
         Properties:
-        ParentId: 
-            Fn::GetAtt:
-                -   PublicRestApi
-                -   RootResourceId
-        PathPart: health
-        RestApiId: 
-            Ref: PublicRestApi
+            ParentId: 
+                Fn::GetAtt:
+                    -   PublicRestApi
+                    -   RootResourceId
+            PathPart: health
+            RestApiId: 
+                Ref: PublicRestApi
     ApiMethodHealthOptions:
         Type: AWS::ApiGateway::Method
         Properties:
@@ -82,7 +79,7 @@ Resources:
             Integration:
                 Type: MOCK
                 RequestTemplates:
-                application/json: '{statusCode:200}'
+                    application/json: '{statusCode:200}'
                 IntegrationResponses:
                     -   StatusCode: '200'
                         ResponseParameters:
@@ -106,14 +103,14 @@ Resources:
                 Ref: ApiResourceHealth
             RestApiId: 
                 Ref: PublicRestApi
-            ApiKeyRequired: true
-            AuthorizationType: NONE
             HttpMethod: GET
+            AuthorizationType: NONE
+            ApiKeyRequired: true
             RequestParameters: {}
             Integration:
                 Type: MOCK
                 RequestTemplates:
-                application/json: '{statusCode:200}'
+                    application/json: '{statusCode:200}'
                 IntegrationResponses:
                     -   StatusCode: '200'
                         ResponseTemplates:
@@ -132,23 +129,136 @@ Resources:
             PathPart: bot
             RestApiId: 
                 Ref: PublicRestApi
-    
     ApiMethodBotGet:
         Type: AWS::ApiGateway::Method
         Properties:
-            HttpMethod: GET
-            RequestParameters: {}
             ResourceId:
                 Ref: ApiResourceBot
             RestApiId:
                 Ref: PublicRestApi
+            HttpMethod: GET
             AuthorizationType: NONE
+            RequestParameters: {}
             Integration:
                 IntegrationHttpMethod: GET
                 Type: AWS_PROXY
                 Uri:
                     Fn::Sub:
                         -   "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
-                        - { region: 
-                                Ref: AWS::Region, 
-                            }
+                        -   region: 
+                                Ref: AWS::Region
+                            lambdaArn: 
+                                Fn::GetAtt:
+                                    -   LambdaEventDataScheduledUpdater
+                                    -   Arn
+            MethodResponses: []
+    ApiMethodBotPost:
+        Type: AWS::ApiGateway::Method
+        Properties:
+            ResourceId:
+                Ref: ApiResourceBot
+            RestApiId:
+                Ref: PublicRestApi
+            HttpMethod: POST
+            AuthorizationType: NONE
+            RequestParameters: {}
+            Integration:
+                IntegrationHttpMethod: POST
+                Type: AWS_PROXY
+                Uri:
+                    Fn::Sub:
+                        -   "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+                        -   region: 
+                                Ref: AWS::Region
+                            lambdaArn: 
+                                Fn::GetAtt: 
+                                    -   LambdaBotMessageHandler
+                                    -   Arn
+            MethodResponses: []
+    ApiResourceEvents:
+        Type: AWS::ApiGateway::Method
+        Properties:
+            ParentId: 
+                Fn::GetAtt:
+                    - PublicRestApi
+                    - RootResourceId
+            PathPart: bot
+            RestApiId: 
+                Ref: PublicRestApi
+    ApiResourceEventsGet:
+        Type: AWS::ApiGateway::Method
+        Properties:
+            ResourceId:
+                Ref: ApiResourceBot
+            RestApiId:
+                Ref: PublicRestApi
+            HttpMethod: POST
+            AuthorizationType: NONE
+            ApiKeyRequired: true
+            RequestParameters: {}
+            Integration:
+                IntegrationHttpMethod: POST
+                Type: AWS_PROXY
+                Uri:
+                    Fn::Sub:
+                        -   "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+                        -   region: 
+                                Ref: AWS::Region
+                            lambdaArn: 
+                                Fn::GetAtt: 
+                                    -   LambdaEventsQueryHandler
+                                    -   Arn
+            MethodResponses: []
+    
+    DevApiDeployment:
+        Type: AWS::ApiGateway::Deployment
+        DependsOn:
+            -   PublicRestApi
+            -   ApiResourceHealth
+            -   ApiResourceBot
+            -   ApiResourceEvents
+            -   ApiMethodHealthCheckOptions
+            -   ApiMethodHealthCheckGet
+            -   ApiMethodBotGet
+            -   ApiMethodBotPost
+            -   ApiResourceEventsGet
+        Properties:
+            RestApiId:
+                Ref: PublicRestApi
+            StageName: dev
+    ApiDevUsagePlan:
+        Type: AWS::ApiGateway::UsagePlan
+        DependsOn:
+            -   PublicRestApi
+            -   DevApiDeployment
+        Properties:
+            ApiStages:
+            -   ApiId:
+                    Ref: PublicRestApi
+                Stage: dev
+            Description: Usage plan for spro-bsatlas-tow-events-api (INT3)
+            UsagePlanName: bailemoshelsinki-api-dev-plan
+    DevApiKey:
+        Type: AWS::ApiGateway::ApiKey
+        DependsOn:
+            -   ApiDevUsagePlan
+        Properties:
+            Description: API key for the BailemosHelsinki public API (dev)
+            Enabled: true
+            GenerateDistinctId: true
+            Name: bailemoshelsinki-dev-apikey
+            StageKeys:
+                -   RestApiId: 
+                        Ref: PublicRestApi
+                    StageName: int3
+    DevPlanKey:
+        Type: AWS::ApiGateway::UsagePlanKey
+        DependsOn:
+            -   ApiDevUsagePlan
+            -   DevApiKey
+        Properties:
+            KeyId:
+                Ref: DevApiKey
+            KeyType: API_KEY
+            UsagePlanId:
+                Ref: ApiDevUsagePlan
