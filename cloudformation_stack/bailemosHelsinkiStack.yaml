@@ -301,7 +301,7 @@ Resources:
     CloudwatchScheduledEventDataUpdate:
         Type: AWS::Events::Rule
         DependsOn:
-            -   LambdaSqsWorker
+            -   LambdaEventDataUpdater
         Properties:
             Description: Scheduled run to automatically update the event data used by the Bailemos Helsinki API
             Name: bailemoshelsinki-eventdata-auto-updater
