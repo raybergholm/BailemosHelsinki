@@ -14,18 +14,41 @@ Parameters:
         Type: Number
         Description: Facebook page ID
 Resources:
+    LambdaBotFacebookAuthenticator:
+        Type: AWS::Lambda::Function
+        Properties:
+            Code:
+                S3Bucket: 
+                    Ref: S3BucketName
+                S3Key: lambdas/bot/challengeResponseHandler/lambda_package.zip
+            Description: Handles the challenge-response authentication from Facebook
+            Environment:
+                Variables:
+                    FACEBOOK_APP_SECRET: 
+                        Ref: FacebookAppSecret
+                    FACEBOOK_PAGE_ACCESS_TOKEN: 
+                        Ref: FacebookPageAccessToken
+                    FACEBOOK_PAGE_ID: 
+                        Ref: FacebookPageId
+            FunctionName: bailemoshelsinki-challengeResponseHandler
+            Handler: index.handler
+            Role: 
+                Fn::Sub: 'arn:aws:iam::${AWS::Region}:role/bailemoshelsinki-bot'
+            Runtime: nodejs8.10
+            Timeout: 10
     LambdaBotMessageHandler:
         Type: AWS::Lambda::Function
         Properties:
             Code:
                 S3Bucket: 
                     Ref: S3BucketName
-                S3Key: botLambdas/processMessages/lambda_package.zip
-            Description: Lambda for processing incoming chat messages
+                S3Key: lambdas/bot/processMessages/lambda_package.zip
+            Description: Processes incoming chat messages from Facebook Messenger
             Environment:
                 Variables:
-                    DATA_STAGING_BUCKET_NAME: bailemoshelsinki
-                    EVENT_DATA_FILENAME: datastaging/events.json
+                    DATA_STAGING_BUCKET_NAME:
+                        Ref: S3BucketName
+                    EVENT_DATA_FILENAME: data/events.json
                     FACEBOOK_APP_SECRET: 
                         Ref: FacebookAppSecret
                     FACEBOOK_PAGE_ACCESS_TOKEN: 
@@ -38,19 +61,31 @@ Resources:
                 Fn::Sub: 'arn:aws:iam::${AWS::Region}:role/bailemoshelsinki-bot'
             Runtime: nodejs8.10
             Timeout: 30
-    LambdaEventDataScheduledUpdater:
+    LambdaEventDataUpdater:
         Type: AWS::Lambda::Function
         Properties:
             Code:
                 S3Bucket:
                     Ref: S3BucketName
-                S3Key: scheduled/eventDataAutoUpdater/lambda_package.zip
-            Description: Lambda for auto-updating stored event data
+                S3Key: lambdas/api/eventDataAutoUpdater/lambda_package.zip
+            Description: Updates stored event data, triggered from a Cloudwatch scheduled event.
             FunctionName: bailemoshelsinki-eventDataAutoUpdater
             Handler: index.handler
             Runtime: nodejs8.10
             Timeout: 180
-    
+    LambdaApiQueryHandler:
+        Type: AWS::Lambda::Function
+        Properties:
+            Code:
+                S3Bucket:
+                    Ref: S3BucketName
+                S3Key: lambdas/api/apiQueryHandler/lambda_package.zip
+            Description: Handles queries coming from the public API
+            FunctionName: bailemoshelsinki-apiQueryHandler
+            Handler: index.handler
+            Runtime: nodejs8.10
+            Timeout: 180
+
     PublicRestApi:
         Type: AWS::ApiGateway::RestApi
         Properties:
@@ -149,7 +184,7 @@ Resources:
                                 Ref: AWS::Region
                             lambdaArn: 
                                 Fn::GetAtt:
-                                    -   LambdaEventDataScheduledUpdater
+                                    -   LambdaBotFacebookAuthenticator
                                     -   Arn
             MethodResponses: []
     ApiMethodBotPost:
@@ -206,7 +241,7 @@ Resources:
                                 Ref: AWS::Region
                             lambdaArn: 
                                 Fn::GetAtt: 
-                                    -   LambdaEventsQueryHandler
+                                    -   LambdaApiQueryHandler
                                     -   Arn
             MethodResponses: []
     
@@ -217,8 +252,8 @@ Resources:
             -   ApiResourceHealth
             -   ApiResourceBot
             -   ApiResourceEvents
-            -   ApiMethodHealthCheckOptions
-            -   ApiMethodHealthCheckGet
+            -   ApiMethodHealthOptions
+            -   ApiMethodHealthGet
             -   ApiMethodBotGet
             -   ApiMethodBotPost
             -   ApiResourceEventsGet
@@ -262,3 +297,19 @@ Resources:
             KeyType: API_KEY
             UsagePlanId:
                 Ref: ApiDevUsagePlan
+    
+    CloudwatchScheduledEventDataUpdate:
+        Type: AWS::Events::Rule
+        DependsOn:
+            -   LambdaSqsWorker
+        Properties:
+            Description: Scheduled run to automatically update the event data used by the Bailemos Helsinki API
+            Name: bailemoshelsinki-eventdata-auto-updater
+            ScheduleExpression: cron(0 4,15 * * ? *)
+            State: ENABLED
+            Targets:
+                    -   Arn: 
+                            Fn::GetAtt: 
+                                -   LambdaEventDataUpdater
+                                -   Arn
+                        Id: eventDataUpdaterLambda
