@@ -33,7 +33,7 @@ Resources:
             Code:
                 S3Bucket: 
                     Ref: S3BucketName
-                S3Key: lambdas/bot/handleChallengeResponse/lambda_package.zip
+                S3Key: lambdas/bot/handleChallengeResponse.zip
             Description: Handles the challenge-response authentication from Facebook
             Environment:
                 Variables:
@@ -53,7 +53,7 @@ Resources:
             Code:
                 S3Bucket: 
                     Ref: S3BucketName
-                S3Key: lambdas/bot/processMessages/lambda_package.zip
+                S3Key: lambdas/bot/processMessages.zip
             Description: Processes incoming chat messages from Facebook Messenger
             Environment:
                 Variables:
@@ -80,7 +80,7 @@ Resources:
             Code:
                 S3Bucket:
                     Ref: S3BucketName
-                S3Key: lambdas/api/eventDataAutoUpdater/lambda_package.zip
+                S3Key: lambdas/api/eventDataAutoUpdater.zip
             Description: Updates stored event data, triggered from a Cloudwatch scheduled event.
             Environment:
                 Variables:
@@ -96,7 +96,7 @@ Resources:
             Code:
                 S3Bucket:
                     Ref: S3BucketName
-                S3Key: lambdas/api/apiQueryHandler/lambda_package.zip
+                S3Key: lambdas/api/apiQueryHandler.zip
             Description: Handles queries coming from the public API
             Environment:
                 Variables:
