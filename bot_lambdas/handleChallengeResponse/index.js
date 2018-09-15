@@ -1,4 +1,4 @@
-const VERIFY_TOKEN_VALUE = process.env.FACEBOOK_VERIFY_TOKEN;
+const VERIFICATION_TOKEN_VALUE = process.env.FACEBOOK_VERIFICATION_TOKEN;
 
 const VERIFY_TOKEN_PARAM_NAME = "hub.verify_token";
 const CHALLENGE_PARAM_NAME = "hub.challenge";
@@ -17,7 +17,7 @@ const handleChallengeResponse = (queryStringParameters) => {
         const verifyToken = queryStringParameters[VERIFY_TOKEN_PARAM_NAME];
         const challengeToken = parseInt(event.queryStringParameters[CHALLENGE_PARAM_NAME], 10);
 
-        if (verifyToken === VERIFY_TOKEN_VALUE) {
+        if (verifyToken === VERIFICATION_TOKEN_VALUE) {
             console.log("Verification token OK, responding to Facebook challenge token");
 
             response = generateHttpResponse(200, challengeToken);

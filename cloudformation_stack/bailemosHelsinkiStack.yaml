@@ -4,15 +4,18 @@ Parameters:
     S3BucketName:
         Type: String
         Description: S3 bucket name (used to store lambda code and event data)
+    FacebookPageId:
+        Type: Number
+        Description: Facebook page ID
     FacebookAppSecret:
         Type: String
         Description: Facebook app secret
     FacebookPageAccessToken:
         Type: String
         Description: Facebook page access token
-    FacebookPageId:
-        Type: Number
-        Description: Facebook page ID
+    FacebookVerificationToken:
+        Type: String
+        Description: Payload sent by Facebook when authenticating a challenge-response from Facebook
 Resources:
     LambdaBotFacebookAuthenticator:
         Type: AWS::Lambda::Function
@@ -24,12 +27,8 @@ Resources:
             Description: Handles the challenge-response authentication from Facebook
             Environment:
                 Variables:
-                    FACEBOOK_APP_SECRET: 
-                        Ref: FacebookAppSecret
-                    FACEBOOK_PAGE_ACCESS_TOKEN: 
-                        Ref: FacebookPageAccessToken
-                    FACEBOOK_PAGE_ID: 
-                        Ref: FacebookPageId
+                    FACEBOOK_VERIFICATION_TOKEN:
+                        Ref: FacebookVerificationToken
             FunctionName: bailemoshelsinki-handleChallengeResponse
             Handler: index.handler
             Role: 
