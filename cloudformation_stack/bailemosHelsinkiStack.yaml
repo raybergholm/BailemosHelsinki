@@ -20,7 +20,7 @@ Resources:
             Code:
                 S3Bucket: 
                     Ref: S3BucketName
-                S3Key: lambdas/bot/challengeResponseHandler/lambda_package.zip
+                S3Key: lambdas/bot/handleChallengeResponse/lambda_package.zip
             Description: Handles the challenge-response authentication from Facebook
             Environment:
                 Variables:
@@ -30,7 +30,7 @@ Resources:
                         Ref: FacebookPageAccessToken
                     FACEBOOK_PAGE_ID: 
                         Ref: FacebookPageId
-            FunctionName: bailemoshelsinki-challengeResponseHandler
+            FunctionName: bailemoshelsinki-handleChallengeResponse
             Handler: index.handler
             Role: 
                 Fn::Sub: 'arn:aws:iam::${AWS::Region}:role/bailemoshelsinki-bot'
