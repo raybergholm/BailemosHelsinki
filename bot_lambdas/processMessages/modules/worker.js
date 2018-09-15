@@ -1,4 +1,7 @@
 const { verifySignature } = require("./facebook/requestVerifier");
+const botty = require("./botty/botty");
+
+const DEBUG_MODE = process.env.DEBUG_MODE === "ALL" || process.env.DEBUG_MODE === "MESSAGE_PROCESSING";
 
 const processMessages = (event) => {
     try {
@@ -23,34 +26,24 @@ const processMessages = (event) => {
         };
     }
 
-    const data = JSON.parse(event.body);
-    if (data) {
-        // Make sure this is a page subscription
-        if (data.object === "page") {
-
-            // Iterate over each entry - there may be multiple if batched
-            data.entry.forEach((entry) => {
-                // var pageID = entry.id;
-                // var timeOfEvent = entry.time;
-                // Iterate over each messaging event
-                entry.messaging.forEach((msg) => {
-                    if (msg.message) {
-                        // Normal message
-                        handleReceivedMessage(msg);
-                    } else if (msg.delivery) {
-                        handleDeliveryReceipt(msg);
-                    } else if (msg.read) {
-                        handleReadReceipt(msg);
-                    } else {
-                        console.log("Webhook received unknown event with data: ", msg);
-                    }
-                });
+    const { object, entry } = JSON.parse(event.body);
+    if (object && object === "page") {
+        // Iterate over each entry - there may be multiple if batched
+        entry.forEach((batch) => {
+            batch.messaging.forEach((msg) => {
+                if(msg.message){
+                    handleReceivedMessage(msg);
+                }else if(msg.delivery){
+                    handleDeliveryReceipt(msg);
+                }else if(msg.read){
+                    handleReadReceipt(msg);
+                }else{
+                    console.log("[WARN] Webhook received unknown event", msg);
+                }
             });
-        } else {
-            console.log(`[ERROR] Unexpected payload, expected 'page', got '${data.object}'`);
-        }
+        });
     } else {
-        console.log("[ERROR] request body was null");
+        console.log("[WARN] Received unexpected payload", { object, entry });
     }
 
     // always return 200 so that Facebook doesn't spam the lambda like crazy. If any issues appear, it's a server-side problem and Facebook constantly calling an incorrect webhook won't help
@@ -58,6 +51,32 @@ const processMessages = (event) => {
         statusCode: 200,
         payload: "OK"
     };
+};
+
+const handleReceivedMessage = ({sender, message}) => {
+    const senderId = sender.id;
+
+    if (DEBUG_MODE){
+        console.log("[DEBUG] entire message data structure: ", JSON.stringify(message));
+    }
+
+    const { quick_reply, text, attachments, nlp } = message;
+
+    botty.initConversation(senderId, DEBUG_MODE);
+
+    if (quick_reply) {
+        botty.respondToQuickReply(quick_reply.payload);
+    } else {
+        botty.readMessage({text, attachments, nlp});
+    }
+};
+
+const handleDeliveryReceipt = (message) => {
+    console.log("Message delivery response: ", message.delivery);
+};
+
+const handleReadReceipt = (message) => {
+    console.log("Message read response: ", message.read);
 };
 
 module.exports = {
