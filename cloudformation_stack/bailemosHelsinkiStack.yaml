@@ -16,6 +16,16 @@ Parameters:
     FacebookVerificationToken:
         Type: String
         Description: Payload sent by Facebook when authenticating a challenge-response from Facebook
+    LambdaDebugMode:
+        Type: String
+        Description: Turn on debug mode for lambdas
+        AllowedValues:
+            -   ALL
+            -   AUTHENTICATOR
+            -   MESSAGE_PROCESSING
+            -   EVENT_DATA_UPDATE
+            -   API_QUERY
+
 Resources:
     LambdaBotFacebookAuthenticator:
         Type: AWS::Lambda::Function
@@ -29,6 +39,8 @@ Resources:
                 Variables:
                     FACEBOOK_VERIFICATION_TOKEN:
                         Ref: FacebookVerificationToken
+                    DEBUG_MODE:
+                        Ref: LambdaDebugMode
             FunctionName: bailemoshelsinki-handleChallengeResponse
             Handler: index.handler
             Role: 
@@ -54,6 +66,8 @@ Resources:
                         Ref: FacebookPageAccessToken
                     FACEBOOK_PAGE_ID: 
                         Ref: FacebookPageId
+                    DEBUG_MODE:
+                        Ref: LambdaDebugMode
             FunctionName: bailemoshelsinki-processMessages
             Handler: index.handler
             Role: 
@@ -68,6 +82,10 @@ Resources:
                     Ref: S3BucketName
                 S3Key: lambdas/api/eventDataAutoUpdater/lambda_package.zip
             Description: Updates stored event data, triggered from a Cloudwatch scheduled event.
+            Environment:
+                Variables:
+                    DEBUG_MODE:
+                        Ref: LambdaDebugMode
             FunctionName: bailemoshelsinki-eventDataAutoUpdater
             Handler: index.handler
             Runtime: nodejs8.10
@@ -80,6 +98,10 @@ Resources:
                     Ref: S3BucketName
                 S3Key: lambdas/api/apiQueryHandler/lambda_package.zip
             Description: Handles queries coming from the public API
+            Environment:
+                Variables:
+                    DEBUG_MODE:
+                        Ref: LambdaDebugMode
             FunctionName: bailemoshelsinki-apiQueryHandler
             Handler: index.handler
             Runtime: nodejs8.10
