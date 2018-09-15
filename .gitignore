@@ -1,6 +1,6 @@
 # Ignore node modules folder
-/node_modules
-*node_modules
+node_modules
+botlambdas/**/node_modules
 
 # Ignore zip folders (for now, used to upload lambdas to AWS)
 *.zip
