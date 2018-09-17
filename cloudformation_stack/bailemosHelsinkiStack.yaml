@@ -107,6 +107,24 @@ Resources:
             Runtime: nodejs8.10
             Timeout: 180
 
+    DynamodbEventOrganisers:
+        Type: AWS::DynamoDb::Table
+        Properties:
+            TableName: bailemoshelsinki-EventOrganisers
+            AttributeDefinitions:
+                -   AttributeName: NodeId
+                    AttributeType: "N"
+                -   AttributeName: Name
+                    AttributeType: "S"
+                -   AttributeName: NodeType
+                    AttributeType: "S"
+            KeySchema:
+                -   AttributeName: NodeId
+                    KeyType: HASH
+            ProvisionedThroughput:
+                ReadCapacityUnits: 5
+                WriteCapacityUnits: 5
+
     PublicRestApi:
         Type: AWS::ApiGateway::RestApi
         Properties:
