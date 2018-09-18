@@ -108,7 +108,7 @@ Resources:
             Timeout: 180
 
     DynamodbEventOrganisers:
-        Type: AWS::DynamoDb::Table
+        Type: AWS::DynamoDB::Table
         Properties:
             TableName: bailemoshelsinki-EventOrganisers
             AttributeDefinitions:
