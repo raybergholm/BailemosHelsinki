@@ -8,6 +8,7 @@ def main():
     args = parse_arguments()
 
     package_name = args.name if args.name else args.lambda_dir.rsplit("/", 1)[0]
+    main_handler = args.main_handler if args.main_handler else "index"
 
     if not os.path.isdir(args.lambda_dir):
         print("[ERROR] directory %s does not exist, check input or your current directory location" % args.lambda_dir)
@@ -30,10 +31,16 @@ def main():
     print("[SUCCESS] Lambda package zipped to %s/%s.zip" % (args.lambda_dir, package_name))
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="BailemosHelsinki lambda package generator script")
+    help_desc = [
+        "This script takes a lambda folder and generates deployable Node.js lambda zip package out of it. This zip can be uploaded as-is to S3 to simplify lambda deployment.",
+        "This script assumes that: the handler file in the root of the folder, your source files are in ./modules/, your dependencies are in ./node_modules/"
+    ]
+
+    parser = argparse.ArgumentParser(description="\n".join(help_desc))
     parser.add_argument("lambda_dir", help="Directory pointing to the lambda")
     parser.add_argument("-p", "--prod-mode", dest="prod_mode", action="store_true", help="Generate a production package (runs npm prune --production)")
-    parser.add_argument("-n", "--name", dest="name", action="store", help="Filename override for the generated package (default: uses the last token in the lambda directory name")
+    parser.add_argument("-n", "--name", dest="name", action="store", help="Filename override for the generated package (default: uses the last part of the lambda directory path")
+    parser.add_argument("-m", "--main-handler", dest="main_handler", action="store", help="Filename of the main handler file (default: index). No need to specify the filetype, .js is already implied")
 
     return parser.parse_args()
 
@@ -53,10 +60,10 @@ def execute_production_prune():
         print("[ERROR] %s" % str(error))
         exit()
 
-def generate_lambda_package(package_name):
+def generate_lambda_package(package_name, main_handler):
     print("[INFO] Generating lambda package")
     try:
-        command = "zip -r %s ./index.js modules node_modules" % package_name
+        command = "zip -r %s ./%s.js modules node_modules" % (package_name, main_handler)
         subprocess.check_call(command, shell=True)
     except CalledProcessError as error:
         print("[ERROR] %s" % str(error))
