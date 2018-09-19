@@ -249,13 +249,22 @@ Resources:
                                     -   LambdaBotMessageHandler
                                     -   Arn
             MethodResponses: []
-    ApiResourceEvents:
-        Type: AWS::ApiGateway::Method
+    
+    ApiResourceRestRoot:
+        Type: AWS::ApiGateway::Resource
         Properties:
-            ParentId: 
+            ParentId:
                 Fn::GetAtt:
                     - PublicRestApi
                     - RootResourceId
+            PathPart: rest
+            RestApiId:
+                Ref: PublicRestApi
+    ApiResourceEvents:
+        Type: AWS::ApiGateway::Resource
+        Properties:
+            ParentId:
+                Ref: ApiResourceRestRoot
             PathPart: bot
             RestApiId: 
                 Ref: PublicRestApi
