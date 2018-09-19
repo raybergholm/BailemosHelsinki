@@ -1,6 +1,6 @@
 {
     "private": true,
-    "name": "BailemosHelsinki",
+    "name": "bailemos-helsinki",
     "version": "0.2.0",
     "author": "Raymond Bergholm",
     "description": "",
@@ -11,7 +11,9 @@
     "license": "MIT",
     "main": "",
     "scripts": {
-        "test": ""
+        "test": "",
+        "sh-pack": "./scripts/create_lambda_package.sh",
+        "py-pack": "./scripts/create_lambda_package.py"
     },
     "dependencies": {
         "moment": "^2.20.1"
