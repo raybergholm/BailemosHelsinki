@@ -3,24 +3,37 @@
 prod_mode=false
 lambda_dir=
 package_name=
+main_handler=
 
-while :; do
-    case $1 in
-        -p|--prod)
+while getopts ":pn:m:" opt; do
+    case ${opt} in
+        p )
             prod_mode=true
-            lambda_dir=$2
-            break
             ;;
-        *)
-            lambda_dir=$1
-            break
+        n )
+            package_name=$OPTARG
+            ;;
+        m )
+            main_handler=$OPTARG
+            ;;
+        \? ) 
+            echo "Invalid option: ${opt}" 1>&2
+            ;;
+        : )
+            echo "Invalid option: $OPTARG requires an argument" 1>&2
+            ;;
     esac
-
-    shift
 done
+shift $((OPTIND -1))
+
+lambda_dir=$1
 
 if [ -z "$package_name" ]; then
     package_name=${lambda_dir##*\/}
+fi
+
+if [ -z "$main_handler" ]; then
+    main_handler="index"
 fi
 
 if [ ! -d "$lambda_dir" ]; then
@@ -43,7 +56,7 @@ if [ $prod_mode = true ]; then
 fi
 
 echo "[INFO] Generating lambda package"
-zip -r "$lambda_package" ./index.js modules node_modules
+zip -r "$lambda_package" "./$main_handler.js" modules node_modules
 
 if [ $prod_mode = true ]; then
     echo "[INFO] Reinstalling node modules"
