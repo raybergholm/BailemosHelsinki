@@ -33,7 +33,7 @@ module.exports = {
         conversation.respondToQuickReply(payload);
     },
 
-    readMessage: function (text, attachments, nlp) { // main method: read input text and/or attachments, then reply with something 
+    readMessage: (text, attachments, nlp) => { // main method: read input text and/or attachments, then reply with something 
         console.log(`Incoming message: "${text}", ${attachments ? "with" : "no"} attachments, NLP: `, nlp);
         
         if (attachments) {

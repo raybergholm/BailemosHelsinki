@@ -64,19 +64,19 @@ const handleReceivedMessage = ({sender, message}) => {
 
     botty.initConversation(senderId, DEBUG_MODE);
 
-    if (quick_reply) {
-        botty.respondToQuickReply(quick_reply.payload);
-    } else {
-        botty.readMessage({text, attachments, nlp});
-    }
+    return botty.readMessage(message);
 };
 
 const handleDeliveryReceipt = (message) => {
     console.log("Message delivery response: ", message.delivery);
+
+    return true;
 };
 
 const handleReadReceipt = (message) => {
     console.log("Message read response: ", message.read);
+
+    return true;
 };
 
 module.exports = {
