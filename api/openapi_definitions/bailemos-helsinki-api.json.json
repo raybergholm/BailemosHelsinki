@@ -1,0 +1,1138 @@
+{
+  "openapi" : "3.0.0",
+  "info" : {
+    "title" : "Bailemos Helsinki API",
+    "description" : "Public-facing API for BailemosHelsinki",
+    "contact" : {
+      "email" : "raybergholm@gmail.com"
+    },
+    "version" : "1.0.0"
+  },
+  "servers" : [ {
+    "url" : "https://api.bailemos-helsinki.com/{environment}",
+    "variables" : {
+      "environment" : {
+        "default" : "dev",
+        "enum" : [ "dev", "qa", "prod" ]
+      }
+    }
+  } ],
+  "security" : [ {
+    "BasicAuth" : [ ],
+    "ApiKeyAuth" : [ ]
+  } ],
+  "tags" : [ {
+    "name" : "Status"
+  }, {
+    "name" : "Events"
+  }, {
+    "name" : "Organisers"
+  }, {
+    "name" : "Locations"
+  }, {
+    "name" : "CORS"
+  } ],
+  "paths" : {
+    "/health" : {
+      "get" : {
+        "tags" : [ "Server Status" ],
+        "summary" : "checks API health",
+        "description" : "checks API health",
+        "operationId" : "checkHealth",
+        "responses" : {
+          "200" : {
+            "description" : "Simple string response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options" : {
+        "tags" : [ "CORS" ],
+        "summary" : "CORS support",
+        "description" : "Enable CORS by returning correct headers",
+        "responses" : {
+          "200" : {
+            "description" : "Default response for CORS method",
+            "headers" : {
+              "Access-Control-Allow-Headers" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Origin" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "type" : "mock",
+          "requestTemplates" : {
+            "application/json" : "{\n  \"statusCode\" : 200\n}\n"
+          },
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseParameters" : {
+                "method.response.header.Access-Control-Allow-Headers" : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+                "method.response.header.Access-Control-Allow-Methods" : "'*'",
+                "method.response.header.Access-Control-Allow-Origin" : "'*'"
+              },
+              "responseTemplates" : {
+                "application/json" : "{}\n"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events" : {
+      "get" : {
+        "tags" : [ "Events" ],
+        "summary" : "Query events",
+        "description" : "Query event",
+        "operationId" : "queryEvents",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "query",
+          "description" : "Date",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "location",
+          "in" : "query",
+          "description" : "Location",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "example" : "Mannerheimintie, Helsinki, etc"
+          }
+        }, {
+          "name" : "name",
+          "in" : "query",
+          "description" : "Name",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "time",
+          "in" : "query",
+          "description" : "Time",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "time"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "List of events",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArrayOfEvents"
+                }
+              }
+            }
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Event" ],
+        "summary" : "Create new event",
+        "description" : "Create new event",
+        "operationId" : "createEvent",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Event"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "List of events",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options" : {
+        "tags" : [ "CORS" ],
+        "summary" : "CORS support",
+        "description" : "Enable CORS by returning correct headers",
+        "responses" : {
+          "200" : {
+            "description" : "Default response for CORS method",
+            "headers" : {
+              "Access-Control-Allow-Headers" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Origin" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "type" : "mock",
+          "requestTemplates" : {
+            "application/json" : "{\n  \"statusCode\" : 200\n}\n"
+          },
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseParameters" : {
+                "method.response.header.Access-Control-Allow-Headers" : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+                "method.response.header.Access-Control-Allow-Methods" : "'*'",
+                "method.response.header.Access-Control-Allow-Origin" : "'*'"
+              },
+              "responseTemplates" : {
+                "application/json" : "{}\n"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{eventId}" : {
+      "get" : {
+        "tags" : [ "Events" ],
+        "summary" : "Get event info",
+        "description" : "Get event info",
+        "operationId" : "getEvent",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "List of events",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Events" ],
+        "summary" : "Update event info",
+        "description" : "Update event info",
+        "operationId" : "updateEvent",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Event"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Operation successful"
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Events" ],
+        "summary" : "Remove event",
+        "description" : "Remove event",
+        "operationId" : "removeEvent",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Operation successful"
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options" : {
+        "tags" : [ "CORS" ],
+        "summary" : "CORS support",
+        "description" : "Enable CORS by returning correct headers",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Default response for CORS method",
+            "headers" : {
+              "Access-Control-Allow-Headers" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Origin" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "type" : "mock",
+          "requestTemplates" : {
+            "application/json" : "{\n  \"statusCode\" : 200\n}\n"
+          },
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseParameters" : {
+                "method.response.header.Access-Control-Allow-Headers" : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+                "method.response.header.Access-Control-Allow-Methods" : "'*'",
+                "method.response.header.Access-Control-Allow-Origin" : "'*'"
+              },
+              "responseTemplates" : {
+                "application/json" : "{}\n"
+              }
+            }
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Events" ],
+        "summary" : "Replace event info",
+        "description" : "Replace event info",
+        "operationId" : "replaceEvent",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Event"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Operation successful"
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{eventId}/schedule" : {
+      "post" : {
+        "tags" : [ "Events" ],
+        "summary" : "Add new schedule to event",
+        "description" : "Add new schedule to event",
+        "operationId" : "addScheduleEntry",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Schedule"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Operation successful"
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Events" ],
+        "summary" : "Remove schedule entry in event",
+        "description" : "Remove schedule entry in event",
+        "operationId" : "removeScheduleEntry",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        }, {
+          "name" : "scheduleIndex",
+          "in" : "query",
+          "description" : "Index of the entry to remove",
+          "required" : true,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Operation successful"
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options" : {
+        "tags" : [ "CORS" ],
+        "summary" : "CORS support",
+        "description" : "Enable CORS by returning correct headers",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Default response for CORS method",
+            "headers" : {
+              "Access-Control-Allow-Headers" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Origin" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "type" : "mock",
+          "requestTemplates" : {
+            "application/json" : "{\n  \"statusCode\" : 200\n}\n"
+          },
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseParameters" : {
+                "method.response.header.Access-Control-Allow-Headers" : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+                "method.response.header.Access-Control-Allow-Methods" : "'*'",
+                "method.response.header.Access-Control-Allow-Origin" : "'*'"
+              },
+              "responseTemplates" : {
+                "application/json" : "{}\n"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{eventId}/schedule/{scheduleIndex}" : {
+      "put" : {
+        "tags" : [ "Events" ],
+        "summary" : "Update schedule entry in event",
+        "description" : "Update schedule entry in event",
+        "operationId" : "updateScheduleEntry",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        }, {
+          "name" : "scheduleIndex",
+          "in" : "path",
+          "description" : "Schedule Index",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Schedule"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Operation successful"
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options" : {
+        "tags" : [ "CORS" ],
+        "summary" : "CORS support",
+        "description" : "Enable CORS by returning correct headers",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        }, {
+          "name" : "scheduleIndex",
+          "in" : "path",
+          "description" : "Schedule Index",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Default response for CORS method",
+            "headers" : {
+              "Access-Control-Allow-Headers" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Origin" : {
+                "style" : "simple",
+                "explode" : false,
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "type" : "mock",
+          "requestTemplates" : {
+            "application/json" : "{\n  \"statusCode\" : 200\n}\n"
+          },
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseParameters" : {
+                "method.response.header.Access-Control-Allow-Headers" : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+                "method.response.header.Access-Control-Allow-Methods" : "'*'",
+                "method.response.header.Access-Control-Allow-Origin" : "'*'"
+              },
+              "responseTemplates" : {
+                "application/json" : "{}\n"
+              }
+            }
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "Events" ],
+        "summary" : "Replace schedule entry in event",
+        "description" : "Replace schedule entry in event",
+        "operationId" : "replaceScheduleEntry",
+        "parameters" : [ {
+          "name" : "eventId",
+          "in" : "path",
+          "description" : "Event Id",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          }
+        }, {
+          "name" : "scheduleIndex",
+          "in" : "path",
+          "description" : "Schedule Index",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Schedule"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Operation successful"
+          },
+          "default" : {
+            "description" : "Standard response returned from most error cases",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_default"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "Uuid" : {
+        "type" : "string",
+        "format" : "uuid",
+        "example" : "d290f1ee-6c54-4b01-90e6-d701748f0851"
+      },
+      "UuidReadOnly" : {
+        "type" : "string",
+        "format" : "uuid",
+        "readOnly" : true,
+        "example" : "d290f1ee-6c54-4b01-90e6-d701748f0851"
+      },
+      "Event" : {
+        "type" : "object",
+        "properties" : {
+          "_id" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          },
+          "created" : {
+            "type" : "string",
+            "format" : "date-time",
+            "readOnly" : true
+          },
+          "desc" : {
+            "type" : "string"
+          },
+          "endDateTime" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "location" : {
+            "$ref" : "#/components/schemas/Location"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "modified" : {
+            "type" : "string",
+            "format" : "date-time",
+            "readOnly" : true
+          },
+          "schedule" : {
+            "$ref" : "#/components/schemas/ArrayOfSchedules"
+          },
+          "startDateTime" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "Schedule" : {
+        "required" : [ "desc", "endDateTime", "location", "startDateTime" ],
+        "type" : "object",
+        "properties" : {
+          "endDateTime" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "desc" : {
+            "type" : "string"
+          },
+          "location" : {
+            "$ref" : "#/components/schemas/Location"
+          },
+          "startDateTime" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "Location" : {
+        "required" : [ "_id", "name" ],
+        "type" : "object",
+        "properties" : {
+          "_id" : {
+            "$ref" : "#/components/schemas/UuidReadOnly"
+          },
+          "address" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "gps" : {
+            "$ref" : "#/components/schemas/GpsCoordinates"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Address" : {
+        "required" : [ "streetName", "streetNumber" ],
+        "type" : "object",
+        "properties" : {
+          "city" : {
+            "type" : "string"
+          },
+          "country" : {
+            "type" : "string"
+          },
+          "postalCode" : {
+            "type" : "string"
+          },
+          "streetName" : {
+            "type" : "string"
+          },
+          "streetNumber" : {
+            "type" : "string"
+          }
+        }
+      },
+      "GpsCoordinates" : {
+        "required" : [ "latitude", "longitude" ],
+        "type" : "object",
+        "properties" : {
+          "latitude" : {
+            "type" : "string"
+          },
+          "longitude" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ArrayOfSchedules" : {
+        "type" : "array",
+        "readOnly" : true,
+        "items" : {
+          "$ref" : "#/components/schemas/Schedule"
+        }
+      },
+      "ArrayOfEvents" : {
+        "type" : "array",
+        "readOnly" : true,
+        "items" : {
+          "$ref" : "#/components/schemas/Event"
+        }
+      },
+      "inline_response_default" : {
+        "type" : "object",
+        "properties" : {
+          "message" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "responses" : {
+      "OptionsCorsResponse" : {
+        "description" : "Default response for CORS method",
+        "headers" : {
+          "Access-Control-Allow-Headers" : {
+            "style" : "simple",
+            "explode" : false,
+            "schema" : {
+              "type" : "string"
+            }
+          },
+          "Access-Control-Allow-Methods" : {
+            "style" : "simple",
+            "explode" : false,
+            "schema" : {
+              "type" : "string"
+            }
+          },
+          "Access-Control-Allow-Origin" : {
+            "style" : "simple",
+            "explode" : false,
+            "schema" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "GeneralErrorResponse" : {
+        "description" : "Standard response returned from most error cases",
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "$ref" : "#/components/schemas/inline_response_default"
+            }
+          }
+        }
+      },
+      "SimpleStringResponse" : {
+        "description" : "Simple string response",
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "ArrayOfEventsResponse" : {
+        "description" : "List of events",
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "$ref" : "#/components/schemas/ArrayOfEvents"
+            }
+          }
+        }
+      },
+      "SingleEventResponse" : {
+        "description" : "List of events",
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "$ref" : "#/components/schemas/Event"
+            }
+          }
+        }
+      }
+    },
+    "parameters" : {
+      "PathEventId" : {
+        "name" : "eventId",
+        "in" : "path",
+        "description" : "Event Id",
+        "required" : true,
+        "style" : "simple",
+        "explode" : false,
+        "schema" : {
+          "$ref" : "#/components/schemas/UuidReadOnly"
+        }
+      },
+      "PathScheduleIndex" : {
+        "name" : "scheduleIndex",
+        "in" : "path",
+        "description" : "Schedule Index",
+        "required" : true,
+        "style" : "simple",
+        "explode" : false,
+        "schema" : {
+          "type" : "integer"
+        }
+      },
+      "QueryDate" : {
+        "name" : "date",
+        "in" : "query",
+        "description" : "Date",
+        "required" : false,
+        "style" : "form",
+        "explode" : true,
+        "schema" : {
+          "type" : "string",
+          "format" : "date"
+        }
+      },
+      "QueryLocation" : {
+        "name" : "location",
+        "in" : "query",
+        "description" : "Location",
+        "required" : false,
+        "style" : "form",
+        "explode" : true,
+        "schema" : {
+          "type" : "string",
+          "example" : "Mannerheimintie, Helsinki, etc"
+        }
+      },
+      "QueryName" : {
+        "name" : "name",
+        "in" : "query",
+        "description" : "Name",
+        "required" : false,
+        "style" : "form",
+        "explode" : true,
+        "schema" : {
+          "type" : "string"
+        }
+      },
+      "QueryScheduleIndex" : {
+        "name" : "scheduleIndex",
+        "in" : "query",
+        "description" : "Index of the entry to remove",
+        "required" : true,
+        "style" : "form",
+        "explode" : true,
+        "schema" : {
+          "type" : "integer"
+        }
+      },
+      "QueryTime" : {
+        "name" : "time",
+        "in" : "query",
+        "description" : "Time",
+        "required" : false,
+        "style" : "form",
+        "explode" : true,
+        "schema" : {
+          "type" : "string",
+          "format" : "time"
+        }
+      }
+    },
+    "securitySchemes" : {
+      "BasicAuth" : {
+        "type" : "http",
+        "scheme" : "basic"
+      },
+      "ApiKeyAuth" : {
+        "type" : "apiKey",
+        "name" : "x-api-key",
+        "in" : "header"
+      }
+    }
+  }
+}

@@ -1,0 +1,556 @@
+openapi: 3.0.0
+# Added by API Auto Mocking Plugin
+servers:
+  - url: "https://api.bailemos-helsinki.com/{environment}"
+    variables:
+      environment:
+        default: dev
+        enum:
+          - dev
+          - qa
+          - prod
+security: [ { BasicAuth: [], ApiKeyAuth: [] }] # both are required: The Public API requires the API key and Atlas is downstream which uses the Basic auth
+info:
+  description: Public-facing API for BailemosHelsinki
+  version: "1.0.0"
+  title: Bailemos Helsinki API
+  contact:
+    email: raybergholm@gmail.com
+
+tags:
+  - name: Status
+  - name: Events
+  - name: Organisers
+  - name: Locations
+  - name: CORS
+
+paths:
+  /health:
+    options:
+      tags:
+        - CORS
+      summary: CORS support
+      description: Enable CORS by returning correct headers
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          "default":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods : "'*'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+            responseTemplates:
+              application/json: |
+                {}
+      responses:
+        200:
+          $ref: "#/components/responses/OptionsCorsResponse"
+    get:
+      tags:
+        - Server Status
+      summary: checks API health
+      description: checks API health
+      operationId: checkHealth
+      responses:
+        200:
+          $ref: "#/components/responses/SimpleStringResponse"
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"
+  /events:
+    options:
+      tags:
+        - CORS
+      summary: CORS support
+      description: Enable CORS by returning correct headers
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          "default":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods : "'*'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+            responseTemplates:
+              application/json: |
+                {}
+      responses:
+        200:
+          $ref: "#/components/responses/OptionsCorsResponse"
+    get:
+      tags:
+        - Events
+      summary: Query events
+      description: Query event
+      operationId: queryEvents
+      parameters:
+        - $ref: "#/components/parameters/QueryDate"
+        - $ref: "#/components/parameters/QueryLocation"
+        - $ref: "#/components/parameters/QueryName"
+        - $ref: "#/components/parameters/QueryTime"
+      responses:
+        200:
+          $ref: "#/components/responses/ArrayOfEventsResponse"
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"
+    
+    post:
+      tags:
+        - Event
+      summary: Create new event
+      description: Create new event
+      operationId: createEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Event"
+      responses:
+        200:
+          $ref: "#/components/responses/SingleEventResponse"
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"
+      
+  /events/{eventId}:
+    options:
+      tags:
+        - CORS
+      summary: CORS support
+      description: Enable CORS by returning correct headers
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          "default":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods : "'*'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+            responseTemplates:
+              application/json: |
+                {}
+      responses:
+        200:
+          $ref: "#/components/responses/OptionsCorsResponse"
+    get:
+      tags:
+        - Events
+      summary: Get event info
+      description: Get event info
+      operationId: getEvent
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+      responses:
+        200:
+          $ref: "#/components/responses/SingleEventResponse"
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"
+
+    put:
+      tags:
+        - Events
+      summary: Update event info
+      description: Update event info
+      operationId: updateEvent
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Event"  
+      responses:
+        204:
+          description: Operation successful
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"                
+    patch:
+      tags:
+        - Events
+      summary: Replace event info
+      description: Replace event info
+      operationId: replaceEvent
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Event"    
+      responses:
+        204:
+          description: Operation successful
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"
+    delete:
+      tags:
+        - Events
+      summary: Remove event
+      description: Remove event
+      operationId: removeEvent
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+      responses:
+        204:
+          description: Operation successful
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"  
+
+  /events/{eventId}/schedule:
+    options:
+      tags:
+        - CORS
+      summary: CORS support
+      description: Enable CORS by returning correct headers
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          "default":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods : "'*'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+            responseTemplates:
+              application/json: |
+                {}
+      responses:
+        200:
+          $ref: "#/components/responses/OptionsCorsResponse"
+    post:
+      tags:
+        - Events
+      summary: Add new schedule to event
+      description: Add new schedule to event
+      operationId: addScheduleEntry
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Schedule"  
+      responses:
+        204:
+          description: Operation successful
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse" 
+    delete:
+      tags:
+        - Events
+      summary: Remove schedule entry in event
+      description: Remove schedule entry in event
+      operationId: removeScheduleEntry
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+        - $ref: "#/components/parameters/QueryScheduleIndex" 
+      responses:
+        204:
+          description: Operation successful
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"         
+  /events/{eventId}/schedule/{scheduleIndex}:
+    options:
+      tags:
+        - CORS
+      summary: CORS support
+      description: Enable CORS by returning correct headers
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+        - $ref: "#/components/parameters/PathScheduleIndex"
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          "default":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods : "'*'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+            responseTemplates:
+              application/json: |
+                {}
+      responses:
+        200:
+          $ref: "#/components/responses/OptionsCorsResponse"                 
+    put:
+      tags:
+        - Events
+      summary: Update schedule entry in event
+      description: Update schedule entry in event
+      operationId: updateScheduleEntry
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+        - $ref: "#/components/parameters/PathScheduleIndex"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Schedule"  
+      responses:
+        204:
+          description: Operation successful
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"                
+    patch:
+      tags:
+        - Events
+      summary: Replace schedule entry in event
+      description: Replace schedule entry in event
+      operationId: replaceScheduleEntry
+      parameters:
+        - $ref: "#/components/parameters/PathEventId"
+        - $ref: "#/components/parameters/PathScheduleIndex"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Schedule"    
+      responses:
+        204:
+          description: Operation successful
+        default:
+          $ref: "#/components/responses/GeneralErrorResponse"
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+      example: d290f1ee-6c54-4b01-90e6-d701748f0851
+    UuidReadOnly:
+      type: string
+      format: uuid
+      readOnly: true
+      example: d290f1ee-6c54-4b01-90e6-d701748f0851
+    Event:
+      type: object
+      properties:
+        _id:
+          $ref: "#/components/schemas/UuidReadOnly"
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        desc:
+          type: string
+        endDateTime:
+          type: string
+          format: date-time
+        location: # can be left empty if schedule is used
+          $ref: "#/components/schemas/Location"
+        name:
+          type: string
+        modified:
+          type: string
+          format: date-time
+          readOnly: true
+        schedule: # optional, only necessary for multiple subevents
+          $ref: "#/components/schemas/ArrayOfSchedules"
+        startDateTime:
+          type: string
+          format: date-time
+    Schedule:
+      type: object
+      required:
+        - endDateTime
+        - desc
+        - location
+        - startDateTime
+      properties:
+        endDateTime:
+          type: string
+          format: date-time
+        desc:
+          type: string
+        location:
+          $ref: "#/components/schemas/Location"
+        startDateTime:
+          type: string
+          format: date-time
+    Location:
+      type: object
+      required:
+        - _id
+        - name
+      properties:
+        _id:
+          $ref: "#/components/schemas/UuidReadOnly"
+        address:
+          $ref: "#/components/schemas/Address"
+        gps:
+          $ref: "#/components/schemas/GpsCoordinates"
+        name:
+          type: string
+    Address:
+      type: object
+      required:
+        - streetName
+        - streetNumber
+      properties:
+        city:
+          type: string
+        country:
+          type: string
+        postalCode:
+          type: string
+        streetName:
+          type: string
+        streetNumber:
+          type: string
+    GpsCoordinates:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: string
+        longitude:
+          type: string
+
+    ArrayOfSchedules:
+      type: array
+      readOnly: true
+      items:
+        $ref: "#/components/schemas/Schedule"
+    ArrayOfEvents:
+      type: array
+      readOnly: true
+      items:
+        $ref: "#/components/schemas/Event"
+
+
+  parameters:
+    PathEventId:
+      in: path
+      name: eventId
+      description: Event Id
+      required: true
+      schema:
+        $ref: "#/components/schemas/UuidReadOnly"
+    PathScheduleIndex:
+      in: path
+      name: scheduleIndex
+      description: Schedule Index
+      required: true
+      schema:
+        type: integer
+    QueryDate:
+      in: query
+      name: date
+      description: Date
+      schema:
+        type: string
+        format: date
+    QueryLocation:
+      in: query
+      name: location
+      description: Location
+      schema:
+        type: string
+        example: "Mannerheimintie, Helsinki, etc"        
+    QueryName:
+      in: query
+      name: name
+      description: Name
+      schema:
+        type: string
+    QueryScheduleIndex:
+      in: query
+      name: scheduleIndex
+      description: Index of the entry to remove
+      required: true
+      schema:
+        type: integer
+    QueryTime:
+      in: query
+      name: time
+      description: Time
+      schema:
+        type: string
+        format: time
+  responses:
+    OptionsCorsResponse:
+      description: Default response for CORS method
+      headers:
+        Access-Control-Allow-Headers:
+          schema:
+            type: "string"
+        Access-Control-Allow-Methods:
+          schema:
+            type: "string"
+        Access-Control-Allow-Origin:
+          schema:
+            type: "string"
+    GeneralErrorResponse:
+      description: Standard response returned from most error cases
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    SimpleStringResponse:
+      description: Simple string response
+      content:
+        application/json:
+          schema:
+            type: string
+    ArrayOfEventsResponse:
+      description: List of events
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ArrayOfEvents"
+    SingleEventResponse:
+      description: List of events
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Event"
