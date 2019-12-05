@@ -404,6 +404,14 @@ components:
         startDateTime:
           type: string
           format: date-time
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+    Visibility:
+      type: string
+      enum:
+        - private
+        - public
+        - unlisted
     Schedule:
       type: object
       required:
