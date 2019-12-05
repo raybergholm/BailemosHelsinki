@@ -2,6 +2,8 @@
 
 This is a chatbot application designed to be run on AWS. It integrates with a corresponding Facebook app, the standard use case is that it is connected to a public page and any messages sent to the page IM is forwarded to the chatbot.
 
+**NOTE:** Due to the changes in Facebook Graph API regarding privacy, even fetching public data from Facebook pages require a full app review process so this project is currently on hiatus. Depending on the required workload, I may eventually come back and try to build a new working solution.
+
 ---
 
 ## Subsections
