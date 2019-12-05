@@ -404,11 +404,16 @@ components:
         startDateTime:
           type: string
           format: date-time
+        whitelist:
+          oneOf:
+            - $ref: "#/components/schemas/ArrayOfUuids"
+            - $ref: "#/components/schemas/ArrayOfUsers"
         visibility:
           $ref: "#/components/schemas/Visibility"
     Visibility:
       type: string
       enum:
+        - inviteonly
         - private
         - public
         - unlisted
