@@ -20,7 +20,7 @@ info:
 tags:
   - name: Status
   - name: Events
-  - name: Organisers
+  - name: Users
   - name: Locations
   - name: CORS
 
@@ -372,25 +372,35 @@ components:
       properties:
         _id:
           $ref: "#/components/schemas/UuidReadOnly"
+        admins:
+          oneOf:
+            - $ref: "#/components/schemas/ArrayOfUuids"
+            - $ref: "#/components/schemas/ArrayOfUsers"
         created:
           type: string
           format: date-time
           readOnly: true
+        createdBy:
+          $ref: "#/components/schemas/UuidReadOnly"
         desc:
           type: string
         endDateTime:
           type: string
           format: date-time
+        events:
+          oneOf:
+            - $ref: "#/components/schemas/ArrayOfUuids"
+            - $ref: "#/components/schemas/ArrayOfEvents"
         location: # can be left empty if schedule is used
           $ref: "#/components/schemas/Location"
-        name:
-          type: string
         modified:
           type: string
           format: date-time
           readOnly: true
-        schedule: # optional, only necessary for multiple subevents
-          $ref: "#/components/schemas/ArrayOfSchedules"
+        modifiedBy:
+            $ref: "#/components/schemas/UuidReadOnly"
+        name:
+          type: string
         startDateTime:
           type: string
           format: date-time
@@ -452,7 +462,27 @@ components:
           type: string
         longitude:
           type: string
-
+    User:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          $ref: "#/components/schemas/UuidReadOnly"
+        displayName:
+          type: string
+        events:
+          $ref: "#/components/schemas/ArrayOfUuids"
+        firstName:
+          type: string
+        surname:
+          type: string
+    
+    ArrayOfUuids:
+      type: array
+      readOnly: true
+      items:
+        $ref: "#/components/schemas/UuidReadOnly"
     ArrayOfSchedules:
       type: array
       readOnly: true
@@ -463,6 +493,11 @@ components:
       readOnly: true
       items:
         $ref: "#/components/schemas/Event"
+    ArrayOfUsers:
+      type: array
+      readOnly: true
+      items:
+        $ref: "#/components/schemas/User"
 
 
   parameters:
